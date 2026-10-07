@@ -35,6 +35,13 @@ const refreshLanguageSwitch = mountLanguageSwitch(document.querySelector('.langs
 mountSiteLock(document.querySelector('.nav__lock'));
 restoreLock();
 
+/**
+ * The site's own address, for the footer. Shown everywhere except on it — the
+ * Apps Script build, a local server — so a reader always has the real URL to
+ * bookmark or pass on. The address is its own label in every language.
+ */
+const WEBSITE = 'https://profegpt.onrender.com';
+
 const NAV_KEYS = {
   traductor: 'translator',
   conjugacion: 'conjugation',
@@ -61,6 +68,13 @@ function paintChrome() {
     href: t('meta.footerHref'), target: '_blank', rel: 'noopener', textContent: t('meta.footerDict'),
   }));
   footer.append(t('meta.footerCredit'));
+  if (window.location.origin !== WEBSITE) {
+    const site = Object.assign(document.createElement('span'), { className: 'footer__site' });
+    site.appendChild(Object.assign(document.createElement('a'), {
+      href: WEBSITE, target: '_blank', rel: 'noopener', textContent: new URL(WEBSITE).host,
+    }));
+    footer.appendChild(site);
+  }
   footer.appendChild(Object.assign(document.createElement('span'), {
     className: 'footer__legal',
     textContent: t('meta.copyright'),

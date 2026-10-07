@@ -66,7 +66,7 @@ const server = app.listen(PORT, () => {
   } else {
     chain.forEach((provider, index) => {
       const role = index === 0 ? 'Model' : ' ↳ then';
-      console.log(`  ${role}: ${provider.label} (${provider.model})${provider.free ? ' — free' : ' — PAID'}`);
+      console.log(`  ${role}: ${provider.label} (${provider.model})${provider.free ? ' — free' : ''}`);
     });
   }
 });

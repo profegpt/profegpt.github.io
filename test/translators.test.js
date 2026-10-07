@@ -22,7 +22,6 @@ process.env.LINGVA_INSTANCES = 'lingva-one.test,lingva-two.test,lingva-three.tes
 // free-tier-shaped key so the host it picks can be asserted.
 delete process.env.GEMINI_API_KEY;
 delete process.env.OPENROUTER_API_KEY;
-delete process.env.ANTHROPIC_API_KEY;
 delete process.env.GROQ_API_KEY;
 process.env.DEEPL_API_KEY = 'test-key:fx';
 
