@@ -199,6 +199,58 @@ function downlevel(code) {
   return code.replace(/(?<![\w$.])(\d+(?:_\d+)+)(?![\w$])/g, (literal) => literal.replace(/_/g, ''));
 }
 
+/** Index of the bracket closing the one at `open`, skipping strings and comments. */
+function matching(code, open) {
+  const pairs = { '(': ')', '{': '}', '[': ']' };
+  const stack = [];
+  for (let i = open; i < code.length; i += 1) {
+    const char = code[i];
+    if (char === '/' && code[i + 1] === '/') { i = code.indexOf('\n', i); continue; }
+    if (char === '/' && code[i + 1] === '*') { i = code.indexOf('*/', i) + 1; continue; }
+    if (char === '"' || char === "'" || char === '`') {
+      for (i += 1; code[i] !== char; i += 1) if (code[i] === '\\') i += 1;
+      continue;
+    }
+    if (pairs[char]) stack.push(pairs[char]);
+    else if (char === stack.at(-1)) {
+      stack.pop();
+      if (!stack.length) return i;
+    }
+  }
+  throw new Error(`unbalanced bracket at ${open}`);
+}
+
+/**
+ * Apps Script refuses async generators at upload — its parser lags the V8 it
+ * runs on. The server's few are only ever read with `for await`, and every
+ * chunk they read is already in hand (UrlFetchApp returns whole bodies), so
+ * each becomes an async function returning the array of what it would have
+ * yielded, and each `for await (x of g())` becomes `for (x of await g())`.
+ */
+function flattenAsyncGenerators(code) {
+  let out = code;
+  for (let at = out.search(/async function\s*\*/); at !== -1; at = out.search(/async function\s*\*/)) {
+    const paramsOpen = out.indexOf('(', at);
+    const bodyOpen = out.indexOf('{', matching(out, paramsOpen));
+    const bodyClose = matching(out, bodyOpen);
+    const body = out.slice(bodyOpen + 1, bodyClose)
+      .replace(/\byield\s+([^;]+);/g, '__yielded.push($1);')
+      .replace(/\breturn;/g, 'return __yielded;');
+    if (/\byield\b/.test(body)) throw new Error('an async generator yields in a form the build cannot flatten');
+    const head = out.slice(at, bodyOpen).replace(/async function\s*\*\s*/, 'async function ');
+    out = `${out.slice(0, at)}${head}{\nconst __yielded = [];${body}return __yielded;\n}${out.slice(bodyClose + 1)}`;
+  }
+
+  for (let at = out.search(/for await \(/); at !== -1; at = out.search(/for await \(/)) {
+    const open = out.indexOf('(', at);
+    const close = matching(out, open);
+    const header = /^\(\s*(const|let)\s+([\s\S]+?)\s+of\s+([\s\S]+)\)$/.exec(out.slice(open, close + 1));
+    if (!header) throw new Error('a for await loop the build cannot flatten');
+    out = `${out.slice(0, at)}for (${header[1]} ${header[2]} of await (${header[3]}))${out.slice(close + 1)}`;
+  }
+  return out;
+}
+
 /** Inside an inline <script>, the only sequence that matters is the one that ends it. */
 const inlineSafe = (code) => code.replace(/<\/script/gi, '<\\/script').replace(/<!--/g, '<\\!--');
 
@@ -269,7 +321,7 @@ if (profegpt_.instance) return profegpt_.instance;
 
 ${read('appscript/src/shim.js')}
 
-${downlevel(server.code)}
+${flattenAsyncGenerators(downlevel(server.code))}
 const __load = __require;
 
 profegpt_.instance = {
