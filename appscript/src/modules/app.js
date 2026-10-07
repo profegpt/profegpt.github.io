@@ -21,6 +21,9 @@ const MOUNTS = [
   ['/api/speak', 'server/routes/speak.js'],
 ];
 
+/** Counted for the page's no-keys notice; their values never leave the server. */
+const API_KEYS = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'OPENROUTER_API_KEY', 'DEEPL_API_KEY', 'RAE_API_KEY', 'ELEVENLABS_API_KEY'];
+
 const MAX_BODY = 256 * 1024; // as express.json({ limit: '256kb' })
 
 function query(search) {
@@ -56,7 +59,14 @@ export async function handle(request) {
 
   if (path === '/api/health') {
     const res = new Recorder();
-    return res.json({ ok: true, ai: hasProvider(), provider: providerInfo(), chain: chainInfo(), runtime: 'apps-script' }).serialise();
+    return res.json({
+      ok: true,
+      ai: hasProvider(),
+      provider: providerInfo(),
+      chain: chainInfo(),
+      runtime: 'apps-script',
+      apiKeys: API_KEYS.filter((name) => process.env[name]?.trim()).length,
+    }).serialise();
   }
 
   const mount = MOUNTS.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`));

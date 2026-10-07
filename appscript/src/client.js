@@ -21,7 +21,8 @@
 /* global google */
 
 (function () {
-  const boot = window.__PROFEGPT__ || { path: '/', search: '', url: '' };
+  const given = window.__PROFEGPT__;
+  const boot = given && typeof given === 'object' ? given : { path: '/', search: '', url: '' };
   const script = window.google && google.script;
 
   // ------------------------------------------------------------- server ----
@@ -180,6 +181,16 @@
     mirror('replace', url);
   };
 
+  // If doGet's route never arrived, the address bar still has it.
+  if (given !== boot && script && script.url) {
+    script.url.getLocation((location) => {
+      const target = fromTop(location);
+      if (target === '/') return;
+      nativeReplace({}, '', target);
+      window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+    });
+  }
+
   if (script && script.history) {
     script.history.setChangeHandler((event) => {
       nativeReplace(event.state, '', fromTop(event.location));
@@ -203,6 +214,41 @@
     }
     if (!link.hasAttribute('data-link') && !link.target) link.setAttribute('data-link', '');
   }, true);
+
+  // ------------------------------------------------------- no-keys notice ----
+
+  // Temporary: says so while the script has no API keys at all, and goes away
+  // by itself once any key is in its script properties.
+  const NOTICE = {
+    es: 'Aviso: esta versión aún no tiene claves de API, así que el chat libre, los mejores traductores y la pronunciación están desactivados por ahora. La web completa está en ',
+    fr: 'À noter : cette version n’a pas encore de clés d’API ; le chat libre, les meilleurs traducteurs et la prononciation sont désactivés pour l’instant. Le site complet est sur ',
+    en: 'Note: this version has no API keys yet, so open chat, the best translators and pronunciation are off for now. The full site is at ',
+  };
+  const WEBSITE = 'https://profegpt.onrender.com';
+
+  function showNotice() {
+    const lang = document.documentElement.lang;
+    const bar = document.createElement('div');
+    bar.className = 'keys-notice';
+    bar.setAttribute('role', 'status');
+    bar.append(NOTICE[lang] || NOTICE.en);
+    bar.appendChild(Object.assign(document.createElement('a'), {
+      href: WEBSITE, target: '_blank', rel: 'noopener', textContent: new URL(WEBSITE).host,
+    }));
+    bar.append('.');
+    const style = document.createElement('style');
+    style.textContent = '.keys-notice{position:relative;z-index:41;padding:10px 16px;border-bottom:1px solid var(--line);'
+      + 'background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;text-align:center}.keys-notice a{color:inherit}';
+    document.head.appendChild(style);
+    document.body.prepend(bar);
+  }
+
+  if (script) {
+    window.fetch('/api/health')
+      .then((response) => response.json())
+      .then((health) => { if (health.apiKeys === 0) showNotice(); })
+      .catch(() => {});
+  }
 
   // ----------------------------------------------------------- wallpaper ----
 

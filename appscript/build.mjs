@@ -284,7 +284,7 @@ function page(clientBundle, assetVersion) {
     html,
     '<script type="module" src="/js/app.js"></script>',
     [
-      '<script>window.__PROFEGPT__ = /*__BOOT__*/null;</script>',
+      '<script>window.__PROFEGPT__ = "__PROFEGPT_BOOT__";</script>',
       `<script>\n${inlineSafe(client)}\n</script>`,
       `<script>\n(function () {\n'use strict';\n${inlineSafe(clientBundle)}\n__require('public/js/app.js');\n})();\n</script>`,
     ].join('\n  '),
