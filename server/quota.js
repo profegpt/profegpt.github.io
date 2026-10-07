@@ -1,5 +1,5 @@
 /**
- * Sliding-window quota for the questions that fall through to Claude.
+ * Sliding-window quota for the questions that fall through to a model.
  *
  * Spanish questions are answered by the tutor from the site's own data and cost
  * nothing, so they never reach here. Only the off-topic ones are metered, which

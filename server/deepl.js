@@ -18,15 +18,8 @@
 
 import { throttle, USER_AGENT } from './throttle.js';
 
-/**
- * A free key ends in `:fx` and must go to the free host; a paid one must not.
- * Sending either to the wrong host is a 403 that looks like a bad key.
- */
-function endpoint(key) {
-  return key.endsWith(':fx')
-    ? 'https://api-free.deepl.com/v2/translate'
-    : 'https://api.deepl.com/v2/translate';
-}
+/** A free key ends in `:fx` and goes to the free host — the only one used. */
+const ENDPOINT = 'https://api-free.deepl.com/v2/translate';
 
 /** DeepL's own codes. Latin is absent from this list because it is absent. */
 const CODES = { en: 'EN', es: 'ES', fr: 'FR' };
@@ -34,13 +27,22 @@ const CODES = { en: 'EN', es: 'ES', fr: 'FR' };
 /** Target codes are regional where DeepL insists on it. */
 const TARGETS = { en: 'EN-GB', es: 'ES', fr: 'FR' };
 
+/**
+ * Only a free key is used. A Pro key is billed per character, and the site
+ * must never cost anything, so one is treated as no key at all rather than
+ * trusted to stay under some limit. A free key cannot be charged: past
+ * 500,000 characters DeepL answers 456 and the chain moves on.
+ */
+const isFreeKey = (key) => Boolean(key) && key.endsWith(':fx');
+
 export function hasDeepl() {
-  return Boolean(process.env.DEEPL_API_KEY?.trim());
+  return isFreeKey(process.env.DEEPL_API_KEY?.trim());
 }
 
 export async function deepl(text, from, to) {
   const key = process.env.DEEPL_API_KEY?.trim();
   if (!key) throw new Error('No DeepL key');
+  if (!isFreeKey(key)) throw new Error('DeepL key is not a free (:fx) key; refusing a billed one');
   if (!CODES[from] || !TARGETS[to]) throw new Error(`DeepL has no ${from}|${to} pair`);
 
   const body = new URLSearchParams({
@@ -51,7 +53,7 @@ export async function deepl(text, from, to) {
     preserve_formatting: '0',
   });
 
-  const response = await throttle('deepl', 80, () => fetch(endpoint(key), {
+  const response = await throttle('deepl', 80, () => fetch(ENDPOINT, {
     method: 'POST',
     headers: {
       Authorization: `DeepL-Auth-Key ${key}`,

@@ -76,8 +76,8 @@ confident wrong answer costs more than an honest "outside what I cover".
 It replies in the language you asked in, and carries that choice forward for
 follow-ups that have no language signal of their own.
 
-If `ANTHROPIC_API_KEY` is set, the questions the tutor declined — and only those
-— are passed to Claude instead. Grounded answers always win.
+The questions the tutor declined — and only those — are passed to a free
+model instead. Grounded answers always win.
 
 ### The free allowance
 
@@ -115,7 +115,12 @@ bad afternoon is invisible to the visitor and costs them nothing.
 | 1 | `GEMINI_API_KEY` | `gemini-flash-latest` | free |
 | 2 | `GROQ_API_KEY` | `llama-3.3-70b-versatile` | free |
 | 3 | `OPENROUTER_API_KEY` | three `:free` models, tried in order | free |
-| 4 | `ANTHROPIC_API_KEY` | `claude-opus-5` | **paid** |
+
+There is no paid tier, and none can be added by accident: `server/llm.js`
+drops any provider not marked free. The one thing code cannot see is the
+account behind a key. Gemini and Groq charge only if billing is turned on for
+the key's Cloud project or account, so create the keys where it is off. At the
+cap they answer 429 and the chat moves to the next provider.
 
 `LLM_PROVIDER` pins a single one. With none set, the tutor, conjugator and
 dictionary still work and translation falls back to MyMemory.
@@ -1245,8 +1250,7 @@ cp .env.example .env      # then put your key in it
 | `GROQ_API_KEY` | Free. Another tier. |
 | `OPENROUTER_API_KEY` | Free. The overflow tier — see *Keeping OpenRouter free* above. |
 | `OPENROUTER_MODEL` | Comma-separated `:free` model ids, tried in order. |
-| `ANTHROPIC_API_KEY` | **Paid.** Only reached if it is the only key set, or `LLM_PROVIDER=anthropic`. |
-| `LLM_PROVIDER` | Pin one: `gemini`, `groq`, `openrouter` or `anthropic`. |
+| `LLM_PROVIDER` | Pin one: `gemini`, `groq` or `openrouter`. |
 | `PORT` | Defaults to `4000`. |
 | `CHAT_FREE_LIMIT` | Off-topic chat questions per window, shared by all three languages. Default `5`; set `0` to seal the chat immediately and see the tape. |
 | `RELEASE_PASSCODE` | Opens French and Latin for the browser that types it in the padlock. They are closed until it is. Default `profe`. |
@@ -1287,7 +1291,7 @@ server/
                          list, then Wiktionary
   latin-idioms.js    ·la the phrases Latin says its own way
   env.js                reads .env without a dependency
-  providers/            gemini.js, groq.js, anthropic.js, openrouter.js
+  providers/            gemini.js, groq.js, openrouter.js — free tiers only
   routes/
     translate.js        dedicated engines, never a model
     speak.js            one spoken word, refusing anything that is not one
@@ -1361,9 +1365,24 @@ test/
   lock.test.js              21 on the padlock, against a real express app, and
                                that the two switches never reach each other
   openrouter.test.js        20 checks on the guards that keep OpenRouter free
+  appscript.test.js         17 on the Apps Script build, run in a bare V8
+                               context with stand-in Google services
+
+appscript/
+  build.mjs             server/ and public/ → an Apps Script project in dist/
+  src/Code.js           the four functions a browser may call: doGet, api,
+                        apiResult, asset
+  src/shim.js           fetch, URL, Buffer, timers and process.env, on
+                        UrlFetchApp and friends; caches on CacheService
+  src/client.js         fetch('/api/…') over google.script.run, the cookie
+                        jar, routing through the iframe, wallpapers on demand
+  src/modules/          stand-ins for Express, node:crypto and the throttle;
+                        Gemini on the free AI Studio tier, without streaming
+  emulator.mjs          enough Apps Script to run dist/ under Node
+  preview.mjs           dist/ at localhost:4100, against the real services
 ```
 
-`npm test` runs all 2,213, offline, in a couple of seconds.
+`npm test` runs all 2,230, offline, in a couple of seconds.
 
 ## The conjugation engine
 
@@ -1400,7 +1419,8 @@ claiming an authority behind it.
 
 This is a Node server, not a static site, so GitHub Pages and Netlify's static
 hosting cannot run it — the chat, dictionary and lock all need the server.
-Anything that runs Node works: Render, Railway, Fly.io, or a VPS.
+Anything that runs Node works: Render, Railway, Fly.io, or a VPS. It also
+builds into a Google Apps Script web app; see below.
 
 Whatever you pick, it needs to be **one instance**. The allowance, the teacher's
 lock and the dictionary cache are all held in memory, so a second instance would
@@ -1431,6 +1451,60 @@ keeps a class honest, and nothing more.
 The server already reads `PORT` from the environment, binds on all interfaces,
 and exposes `GET /api/health` for a health check.
 
+### Google Apps Script
+
+The same site also runs as an Apps Script web app, alongside the Render one
+rather than instead of it. It is not a second copy: `appscript/build.mjs` turns
+`server/` and `public/` into an Apps Script project in `appscript/dist`, and
+`appscript/src` supplies the parts Apps Script lacks. A change to the site is a
+change to both; rebuild and push.
+
+It runs on the same free tiers as the Render site, and the same keys go in its
+script properties. Vertex AI was considered and left out: it needs no key, but
+it bills a Cloud project for every request, and this site must never cost
+anything. Apps Script itself is free.
+
+To set it up:
+
+1. `npm install -g @google/clasp`, then `clasp login`.
+2. Create a standalone script at <https://script.google.com>, and put its ID in
+   `appscript/.clasp.json` (copy `.clasp.json.example`).
+3. `npm run appscript:push`, which builds and uploads.
+4. In the editor: *Project Settings → Script properties*, one row for each
+   variable you would put in `.env`. `SESSION_SECRET` is created on its own the
+   first time it is needed.
+5. *Deploy → New deployment → Web app*, executing as yourself, access for
+   anyone. Each later push needs *Manage deployments → Edit → New version*
+   before visitors see it.
+
+`npm run appscript:preview` serves the built project at
+<http://localhost:4100> before any of that. It runs the generated code in a bare
+V8 context, with curl standing in for UrlFetchApp and `.env` for the script
+properties. `test/appscript.test.js` runs the same way, as part of `npm test`.
+
+How it differs from the Node server:
+
+- **Answers arrive in one piece.** Apps Script cannot stream, so the chat has
+  no typing effect. The full reply appears at once.
+- **Nothing is held in memory.** Each request is a fresh process. The caches,
+  the allowance and the teacher's lock live in CacheService instead. That is
+  also why one instance is no longer a concern here. CacheService forgets
+  after six hours at most, so a forgotten lock still lifts itself, as a
+  restart lifts it on Render.
+- **Requests run one after another.** UrlFetchApp is synchronous, so a Latin
+  sentence that looks up six words makes six requests in a row. It is slower
+  than on Node, and it is the same translation.
+- **The page is in an iframe** on another host. Routes are mirrored into the
+  address bar as `?page=conjugacion&v=ir`, so links and the back button work.
+  The allowance's cookie is kept in localStorage, since the page cannot set
+  cookies for the script.
+- **The footer links to the Render site**, profegpt.onrender.com, so a reader
+  in the Apps Script version always has the real address to bookmark or share.
+  On the Render site itself the link is left out.
+- **Quotas are the owner's.** Every visitor's request runs as the deploying
+  account: about 20,000 URL fetches a day on a personal Google account, and
+  30 requests at a time.
+
 ### Environment variables in production
 
 | Variable | Why it matters live |
@@ -1444,7 +1518,7 @@ and exposes `GET /api/health` for a health check.
 | `RELEASE_PASSCODE` | **Change it.** Same reason — it decides who gets French and Latin. |
 | `RELEASE_PASSCODE` | **Change it.** Same reason — it opens the subjects again. |
 | `LINGVA_INSTANCES` | Worth setting. Without a working instance, French and Latin translation falls to MyMemory alone. |
-| `DEEPL_API_KEY` | The single biggest quality difference on the French and Spanish sides — it is asked first and is better than everything under it. Free tier, 500k characters a month; a key ending `:fx` is routed to the free host automatically. It has no Latin. |
+| `DEEPL_API_KEY` | The single biggest quality difference on the French and Spanish sides — it is asked first and is better than everything under it. Free tier, 500k characters a month; only a free key (ending `:fx`) is used — a Pro key is billed, so the server ignores it. It has no Latin. |
 | `MYMEMORY_EMAIL` | Worth setting **on the deployed site**. MyMemory rations anonymous use by IP and a host's IP is shared, so translation can work locally and answer 429 in production — which is exactly what Render did. Naming a contact address is MyMemory's own way of asking for the larger allowance, 1,000 → 10,000 words a day. It is sent with every translation, so use an address you don't mind them having. |
 | `CHAT_FREE_LIMIT` | Off-topic questions per visitor per window. Default 5. |
 
@@ -1468,5 +1542,5 @@ and exposes `GET /api/health` for a health check.
 - The model-backed paths (off-topic chat, model translation, generated example
   sentences) have not been exercised against a live API — no provider key was
   available when they were built. The Gemini and Groq request shapes come from
-  their current docs; the Anthropic one is verified against the SDK. Every path
+  their current docs. Every path
   that runs *without* a key has been tested end to end.

@@ -1,8 +1,10 @@
 /**
  * Picks whichever language-model provider is configured.
  *
- * Free tiers come first, so the site costs nothing to run unless you
- * deliberately point it at a paid one. Set LLM_PROVIDER to force a choice.
+ * Every provider here is a free tier, and that is a rule rather than a
+ * default: the site must never cost anything to run. A provider that is not
+ * free is refused below even if someone adds one. Set LLM_PROVIDER to force a
+ * choice among them.
  *
  * Nothing here is on the critical path for Spanish questions — those are
  * answered by the grounded tutor in the browser, from the site's own data.
@@ -13,14 +15,13 @@
 import * as gemini from './providers/gemini.js';
 import * as groq from './providers/groq.js';
 import * as openrouter from './providers/openrouter.js';
-import * as anthropic from './providers/anthropic.js';
 
 /**
- * Preference order. Free tiers first, and OpenRouter last among them because
- * it is the designated overflow: the primary's allowance is spent before
- * anything reaches it.
+ * Preference order. OpenRouter last because it is the designated overflow: the
+ * primary's allowance is spent before anything reaches it. Anything not marked
+ * free is dropped, so a paid provider cannot be wired in by accident.
  */
-const PROVIDERS = [gemini, groq, openrouter, anthropic];
+const PROVIDERS = [gemini, groq, openrouter].filter((provider) => provider.free === true);
 
 export function activeProvider() {
   const forced = process.env.LLM_PROVIDER?.trim().toLowerCase();
@@ -67,7 +68,7 @@ function required() {
   const provider = activeProvider();
   if (provider) return provider;
   const error = new Error(
-    'No language-model provider is configured. Set GEMINI_API_KEY (free), GROQ_API_KEY (free) or ANTHROPIC_API_KEY.',
+    'No language-model provider is configured. Set GEMINI_API_KEY, GROQ_API_KEY or OPENROUTER_API_KEY (all free).',
   );
   error.status = 503;
   error.code = 'NO_PROVIDER';

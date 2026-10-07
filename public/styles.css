@@ -344,6 +344,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .footer { border-top: 1px solid var(--line); padding: 26px 0; text-align: center; color: var(--text-faint); font-size: 13px; background: var(--bg); }
 .footer p { margin: 0; }
 .footer__legal { display: block; margin-top: 8px; color: var(--text-faint); }
+.footer__site { display: block; margin-top: 8px; }
 .footer a { color: var(--text-dim); }
 
 /* --- hero ----------------------------------------------------------------- */

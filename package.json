@@ -7,13 +7,15 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "test": "node test/conjugator.test.js && node test/conjugator-fr.test.js && node test/latin.test.js && node test/latin-translate.test.js && node test/conjugator-view.test.js && node test/markdown.test.js && node test/tutor.test.js && node test/tutor-fr.test.js && node test/tutor-la.test.js && node test/quota.test.js && node test/identity.test.js && node test/lock.test.js && node test/corpus.test.js && node test/speech.test.js && node test/translate-model.test.js && node test/translators.test.js && node test/idioms.test.js && node test/openrouter.test.js"
+    "test": "node test/conjugator.test.js && node test/conjugator-fr.test.js && node test/latin.test.js && node test/latin-translate.test.js && node test/conjugator-view.test.js && node test/markdown.test.js && node test/tutor.test.js && node test/tutor-fr.test.js && node test/tutor-la.test.js && node test/quota.test.js && node test/identity.test.js && node test/lock.test.js && node test/corpus.test.js && node test/speech.test.js && node test/translate-model.test.js && node test/translators.test.js && node test/idioms.test.js && node test/openrouter.test.js && node test/appscript.test.js",
+    "appscript:build": "node appscript/build.mjs",
+    "appscript:preview": "node appscript/preview.mjs",
+    "appscript:push": "node appscript/build.mjs && cd appscript && clasp push --force"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.124.0",
     "express": "^5.2.1"
   }
 }

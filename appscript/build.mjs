@@ -1,0 +1,322 @@
+#!/usr/bin/env node
+/**
+ * Builds the Apps Script project in appscript/dist from the same sources the
+ * Render site runs. Nothing under server/ or public/ is copied by hand or
+ * edited for Apps Script; this script turns them into what Apps Script can
+ * load, and appscript/src supplies the parts Apps Script lacks.
+ *
+ *   dist/server.js      every server module, inside one function (profegpt_)
+ *   dist/Code.js        the four entry points the browser may call
+ *   dist/index.html     the page: markup, styles and every client module
+ *   dist/assets/*.html  one wallpaper each, as base64, fetched on demand
+ *
+ * Apps Script has no modules, so each ES module becomes a function in a small
+ * registry. Only the import and export forms this codebase uses are
+ * understood; anything else stops the build rather than going out broken.
+ *
+ * Usage: node appscript/build.mjs   (or npm run appscript:build)
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, '..');
+const DIST = path.join(HERE, 'dist');
+
+const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
+
+// ------------------------------------------------------------- server ----
+
+/** Imports the Apps Script build answers with its own module. */
+const SERVER_ALIASES = {
+  express: 'appscript/src/modules/express.js',
+  'node:crypto': 'appscript/src/modules/crypto.js',
+  'server/providers/gemini.js': 'appscript/src/modules/gemini.js',
+  'server/throttle.js': 'appscript/src/modules/throttle.js',
+};
+
+const cacheMap = (file, name = 'cache') => [
+  `const ${name} = new Map();`,
+  `const ${name} = persistentMap('${file.replace(/^server\//, '').replace(/\.js$/, '')}:${name}');`,
+];
+
+/**
+ * State that has to outlive a single execution. Each `from` must appear in the
+ * file exactly once, so a refactor upstream fails the build instead of quietly
+ * turning a persistent cache back into a per-request one.
+ */
+const SERVER_PATCHES = {
+  'server/quota.js': [cacheMap('server/quota.js', 'hits')],
+  'server/routes/lock.js': [[
+    'const lock = { locked: false, since: null };',
+    "const lock = persistentObject('lock', { locked: false, since: null });",
+  ]],
+  'server/corpus.js': [cacheMap('server/corpus.js')],
+  'server/latin.js': [cacheMap('server/latin.js')],
+  'server/speech.js': [cacheMap('server/speech.js')],
+  'server/routes/dictionary.js': [cacheMap('server/routes/dictionary.js')],
+  'server/routes/verbs.js': [cacheMap('server/routes/verbs.js')],
+  'server/routes/translate.js': [cacheMap('server/routes/translate.js')],
+  'server/translators.js': [cacheMap('server/translators.js', 'restingUntil')],
+  'server/latin-lexicon.js': [
+    cacheMap('server/latin-lexicon.js', 'wiktionaryCache'),
+    cacheMap('server/latin-lexicon.js', 'definitionCache'),
+  ],
+};
+
+/** The routers are loaded lazily by app.js, so they are named here rather than imported. */
+const SERVER_ENTRIES = [
+  'appscript/src/modules/app.js',
+  'server/routes/translate.js',
+  'server/routes/dictionary.js',
+  'server/routes/verbs.js',
+  'server/routes/chat.js',
+  'server/routes/lock.js',
+  'server/routes/speak.js',
+];
+
+// ------------------------------------------------------------- bundler ----
+
+const IMPORT = /^import\s+([\s\S]*?)\s+from\s+'([^']+)';?[ \t]*$/gm;
+const EXPORT_DECLARATION = /^export\s+(async\s+function\s*\*?|function\s*\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/gm;
+const EXPORT_LIST = /^export\s*\{([^}]*)\};?[ \t]*$/gm;
+
+function resolve(specifier, importer, aliases) {
+  let id = specifier;
+  if (specifier.startsWith('.')) {
+    id = path.posix.normalize(path.posix.join(path.posix.dirname(importer), specifier));
+  }
+  // An alias may import the module it replaces; that import is the real one.
+  const alias = aliases[id];
+  if (alias && alias !== importer) return alias;
+  if (!specifier.startsWith('.') && !alias) throw new Error(`${importer}: no Apps Script module for '${specifier}'`);
+  return id;
+}
+
+function names(list, file) {
+  return list.split(',').map((part) => part.trim()).filter(Boolean).map((part) => {
+    const match = /^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/.exec(part);
+    if (!match) throw new Error(`${file}: cannot read '${part}'`);
+    return { from: match[1], to: match[2] || match[1] };
+  });
+}
+
+function bindings(clause, holder, file) {
+  const namespace = /^\*\s+as\s+([A-Za-z_$][\w$]*)$/.exec(clause);
+  if (namespace) return `const ${namespace[1]} = ${holder};`;
+
+  const match = /^(?:([A-Za-z_$][\w$]*)\s*,?\s*)?(?:\{([\s\S]*)\})?$/.exec(clause);
+  if (!match || (!match[1] && match[2] === undefined)) throw new Error(`${file}: cannot read import '${clause}'`);
+  const out = [];
+  if (match[1]) out.push(`const ${match[1]} = ${holder}.default;`);
+  if (match[2] !== undefined) {
+    const list = names(match[2], file).map(({ from, to }) => (from === to ? from : `${from}: ${to}`));
+    if (list.length) out.push(`const { ${list.join(', ')} } = ${holder};`);
+  }
+  return out.join(' ');
+}
+
+/** One ES module → one registry entry, plus the ids it depends on. */
+function convert(id, source, { aliases, patches }) {
+  let code = source;
+  for (const [from, to] of patches[id] || []) {
+    const count = code.split(from).length - 1;
+    if (count !== 1) throw new Error(`${id}: expected '${from}' exactly once, found it ${count} times`);
+    code = code.replace(from, to);
+  }
+  if (code.includes('import.meta')) throw new Error(`${id}: import.meta has no meaning in Apps Script`);
+
+  const deps = [];
+  let counter = 0;
+  code = code.replace(IMPORT, (_all, clause, specifier) => {
+    const dep = resolve(specifier, id, aliases);
+    deps.push(dep);
+    const holder = `__import${counter += 1}`;
+    return `const ${holder} = __require(${JSON.stringify(dep)}); ${bindings(clause.trim(), holder, id)}`;
+  });
+
+  const exported = [];
+  code = code.replace(EXPORT_DECLARATION, (_all, kind, name) => {
+    exported.push({ from: name, to: name });
+    return `${kind.replace(/\s*\*$/, '*')} ${name}`;
+  });
+  code = code.replace(EXPORT_LIST, (_all, list) => {
+    exported.push(...names(list, id));
+    return '';
+  });
+
+  const leftover = /^\s*(?:import\s|export\s)/m.exec(code);
+  if (leftover) {
+    const line = code.slice(0, leftover.index).split('\n').length;
+    throw new Error(`${id}:${line}: unsupported import or export form`);
+  }
+
+  // Getters first, so a module caught mid-load in a cycle still exposes its
+  // (hoisted) functions, and every export stays a live binding.
+  const getters = exported
+    .map(({ from, to }) => `  Object.defineProperty(exports, ${JSON.stringify(to)}, { enumerable: true, get: () => ${from} });`)
+    .join('\n');
+
+  return {
+    deps,
+    code: `__define(${JSON.stringify(id)}, function (exports) {\n'use strict';\n${getters}\n${code}\n});\n`,
+  };
+}
+
+function bundle(entries, options = { aliases: {}, patches: {} }) {
+  const seen = new Map();
+  const visit = (id) => {
+    if (seen.has(id)) return;
+    seen.set(id, null);
+    const converted = convert(id, read(id), options);
+    seen.set(id, converted);
+    converted.deps.forEach(visit);
+  };
+  entries.forEach(visit);
+
+  const registry = `const __modules = {};
+const __loaded = {};
+function __define(id, factory) { __modules[id] = factory; }
+function __require(id) {
+  if (__loaded[id]) return __loaded[id];
+  const factory = __modules[id];
+  if (!factory) throw new Error('Module not bundled: ' + id);
+  const exports = {};
+  __loaded[id] = exports;
+  factory(exports);
+  return exports;
+}
+`;
+  return { ids: [...seen.keys()], code: registry + [...seen.values()].map((module) => module.code).join('\n') };
+}
+
+/** Apps Script's V8 is not always the newest; numeric separators are the one newer syntax the server uses. */
+function downlevel(code) {
+  return code.replace(/(?<![\w$.])(\d+(?:_\d+)+)(?![\w$])/g, (literal) => literal.replace(/_/g, ''));
+}
+
+/** Inside an inline <script>, the only sequence that matters is the one that ends it. */
+const inlineSafe = (code) => code.replace(/<\/script/gi, '<\\/script').replace(/<!--/g, '<\\!--');
+
+// ---------------------------------------------------------------- page ----
+
+const WALLPAPER = /background-image: url\("\/assets\/([\w-]+)\.jpg"\);\s*background-image: image-set\([^;]*\);/g;
+
+function styles() {
+  let count = 0;
+  const css = read('public/styles.css').replace(WALLPAPER, (_all, name) => {
+    count += 1;
+    return `background-image: var(--asset-${name}, none);`;
+  });
+  if (!count || css.includes('/assets/')) throw new Error('styles.css: a wallpaper was not rewritten for Apps Script');
+  return css;
+}
+
+function replaceOnce(text, from, to, label) {
+  if (!text.includes(from)) throw new Error(`index.html: could not find ${label}`);
+  return text.replace(from, () => to);
+}
+
+function page(clientBundle, assetVersion) {
+  let html = read('public/index.html');
+  html = replaceOnce(html, '<link rel="stylesheet" href="/styles.css" />', `<style>\n${styles()}\n</style>`, 'the stylesheet');
+  html = replaceOnce(html, '<link rel="icon" href="/favicon.svg" type="image/svg+xml" />\n', '', 'the favicon');
+  html = replaceOnce(html, '  <link rel="apple-touch-icon" href="/favicon.svg" />\n', '', 'the touch icon');
+
+  const client = read('appscript/src/client.js').replace('__ASSET_VERSION__', assetVersion);
+  html = replaceOnce(
+    html,
+    '<script type="module" src="/js/app.js"></script>',
+    [
+      '<script>window.__PROFEGPT__ = /*__BOOT__*/null;</script>',
+      `<script>\n${inlineSafe(client)}\n</script>`,
+      `<script>\n(function () {\n'use strict';\n${inlineSafe(clientBundle)}\n__require('public/js/app.js');\n})();\n</script>`,
+    ].join('\n  '),
+    'the app script',
+  );
+  return html;
+}
+
+// ---------------------------------------------------------------- main ----
+
+function check(label, code) {
+  try {
+    new vm.Script(code, { filename: label });
+  } catch (error) {
+    throw new Error(`${label} does not parse: ${error.message}`);
+  }
+}
+
+export function build({ quiet = false } = {}) {
+  fs.rmSync(DIST, { recursive: true, force: true });
+  fs.mkdirSync(path.join(DIST, 'assets'), { recursive: true });
+
+  const server = bundle(SERVER_ENTRIES, { aliases: SERVER_ALIASES, patches: SERVER_PATCHES });
+  const serverJs = `/**
+ * ProfeGPT's server, generated by appscript/build.mjs from server/ and
+ * appscript/src/. Do not edit; edit those and rebuild.
+ *
+ * Everything is inside profegpt_() so that none of it can be called from a
+ * browser. The trailing underscore keeps profegpt_ itself private too.
+ */
+function profegpt_() {
+'use strict';
+if (profegpt_.instance) return profegpt_.instance;
+
+${read('appscript/src/shim.js')}
+
+${downlevel(server.code)}
+const __load = __require;
+
+profegpt_.instance = {
+  handle: (request) => __require('appscript/src/modules/app.js').handle(request),
+  require: __require,
+};
+return profegpt_.instance;
+}
+`;
+  check('server.js', serverJs);
+
+  const client = bundle(['public/js/app.js']);
+  check('client bundle', client.code);
+
+  const wallpapers = fs.readdirSync(path.join(ROOT, 'public/assets')).filter((file) => file.endsWith('.webp')).sort();
+  const hash = crypto.createHash('sha1');
+  for (const file of wallpapers) {
+    const bytes = fs.readFileSync(path.join(ROOT, 'public/assets', file));
+    hash.update(bytes);
+    fs.writeFileSync(path.join(DIST, 'assets', file.replace(/\.webp$/, '.html')), bytes.toString('base64'));
+  }
+
+  const html = page(client.code, hash.digest('hex').slice(0, 10));
+  for (const [index, script] of [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].entries()) {
+    check(`index.html script ${index + 1}`, script[1]);
+  }
+
+  fs.writeFileSync(path.join(DIST, 'server.js'), serverJs);
+  fs.writeFileSync(path.join(DIST, 'Code.js'), read('appscript/src/Code.js'));
+  fs.writeFileSync(path.join(DIST, 'index.html'), html);
+  fs.copyFileSync(path.join(HERE, 'appsscript.json'), path.join(DIST, 'appsscript.json'));
+
+  if (!quiet) {
+    const size = (file) => `${(fs.statSync(path.join(DIST, file)).size / 1024).toFixed(0)} KB`;
+    console.log(`appscript/dist ← ${server.ids.length} server modules, ${client.ids.length} client modules`);
+    console.log(`  server.js   ${size('server.js')}`);
+    console.log(`  index.html  ${size('index.html')}`);
+    console.log(`  assets/     ${wallpapers.length} wallpapers`);
+  }
+  return { dist: DIST, server: server.ids, client: client.ids };
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    build();
+  } catch (error) {
+    console.error(`Build failed: ${error.message}`);
+    process.exit(1);
+  }
+}
