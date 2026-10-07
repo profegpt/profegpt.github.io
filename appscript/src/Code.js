@@ -27,10 +27,12 @@ function doGet(e) {
     url: ScriptApp.getService().getUrl(),
   };
 
-  // `<` is escaped so nothing in a query string can close the script tag.
+  // A string, not a comment: HtmlService strips comments from the file before
+  // getContent() returns it. `<` is escaped so nothing in a query string can
+  // close the script tag.
   const html = HtmlService.createHtmlOutputFromFile('index')
     .getContent()
-    .replace('/*__BOOT__*/null', JSON.stringify(boot).replace(/</g, '\\u003c'));
+    .replace('"__PROFEGPT_BOOT__"', JSON.stringify(boot).replace(/</g, '\\u003c'));
 
   return HtmlService.createHtmlOutput(html)
     .setTitle('ProfeGPT')

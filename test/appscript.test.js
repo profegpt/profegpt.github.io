@@ -60,6 +60,15 @@ await test('doGet cannot be made to close its own script tag', () => {
   assert.ok(!output.html.includes('</script><script>alert(1)'));
 });
 
+await test('the boot placeholder is a string, which HtmlService does not strip', () => {
+  const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+  assert.ok(html.includes('window.__PROFEGPT__ = "__PROFEGPT_BOOT__";'));
+});
+
+await test('health counts no API keys on a bare project', async () => {
+  assert.equal(json(await call(project(), { url: '/api/health' })).apiKeys, 0);
+});
+
 await test('the page carries every module and no unresolved asset', () => {
   const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
   assert.ok(!html.includes('/assets/'));
@@ -74,6 +83,7 @@ await test('only free providers run, whatever keys are set', async () => {
   });
   const health = json(await call(app, { url: '/api/health' }));
   assert.equal(health.runtime, 'apps-script');
+  assert.equal(health.apiKeys, 1, 'only the Gemini key counts; the paid ones are not API keys here');
   assert.deepEqual(health.chain.map((provider) => provider.id), ['gemini']);
   assert.ok(health.chain.every((provider) => provider.free === true));
 });
