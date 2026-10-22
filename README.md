@@ -953,7 +953,7 @@ anything:
 
 | | | |
 | --- | --- | --- |
-| **GitHub Pages** | <https://yuzhe-chen.github.io/profegpt/> | the main address. The browser half of the site, as static files. |
+| **GitHub Pages** | <https://profegpt.github.io/profegpt/> | the main address. The browser half of the site, as static files. |
 | **Google Apps Script** | the *ProfeGPT web app* deployment | the server half for the Pages site — translation, dictionaries, pronunciation, the lock — and the whole site again, on its own, for anyone with that link. |
 
 GitHub Pages serves files and nothing else, and the server half needs the API
@@ -977,7 +977,7 @@ browser ── /profegpt/es/chat ──────────────▶ G
 and publishes `_site/` on every push to `main`. The build:
 
 - **puts the site under `/profegpt`**, because this repository is a project site
-  of `yuzhe-chen.github.io` (whose own root is the personal site, untouched).
+  of the `profegpt` organization, published at `profegpt.github.io/profegpt`.
   Root-relative paths in the page and stylesheet get the prefix, and a
   `<meta name="profegpt-base">` tells the app (`public/js/lib/site.js`). The app
   only ever thinks in unprefixed paths; the prefix comes off as an address is
