@@ -8,36 +8,29 @@
  * Anyone with the passcode can unlock — including from the tape itself, so a
  * student who knows it is not stranded.
  *
- * The same dialog carries the subject restriction, which is a different switch
- * with its own passcodes: it narrows the site to Spanish rather than sealing
- * it. See lib/restriction.js and server/routes/lock.js.
+ * The padlock used to sit on its own at the left of the header. It now lives in
+ * the settings menu (lib/settings.js), which asks this module for its form.
  */
 
-import { el, clear, icon, ICONS, getJson, postJson } from './dom.js';
+import { el, getJson, postJson } from './dom.js';
 import { t } from './i18n.js';
-import { setRestricted } from './restriction.js';
 import { sealWithTape } from './tape.js';
 
 const POLL_MS = 8000;
 
 let locked = false;
 let unseal = null;
-let button = null;
+const listeners = new Set();
 
-function paintButton() {
-  if (!button) return;
-  clear(button);
-  button.appendChild(icon(locked ? ICONS.lock : ICONS.unlock, { size: 17 }));
-  button.classList.toggle('is-locked', locked);
-  button.setAttribute('aria-label', locked ? t('lock.unlockLabel') : t('lock.lockLabel'));
-  button.title = locked ? t('lock.unlockLabel') : t('lock.lockLabel');
+function changed() {
+  for (const listener of listeners) listener(locked);
 }
 
 /** Put the tape up, or take it down, to match the server. */
 function applyState(next) {
   if (next === locked) return;
   locked = next;
-  paintButton();
+  changed();
 
   if (!locked) {
     unseal?.();
@@ -58,7 +51,7 @@ function applyState(next) {
         try {
           const state = await postJson('/api/lock', { passcode: value, locked: false });
           locked = Boolean(state.locked);
-          paintButton();
+          changed();
           if (!locked) unseal = null;
           return !locked;
         } catch {
@@ -73,54 +66,37 @@ async function refresh() {
   try {
     const state = await getJson('/api/lock');
     applyState(Boolean(state.locked));
-    // Deliberately nothing about the subjects here. Which languages this
-    // browser may have is its own business, kept in its own storage — the
-    // server holds no such state to ask for. See lib/restriction.js.
   } catch {
     // Server unreachable — leave whatever is on screen alone.
   }
 }
 
-/** The little dialog the padlock opens, mirroring the language gate. */
-function askForPasscode(anchor) {
-  anchor.parentElement.querySelector('.passgate')?.remove();
-
+/**
+ * The passcode form, for the settings menu to hold.
+ * @param {() => void} done  called once the lock has been thrown
+ */
+export function lockForm(done) {
   const field = el('input', {
     type: 'password',
     autocomplete: 'off',
     placeholder: t('lock.passcode'),
     'aria-label': t('lock.passcode'),
   });
-  const error = el('p', { class: 'passgate__error' });
+  const error = el('p', { class: 'settings__error' });
 
-  const form = el('form', { class: 'passgate passgate--left' },
-    el('p', { class: 'passgate__title' }, t('lock.title')),
-    el('p', { class: 'passgate__detail' }, t('lock.detail')),
-    el('div', { class: 'passgate__row' },
+  const form = el('form', { class: 'settings__lock' },
+    el('p', { class: 'settings__detail' }, t('lock.detail')),
+    el('div', { class: 'settings__row' },
       field,
       el('button', { class: 'btn btn--primary btn--sm', type: 'submit' }, t('lock.lockNow'))),
-    error,
-    el('button', { class: 'passgate__cancel', type: 'button', onclick: () => close() }, t('passcode.cancel')));
-
-  const close = () => {
-    form.remove();
-    document.removeEventListener('pointerdown', onOutside, true);
-    document.removeEventListener('keydown', onKey);
-  };
-  const onOutside = (event) => { if (!form.contains(event.target) && event.target !== anchor) close(); };
-  const onKey = (event) => { if (event.key === 'Escape') close(); };
+    error);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     try {
       const state = await postJson('/api/lock', { passcode: field.value, locked: !locked });
-      close();
-
-      // `opened` means the word was the one that hands over French and Latin.
-      // It is remembered here and nowhere else: this browser has the key, the
-      // rest of the room is unaffected.
-      if (state.opened) setRestricted(false);
-      else applyState(Boolean(state.locked));
+      applyState(Boolean(state.locked));
+      done?.();
     } catch {
       error.textContent = t('lock.wrong');
       field.value = '';
@@ -128,22 +104,10 @@ function askForPasscode(anchor) {
     }
   });
 
-  anchor.parentElement.appendChild(form);
-  field.focus();
-  setTimeout(() => {
-    document.addEventListener('pointerdown', onOutside, true);
-    document.addEventListener('keydown', onKey);
-  }, 0);
+  return { form, field };
 }
 
-export function mountSiteLock(node) {
-  button = node;
-  clear(button);
-  paintButton();
-
-  button.addEventListener('click', () => askForPasscode(button));
-  window.addEventListener('langchange', paintButton);
-
+export function mountSiteLock() {
   refresh();
   const timer = setInterval(refresh, POLL_MS);
   return () => clearInterval(timer);
@@ -151,4 +115,9 @@ export function mountSiteLock(node) {
 
 export function isSiteLocked() {
   return locked;
+}
+
+export function onLockChange(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }

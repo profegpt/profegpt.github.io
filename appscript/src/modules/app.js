@@ -10,19 +10,18 @@
 /* global __load */
 
 import { Recorder } from './express.js';
-import { chainInfo, hasProvider, providerInfo } from '../../../server/llm.js';
+import { hasDeepl } from '../../../server/deepl.js';
 
 const MOUNTS = [
   ['/api/translate', 'server/routes/translate.js'],
   ['/api/dictionary', 'server/routes/dictionary.js'],
   ['/api/verbs', 'server/routes/verbs.js'],
-  ['/api/chat', 'server/routes/chat.js'],
   ['/api/lock', 'server/routes/lock.js'],
   ['/api/speak', 'server/routes/speak.js'],
 ];
 
 /** Counted for the page's no-keys notice; their values never leave the server. */
-const API_KEYS = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'OPENROUTER_API_KEY', 'DEEPL_API_KEY', 'RAE_API_KEY', 'ELEVENLABS_API_KEY'];
+const API_KEYS = ['DEEPL_API_KEY', 'RAE_API_KEY', 'ELEVENLABS_API_KEY'];
 
 const MAX_BODY = 256 * 1024; // as express.json({ limit: '256kb' })
 
@@ -61,9 +60,7 @@ export async function handle(request) {
     const res = new Recorder();
     return res.json({
       ok: true,
-      ai: hasProvider(),
-      provider: providerInfo(),
-      chain: chainInfo(),
+      translator: hasDeepl(),
       runtime: 'apps-script',
       apiKeys: API_KEYS.filter((name) => process.env[name]?.trim()).length,
     }).serialise();

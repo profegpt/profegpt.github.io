@@ -1,7 +1,9 @@
 /**
  * Idioms are paired with their equivalents, not flattened into plain language.
  */
-const { findIdioms, IDIOM_COUNT, alreadyIdiomatic, idiomSignature } = await import('../server/idioms.js');
+const {
+  findIdioms, IDIOM_COUNT, IDIOM_COUNTS, alreadyIdiomatic, idiomSignature, wantsProgressive,
+} = await import('../server/idioms.js');
 
 let checked = 0;
 const failures = [];
@@ -84,6 +86,55 @@ for (const [translated, say, expected, why] of [
 ok('a signature drops the verb where the verb leads', idiomSignature('llueve a cántaros').includes('a cantaros'));
 ok('and keeps both words of a two-word idiom', idiomSignature('pan comido').includes('pan comido'));
 ok('a signature ignores accents', alreadyIdiomatic('LLUEVE A CANTAROS', 'llueve a cántaros'));
+
+// --- Italian ---------------------------------------------------------------
+ok('there is an Italian table', IDIOM_COUNTS.it >= 20, `${IDIOM_COUNTS.it} entries`);
+
+found = findIdioms('it cost me an arm and a leg', 'en', 'it');
+ok('an English idiom pairs with the Italian idiom',
+  found[0]?.say === 'è costato un occhio della testa', found[0]?.say);
+ok('and carries the meaning in Italian too', /carissimo/.test(found[0]?.meaning.it), JSON.stringify(found[0]?.meaning));
+
+found = findIdioms('break a leg tonight!', 'en', 'it');
+ok('break a leg is in bocca al lupo', found[0]?.say === 'in bocca al lupo!', found[0]?.say);
+
+found = findIdioms('così ho fatto: prendere due piccioni con una fava', 'it', 'en');
+ok('an Italian idiom is recognised', found[0]?.say === 'kill two birds with one stone', found[0]?.say);
+found = findIdioms('lo vedo ogni morte di papa', 'it', 'en');
+ok('another Italian idiom is found', found[0]?.say === 'once in a blue moon', found[0]?.say);
+
+ok('Italian matching ignores accents', findIdioms('per me e arabo', 'it', 'en').length === 1);
+ok('plain Italian has no idioms', findIdioms('il cane dorme in giardino', 'it', 'en').length === 0);
+ok('an English phrasing is not matched when reading Italian',
+  findIdioms('it cost an arm and a leg', 'it', 'en').length === 0);
+ok('the Spanish table is not used for Italian',
+  findIdioms('llover a cántaros', 'it', 'en').length === 0);
+
+found = findIdioms("it's raining cats and dogs", 'en', 'it');
+ok('the rain idiom has an Italian progressive form', found[0]?.progressive === 'piovendo a catinelle', found[0]?.progressive);
+
+for (const [before, expected, why] of [
+  ['sta', true, 'stare, third person'],
+  ['Stava', true, 'imperfect, any case'],
+  ['mi stai', true, 'with a clitic in front'],
+  ['questa', false, '"sta" inside another word'],
+  ['è', false, 'essere is not the progressive auxiliary'],
+]) {
+  ok(`"${before}" ${expected ? 'wants' : 'does not want'} the Italian progressive (${why})`,
+    wantsProgressive(before, 'it') === expected);
+}
+
+for (const [translated, say, expected, why] of [
+  ['sta piovendo a catinelle', 'piove a catinelle', true, 'Italian, progressive'],
+  ['piovono cani e gatti', 'piove a catinelle', false, 'Italian, word for word'],
+  ['costava un occhio della testa', 'è costato un occhio della testa', true, 'Italian, imperfect'],
+  ['è costato un braccio e una gamba', 'è costato un occhio della testa', false, 'Italian, word for word'],
+  ['ha tirato le cuoia', 'tirare le cuoia', true, 'Italian, conjugated'],
+  ['ha preso a calci il secchio', 'tirare le cuoia', false, 'Italian, word for word'],
+]) {
+  ok(`"${translated}" ${expected ? 'is' : 'is not'} already idiomatic (${why})`,
+    alreadyIdiomatic(translated, say) === expected);
+}
 
 if (failures.length) {
   console.error(`\n✗ ${failures.length} of ${checked} idiom checks failed:\n`);

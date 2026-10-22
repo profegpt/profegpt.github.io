@@ -1,19 +1,10 @@
 /**
- * DeepL: a real translation engine, and the best one here for French.
+ * DeepL: the site's translator, for all three languages, and the only one.
  *
- * It is what Lingva was supposed to be — accurate, dedicated, and answering to
- * a published contract rather than to whether Google feels like serving a
- * volunteer's proxy today. The free tier is 500,000 characters a month, which a
- * class typing sentences will not come close to spending.
- *
- * It goes above the model because it is better at the job and cheaper to ask:
- * a specialist translator, deterministic, with no habit of explaining itself
- * and no daily request cap to exhaust by lunchtime.
- *
- * **It has no Latin.** Nothing does, among dedicated engines — Latin is why the
- * model is in the chain at all. So this declines Latin by name and the model
- * takes it, which is the one place a model is not merely the best option but
- * the only one.
+ * Accurate, dedicated, and answering to a published contract. The free tier is
+ * 500,000 characters a month, which a class typing sentences will not come
+ * close to spending. When it cannot answer, nothing else is asked — see
+ * translators.js.
  */
 
 import { throttle, USER_AGENT } from './throttle.js';
@@ -21,17 +12,18 @@ import { throttle, USER_AGENT } from './throttle.js';
 /** A free key ends in `:fx` and goes to the free host — the only one used. */
 const ENDPOINT = 'https://api-free.deepl.com/v2/translate';
 
-/** DeepL's own codes. Latin is absent from this list because it is absent. */
-const CODES = { en: 'EN', es: 'ES', fr: 'FR' };
+/** DeepL's own codes. */
+const CODES = { en: 'EN', es: 'ES', fr: 'FR', it: 'IT' };
 
 /** Target codes are regional where DeepL insists on it. */
-const TARGETS = { en: 'EN-GB', es: 'ES', fr: 'FR' };
+const TARGETS = { en: 'EN-GB', es: 'ES', fr: 'FR', it: 'IT' };
 
 /**
  * Only a free key is used. A Pro key is billed per character, and the site
  * must never cost anything, so one is treated as no key at all rather than
  * trusted to stay under some limit. A free key cannot be charged: past
- * 500,000 characters DeepL answers 456 and the chain moves on.
+ * 500,000 characters DeepL answers 456 and the translator says it is
+ * unavailable until the month turns over.
  */
 const isFreeKey = (key) => Boolean(key) && key.endsWith(':fx');
 

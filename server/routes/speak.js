@@ -9,6 +9,7 @@
 
 import { Router } from 'express';
 import { hasSpeech, MAX_SPOKEN, speak } from '../speech.js';
+import { studyOf } from '../study.js';
 
 export const router = Router();
 
@@ -25,11 +26,11 @@ const MESSAGES = {
     spent: 'Les prononciations de ce mois-ci sont épuisées.',
     failed: 'Impossible de prononcer pour le moment.',
   },
-  la: {
-    off: 'Pronunciation is not configured.',
-    notAWord: 'Only single words are pronounced.',
-    spent: 'This month’s pronunciations are used up.',
-    failed: 'Could not pronounce that just now.',
+  it: {
+    off: 'La pronuncia non è configurata.',
+    notAWord: 'Si pronunciano solo parole singole.',
+    spent: 'Le pronunce di questo mese sono esaurite.',
+    failed: 'Impossibile pronunciare in questo momento.',
   },
 };
 
@@ -37,7 +38,7 @@ const MESSAGES = {
 const LOOKS_LIKE_A_WORD = /^[\p{L}][\p{L}\p{M}'’\- ]*$/u;
 
 router.get('/', async (req, res) => {
-  const study = ['fr', 'la'].includes(req.query.study) ? req.query.study : 'es';
+  const study = studyOf(req.query.study);
   const messages = MESSAGES[study];
 
   if (!hasSpeech()) return res.status(503).json({ error: messages.off });

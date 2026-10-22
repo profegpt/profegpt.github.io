@@ -5,8 +5,7 @@
  * The strips are real elements above the content, so they also do the blocking
  * — nothing underneath can be clicked while they are up.
  *
- * Used twice: over the chat panel when the free questions run out, and over the
- * whole page when the English passcode is wrong.
+ * Used over the whole page when a teacher locks the site.
  *
  * The angle and length are measured from whatever is being sealed, so the X
  * lands on its corners at any size.
@@ -23,10 +22,8 @@ const ROLL_MS = 1500;
  * @param {string} options.detail
  * @param {string} [options.note]
  * @param {object} [options.prompt]  { placeholder, submit, onSubmit(value) -> bool, wrong }
- * @param {object} [options.dismiss] { label, onDismiss } — a way back out, for
- *        a tape that should inform rather than imprison
  */
-export function sealWithTape(panel, { title, detail, note, prompt = null, dismiss = null }) {
+export function sealWithTape(panel, { title, detail, note, prompt = null }) {
   panel.querySelector(':scope > .tape')?.remove();
 
   const page = panel === document.body;
@@ -82,14 +79,6 @@ export function sealWithTape(panel, { title, detail, note, prompt = null, dismis
   }
 
   if (note) card.appendChild(el('p', { class: 'tape__note' }, note));
-
-  if (dismiss) {
-    card.appendChild(el('button', {
-      class: 'btn btn--primary tape__dismiss',
-      type: 'button',
-      onclick: () => { cleanup?.(); dismiss.onDismiss?.(); },
-    }, dismiss.label));
-  }
 
   const overlay = el('div', { class: `tape${page ? ' tape--page' : ''}`, role: 'alert' },
     el('div', { class: 'tape__strip tape__strip--a' }, el('div', { class: 'tape__inner' })),

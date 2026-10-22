@@ -3,13 +3,12 @@
  *
  * The choice is written onto <html data-theme> by an inline script in the page
  * head, before the first paint, so the site never flashes the wrong palette.
- * This module only handles changing it afterwards.
+ * This module only handles changing it afterwards; the choice itself is made
+ * in the settings menu (lib/settings.js).
  *
  * Anything that paints outside CSS — the hero canvas — listens for the
  * `themechange` event and re-reads its colours.
  */
-
-import { clear, icon, ICONS } from './dom.js';
 
 const KEY = 'profegpt:theme';
 
@@ -37,20 +36,4 @@ export function toggleTheme() {
 export function themeColour(name, fallback = 'transparent') {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value || fallback;
-}
-
-/** Wire up the header button. */
-export function mountThemeToggle(button) {
-  const paint = () => {
-    const dark = currentTheme() === 'dark';
-    button.setAttribute('aria-label', dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-    button.title = dark ? 'Modo claro' : 'Modo oscuro';
-    // The icon shows where the button takes you, matching its label.
-    clear(button);
-    button.appendChild(icon(dark ? ICONS.sun : ICONS.moon, { size: 17 }));
-  };
-
-  button.addEventListener('click', () => { toggleTheme(); paint(); });
-  window.addEventListener('themechange', paint);
-  paint();
 }

@@ -6,8 +6,8 @@ import { studyLang } from '../lib/study.js';
 /**
  * Grammatical labels, in the study language and in English.
  *
- * Both dictionaries are normalised to the same category keys on the server, so
- * only the wording differs between the two sides of the site.
+ * Every dictionary is normalised to the same category keys on the server, so
+ * only the wording differs between the sides of the site.
  */
 const LABELS = {
   es: {
@@ -44,38 +44,6 @@ const LABELS = {
       auxiliary: ['auxiliar', 'auxiliary'],
     },
   },
-  la: {
-    categories: {
-      noun: ['nomen', 'noun'],
-      verb: ['verbum', 'verb'],
-      adjective: ['adiectivum', 'adjective'],
-      adverb: ['adverbium', 'adverb'],
-      pronoun: ['pronomen', 'pronoun'],
-      preposition: ['praepositio', 'preposition'],
-      conjunction: ['coniunctio', 'conjunction'],
-      interjection: ['interiectio', 'interjection'],
-      article: ['articulus', 'article'],
-      determiner: ['determinans', 'determiner'],
-      numeral: ['numerus', 'numeral'],
-      contraction: ['contractio', 'contraction'],
-      expression: ['locutio', 'phrase'],
-      'proper noun': ['nomen proprium', 'proper noun'],
-      participle: ['participium', 'participle'],
-      supine: ['supinum', 'supine'],
-    },
-    genders: {
-      masculine: ['m.', 'masc.'],
-      feminine: ['f.', 'fem.'],
-      neuter: ['n.', 'neut.'],
-      common: ['c.', 'common'],
-    },
-    verbKinds: {
-      transitive: ['transitivum', 'transitive'],
-      intransitive: ['intransitivum', 'intransitive'],
-      deponent: ['deponens', 'deponent'],
-      impersonal: ['impersonale', 'impersonal'],
-    },
-  },
   fr: {
     categories: {
       noun: ['nom', 'noun'],
@@ -109,6 +77,41 @@ const LABELS = {
       impersonal: ['impersonnel', 'impersonal'],
       copulative: ['copulatif', 'copulative'],
       auxiliary: ['auxiliaire', 'auxiliary'],
+    },
+  },
+  it: {
+    categories: {
+      noun: ['sostantivo', 'noun'],
+      verb: ['verbo', 'verb'],
+      adjective: ['aggettivo', 'adjective'],
+      adverb: ['avverbio', 'adverb'],
+      pronoun: ['pronome', 'pronoun'],
+      preposition: ['preposizione', 'preposition'],
+      conjunction: ['congiunzione', 'conjunction'],
+      interjection: ['interiezione', 'interjection'],
+      article: ['articolo', 'article'],
+      determiner: ['determinante', 'determiner'],
+      numeral: ['numerale', 'numeral'],
+      contraction: ['contrazione', 'contraction'],
+      expression: ['locuzione', 'phrase'],
+      'proper noun': ['nome proprio', 'proper noun'],
+    },
+    genders: {
+      masculine: ['m.', 'masc.'],
+      feminine: ['f.', 'fem.'],
+      masculine_and_feminine: ['m. e f.', 'masc. & fem.'],
+      ambiguous: ['amb.', 'ambiguous'],
+      common: ['com.', 'common'],
+      neuter: ['n.', 'neuter'],
+    },
+    verbKinds: {
+      transitive: ['transitivo', 'transitive'],
+      intransitive: ['intransitivo', 'intransitive'],
+      pronominal: ['pronominale', 'pronominal'],
+      reflexive: ['riflessivo', 'reflexive'],
+      impersonal: ['impersonale', 'impersonal'],
+      copulative: ['copulativo', 'copulative'],
+      auxiliary: ['ausiliare', 'auxiliary'],
     },
   },
 };
@@ -151,6 +154,12 @@ export function renderDictionary(main) {
       el('p', {}, t('dictionary.lead'))),
     form,
     el('div', { style: { marginTop: '34px' } }, results),
+    // The source, once, small, at the foot of the page: where the definitions
+    // come from and under what licence.
+    el('p', { class: 'page__footnote' },
+      t('meta.footer'), ' ',
+      el('a', { href: t('meta.footerHref'), target: '_blank', rel: 'noopener' }, t('meta.footerDict')),
+      t('meta.footerCredit')),
   ));
 
   async function search(rawWord) {
@@ -198,9 +207,10 @@ function renderMiss(word, error, search) {
   const suggestions = error.data?.suggestions || [];
   return el('div', { class: 'empty' },
     el('h3', {}, t('dictionary.noResults')),
-    el('p', {}, error.message || (studyLang() === 'fr'
-      ? `Je n'ai pas trouvé « ${word} ».`
-      : `No encontré "${word}".`)),
+    el('p', {}, error.message || {
+      fr: `Je n'ai pas trouvé « ${word} ».`,
+      it: `Non ho trovato «${word}».`,
+    }[studyLang()] || `No encontré "${word}".`),
     suggestions.length
       ? el('div', { class: 'wordlist', style: { justifyContent: 'center', marginTop: '18px' } },
         el('span', {}, t('dictionary.didYouMean')),
@@ -291,12 +301,6 @@ function renderEntry(data, search) {
       t('dictionary.corrected', { from: data.corrected.from, to: data.corrected.to })));
   }
 
-  // No speech model has Latin, so the sound is an approximation and the reader
-  // is told where it stands before they copy it into their head.
-  if (studyLang() === 'la') {
-    wrap.appendChild(el('p', { class: 'entry__sound' }, t('dictionary.speakLatin')));
-  }
-
   /**
    * The licence line, and only that.
    *
@@ -362,34 +366,19 @@ function renderSense(sense, example, exampleSource, search) {
   const tags = [];
   if (sense.category) tags.push(el('span', { class: 'chip' }, label('categories', sense.category)));
   if (sense.gender) tags.push(el('span', { class: 'chip' }, label('genders', sense.gender)));
-  // Which declension or conjugation a Latin word belongs to is half of knowing it.
-  if (sense.declension) tags.push(el('span', { class: 'chip chip--es' }, `${sense.declension} decl.`));
-  if (sense.conjugation) tags.push(el('span', { class: 'chip chip--es' }, `${sense.conjugation} conj.`));
   for (const kind of String(sense.verbCategory || '').split(',').map((item) => item.trim()).filter(Boolean)) {
     tags.push(el('span', { class: 'chip' }, label('verbKinds', kind)));
   }
   if (sense.usage) tags.push(el('span', { class: 'chip chip--warn' }, sense.usage));
 
-  // Both dictionaries define in their own language. In English the translation
+  // Every dictionary defines in its own language. In English the translation
   // leads and the original stays underneath, because the original wording is
   // the authoritative text.
   const englishDef = example?.def;
   const body = el('div', {},
-    // The principal parts are what a Latin dictionary is *for* — the headword
-    // alone tells you nothing about how the verb or noun will behave.
-    sense.headword
-      ? el('p', { class: 'sense__headword' }, sense.headword)
-      : null,
     tags.length ? el('div', { class: 'sense__tags' }, tags) : null,
     el('p', { class: 'sense__def' }, englishDef || sense.description || '—'),
     englishDef ? el('p', { class: 'sense__original' }, sense.description) : null,
-    // Every way the form the reader typed can be read. *puellae* is three
-    // different cases, and pretending otherwise would be the whole problem.
-    sense.parses?.length
-      ? el('div', { class: 'parses' },
-        el('span', { class: 'parses__label' }, t('dictionary.parses')),
-        ...sense.parses.map((parse) => el('span', { class: 'parses__item' }, parse)))
-      : null,
     ...sense.usageNotes.map((note) => el('p', { class: 'sense__note' }, note)),
   );
 

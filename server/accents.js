@@ -3,9 +3,8 @@
  *
  * Students type *jamon*, and *jamón* is what the dictionary has. Neither the
  * RAE nor the Wiktionnaire will match without the accent, so a perfectly
- * ordinary vocabulary question came back as "not found" and went to a language
- * model instead — spending one of the reader's free questions to be told
- * something the dictionary knew all along.
+ * ordinary vocabulary question came back as "not found" when the dictionary
+ * knew the word all along.
  *
  * The rule is deliberately narrow. It only runs when the word as typed was
  * **not found at all**, and it only accepts a candidate that is the same word
