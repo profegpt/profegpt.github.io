@@ -11,6 +11,7 @@ import { t } from './lib/i18n.js';
 import {
   DEFAULT_STUDY, page, pageOf, setStudyLang, studyFromPath,
 } from './lib/study.js';
+import { BASE, withBase, withoutBase } from './lib/site.js';
 
 /**
  * Every language has the same four pages, under its own prefix: /es/chat,
@@ -40,7 +41,7 @@ mountSiteLock();
  * Apps Script build, a local server — so a reader always has the real URL to
  * bookmark or pass on. The address is its own label in every language.
  */
-const WEBSITE = 'https://profegpt.onrender.com';
+const WEBSITE = 'https://yuzhe-chen.github.io/profegpt';
 
 const NAV_KEYS = {
   traductor: 'translator',
@@ -67,15 +68,16 @@ function paintChrome() {
     link.textContent = t(`nav.${NAV_KEYS[link.dataset.nav]}`);
   }
   const brand = document.querySelector('.nav__brand');
+  brand.href = withBase('/');
   brand.title = t('home.back');
   document.querySelector('.skip-link').textContent = t('meta.skip');
   const footer = document.querySelector('.footer__text');
   clear(footer);
   // The dictionary's credit is a footnote on the dictionary page, where the
   // definitions are, rather than a line on every page of the site.
-  if (window.location.origin !== WEBSITE) {
+  if (`${window.location.origin}${BASE}` !== WEBSITE) {
     footer.appendChild(Object.assign(document.createElement('a'), {
-      className: 'footer__site', href: WEBSITE, target: '_blank', rel: 'noopener', textContent: new URL(WEBSITE).host,
+      className: 'footer__site', href: WEBSITE, target: '_blank', rel: 'noopener', textContent: WEBSITE.replace(/^https:\/\//, ''),
     }));
   }
   footer.appendChild(Object.assign(document.createElement('span'), {
@@ -101,8 +103,9 @@ function match() {
   const study = studyFromPath(pathname);
 
   if (!study) {
-    if (pathname === '/' || pathname === '') return HOME;
-    history.replaceState({}, '', `/${DEFAULT_STUDY}${pathname}${search}${hash}`);
+    const path = withoutBase(pathname);
+    if (path === '/' || path === '') return HOME;
+    history.replaceState({}, '', withBase(`/${DEFAULT_STUDY}${path}${search}${hash}`));
     return match();
   }
 

@@ -1,13 +1,13 @@
 /**
  * The browser half of the Apps Script build. Runs before the app, so that the
- * app's own code — the same files the Render site serves — finds what it
+ * app's own code — the same files the Node server serves — finds what it
  * expects:
  *
  *   - `fetch('/api/…')` answers, through google.script.run instead of HTTP.
  *     Responses come back as real Response objects, so the JSON helpers and
  *     the speaker button's blob work unchanged.
  *
- *   - Routes are paths, as on Render. The page lives in an iframe on another
+ *   - Routes are paths, as on the Node server. The page lives in an iframe on another
  *     host, so the path is changed in place there and mirrored into the real
  *     address bar as `?page=…`, which is also what doGet() reads when a link
  *     is opened fresh. Back and forward come back through google.script.history.
@@ -192,7 +192,7 @@
     it: 'Nota: questa versione non ha ancora chiavi API, quindi il traduttore e la pronuncia per ora sono disattivati. Il sito completo è su ',
     en: 'Note: this version has no API keys yet, so the translator and pronunciation are off for now. The full site is at ',
   };
-  const WEBSITE = 'https://profegpt.onrender.com';
+  const WEBSITE = 'https://yuzhe-chen.github.io/profegpt';
 
   function showNotice() {
     const lang = document.documentElement.lang;
@@ -201,7 +201,7 @@
     bar.setAttribute('role', 'status');
     bar.append(NOTICE[lang] || NOTICE.en);
     bar.appendChild(Object.assign(document.createElement('a'), {
-      href: WEBSITE, target: '_blank', rel: 'noopener', textContent: new URL(WEBSITE).host,
+      href: WEBSITE, target: '_blank', rel: 'noopener', textContent: WEBSITE.replace(/^https:\/\//, ''),
     }));
     bar.append('.');
     const style = document.createElement('style');

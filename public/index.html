@@ -25,10 +25,16 @@
       // bare / is the home page, which opens on Spanish. It goes on the root
       // element here because language-specific styling is chosen in CSS and has to be
       // right before the first paint.
-      var first = window.location.pathname.split('/')[1];
+      // On GitHub Pages the site sits under a prefix (see js/lib/site.js),
+      // which comes off before the language is read.
+      var meta = document.querySelector('meta[name="profegpt-base"]');
+      var base = meta ? meta.content.replace(/\/+$/, '') : '';
+      var path = window.location.pathname;
+      if (base && path.indexOf(base) === 0) path = path.slice(base.length) || '/';
+      var first = path.split('/')[1];
       var study = first === 'fr' || first === 'it' ? first : 'es';
       document.documentElement.dataset.study = study;
-      if (window.location.pathname === '/' || window.location.pathname === '') {
+      if (path === '/' || path === '') {
         document.documentElement.classList.add('is-home');
       }
       try {

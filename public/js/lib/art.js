@@ -8,6 +8,7 @@
  */
 
 import { el } from './dom.js';
+import { withBase } from './site.js';
 
 const ART = {
   logo: '/assets/art/logo.svg',
@@ -26,7 +27,9 @@ const ART = {
 export function art(name, { className = '' } = {}) {
   return el('img', {
     class: className,
-    src: ART[name],
+    // On GitHub Pages the site is under /profegpt; on Apps Script the path is
+    // already a data URI, and the base there is empty.
+    src: ART[name].startsWith('/') ? withBase(ART[name]) : ART[name],
     alt: '',
     decoding: 'async',
   });

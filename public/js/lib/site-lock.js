@@ -16,7 +16,13 @@ import { el, getJson, postJson } from './dom.js';
 import { t } from './i18n.js';
 import { sealWithTape } from './tape.js';
 
-const POLL_MS = 8000;
+/**
+ * How often the lock is asked about. On GitHub Pages each check is two
+ * requests to Apps Script, against a quota every open page shares, so it is
+ * twenty seconds rather than every few: a teacher's lock reaching a page within
+ * twenty seconds is soon enough.
+ */
+const POLL_MS = 20000;
 
 let locked = false;
 let unseal = null;

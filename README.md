@@ -791,7 +791,7 @@ Everything the site talks to, and nothing else:
 | [ElevenLabs](https://elevenlabs.io) | pronunciation | `ELEVENLABS_API_KEY` |
 | [Google Fonts](https://fonts.google.com) | Fredoka and Nunito, loaded by the visitor's browser | none |
 
-Plus the host itself — Render, or Google Apps Script. Every one of them is used
+Plus the hosts themselves — GitHub Pages for the page, Google Apps Script for the server. Every one of them is used
 on a free tier.
 
 ## Where things live
@@ -829,6 +829,7 @@ public/
     app.js              history-API router: / is the home page, /es /fr /it
                         the languages, and old unprefixed links go to /es
     lib/study.js        the language the site is *about*, read from the address
+    lib/site.js         where the site lives: /profegpt on Pages, / elsewhere
     lib/settings.js     the gear: light or dark, and the teacher's lock
     lib/site-lock.js    the lock's form and state, polled from the server
     lib/conjugator.js   the Spanish conjugation engine
@@ -880,13 +881,16 @@ test/
                                in for DeepL, and that the idioms still correct it
   idioms.test.js            53 checks on idiom pairing in every direction
   dictionary-it.test.js ·it  26 on reading Wikizionario wikitext
-  appscript.test.js         19 on the Apps Script build, run in a bare V8
-                               context with stand-in Google services
+  appscript.test.js         21 on the Apps Script build, run in a bare V8
+                               context with stand-in Google services, including
+                               the two-step HTTP API the Pages site uses
+  pages.test.js              7 on the Pages build: every path prefixed, deep
+                               links covered, no key or server code shipped
 
 appscript/
   build.mjs             server/ and public/ → an Apps Script project in dist/
-  src/Code.js           the three functions a browser may call: doGet, api,
-                        apiResult
+  src/Code.js           the four functions a browser may call: doGet, api,
+                        apiResult, and doPost — the HTTP API for Pages
   src/shim.js           fetch, URL, Buffer, timers and process.env, on
                         UrlFetchApp and friends; caches on CacheService
   src/client.js         fetch('/api/…') over google.script.run, routing
@@ -895,6 +899,19 @@ appscript/
                         request handler
   emulator.mjs          enough Apps Script to run dist/ under Node
   preview.mjs           dist/ at localhost:4100, against the real services
+
+pages/
+  config.json           the base path, and the Apps Script web app's address
+  client.js             fetch('/api/…') to Apps Script, inlined into the page
+
+scripts/
+  build-pages.mjs       public/ → _site/, for GitHub Pages
+  draw-art.py           every drawing in public/assets/art/
+
+.github/workflows/
+  pages.yml             test, build and publish to Pages on every push to main
+
+archive/wallpapers/     the old city photographs, kept but never served
 ```
 
 `npm test` runs all 2,244 across 15 suites, offline, in a couple of seconds.
@@ -931,92 +948,118 @@ claiming an authority behind it.
 
 ## Deploying
 
-This is a Node server, not a static site, so GitHub Pages and Netlify's static
-hosting cannot run it — the translator, dictionary, pronunciation and lock all
-need the server.
-Anything that runs Node works: Render, Railway, Fly.io, or a VPS. It also
-builds into a Google Apps Script web app; see below.
+The site is published in two places, from the same code, and neither costs
+anything:
 
-Whatever you pick, it needs to be **one instance**. The teacher's lock and the
-dictionary cache are held in memory, so a second instance would
-have its own copy of each — a locked site would be unlocked for half the class.
+| | | |
+| --- | --- | --- |
+| **GitHub Pages** | <https://yuzhe-chen.github.io/profegpt/> | the main address. The browser half of the site, as static files. |
+| **Google Apps Script** | the *ProfeGPT web app* deployment | the server half for the Pages site — translation, dictionaries, pronunciation, the lock — and the whole site again, on its own, for anyone with that link. |
 
-### Render
+GitHub Pages serves files and nothing else, and the server half needs the API
+keys, which must never reach a browser. Apps Script runs the same server code
+(`appscript/build.mjs` builds it from `server/`), holds the keys in its script
+properties, and answers the Pages site's `/api/…` requests over plain HTTP. So:
+**Pages for the page, Apps Script for everything behind it.**
 
-There is a `render.yaml` in the repo, so this is a Blueprint rather than a form
-to fill in:
+```
+browser ── /profegpt/es/chat ──────────────▶ GitHub Pages (files)
+   │
+   └── fetch('/api/translate') ── pages/client.js ──▶ Apps Script doPost
+                                                         │  DeepL, RAE, Wiktionary,
+                                                         │  Tatoeba, ElevenLabs …
+       ◀──────────── doGet(?result=id) ◀──────────────────┘
+```
 
-1. *New → Blueprint* on Render, and point it at this repository.
-2. It reads `render.yaml` and prompts for the keys marked `sync: false`.
-3. Deploy.
+### GitHub Pages
 
-The Blueprint pins **one instance** and a `/api/health` check. The instance
-count is not a performance choice — see below.
+`.github/workflows/pages.yml` runs `npm test`, then `scripts/build-pages.mjs`,
+and publishes `_site/` on every push to `main`. The build:
 
-To do it by hand instead: build `npm install`, start `npm start`, instance
-count 1, and set the variables below.
+- **puts the site under `/profegpt`**, because this repository is a project site
+  of `yuzhe-chen.github.io` (whose own root is the personal site, untouched).
+  Root-relative paths in the page and stylesheet get the prefix, and a
+  `<meta name="profegpt-base">` tells the app (`public/js/lib/site.js`). The app
+  only ever thinks in unprefixed paths; the prefix comes off as an address is
+  read and goes back on as one is written.
+- **inlines `pages/client.js`**, which sends `/api/…` to the Apps Script web app
+  named in `pages/config.json`. It takes two requests: a `POST` that starts the
+  call and gets an id back at once — Apps Script will not wait for the server's
+  promise — and a `GET ?result=id` that collects the answer from the cache.
+  The body is JSON sent as `text/plain`, so the browser sends no preflight,
+  which Apps Script cannot answer; its responses are open to every origin.
+- **copies `index.html` to `404.html`**, so a deep link such as
+  `/profegpt/it/chat` gets the app, which reads the address and draws the page.
 
-**Change the passcode before anyone has the URL.** `TEACHER_PASSCODE` has a
-default, and the default is in the source of a public repository — anyone who
-reads it can seal your site.
-
-The server already reads `PORT` from the environment, binds on all interfaces,
-and exposes `GET /api/health` for a health check. It answers `{ ok, translator }`
-— whether a DeepL key is set — and on Apps Script also the runtime and how many
-of the three keys are present.
+`npm run pages:build` builds it locally; `test/pages.test.js` checks that no
+path is left without its prefix, that deep links are covered, and that no key or
+server code ends up in the site.
 
 ### Google Apps Script
 
-The same site also runs as an Apps Script web app, alongside the Render one
-rather than instead of it. It is not a second copy: `appscript/build.mjs` turns
-`server/` and `public/` into an Apps Script project in `appscript/dist`, and
-`appscript/src` supplies the parts Apps Script lacks. A change to the site is a
-change to both; rebuild and push.
+`appscript/build.mjs` turns `server/` and `public/` into an Apps Script
+project in `appscript/dist`, and `appscript/src` supplies the parts Apps Script
+lacks. A change to the site is a change to both; rebuild and redeploy.
 
-It runs on the same free tiers as the Render site, and the same keys go in its
-script properties. Apps Script itself is free, and this site must never cost
-anything.
+**`npm run appscript:deploy`** builds, pushes, and moves the *ProfeGPT web app*
+deployment to the new version, so its address — the one `pages/config.json`
+points at — never changes. (`npm run appscript:push` only uploads, and leaves
+visitors on the old version.)
 
-To set it up:
+The keys go in *Project Settings → Script properties*, one row per variable you
+would put in `.env`: `DEEPL_API_KEY`, `ELEVENLABS_API_KEY`, `RAE_API_KEY`,
+`TEACHER_PASSCODE`. While none of the three keys is set, the Apps Script page
+shows a notice pointing to the Pages site.
+
+To set it up from scratch:
 
 1. `npm install -g @google/clasp`, then `clasp login`.
 2. Create a standalone script at <https://script.google.com>, and put its ID in
    `appscript/.clasp.json` (copy `.clasp.json.example`).
-3. `npm run appscript:push`, which builds and uploads.
-4. In the editor: *Project Settings → Script properties*, one row for each
-   variable you would put in `.env`. While none of `DEEPL_API_KEY`,
-   `RAE_API_KEY` and `ELEVENLABS_API_KEY` is set, the page shows a notice
-   pointing to the Render site; it goes away once any one of them is.
-5. *Deploy → New deployment → Web app*, executing as yourself, access for
-   anyone. Each later push needs *Manage deployments → Edit → New version*
-   before visitors see it.
+3. `npm run appscript:push`, then set the script properties.
+4. *Deploy → New deployment → Web app*, executing as yourself, access for
+   anyone. Put its `/exec` address in `pages/config.json`, and its id in the
+   `appscript:deploy` script in `package.json`.
 
 `npm run appscript:preview` serves the built project at
 <http://localhost:4100> before any of that. It runs the generated code in a bare
 V8 context, with curl standing in for UrlFetchApp and `.env` for the script
-properties. `test/appscript.test.js` runs the same way, as part of `npm test`.
+properties. `test/appscript.test.js` runs the same way, as part of `npm test`,
+including the two-step HTTP API.
 
-How it differs from the Node server:
+How Apps Script differs from the Node server:
 
 - **Nothing is held in memory.** Each request is a fresh process. The caches
-  and the teacher's lock live in CacheService instead. That is
-  also why one instance is no longer a concern here. CacheService forgets
-  after six hours at most, so a forgotten lock still lifts itself, as a
-  restart lifts it on Render.
+  and the teacher's lock live in CacheService instead. CacheService forgets
+  after six hours at most, so a forgotten lock still lifts itself.
 - **Requests run one after another.** UrlFetchApp is synchronous, so a French
   or Italian lookup that needs the entry, an accent search and an English gloss
   makes three requests in a row. It is slower than on Node, and it is the
   same answer.
-- **The page is in an iframe** on another host. Routes are mirrored into the
-  address bar as `?page=es/conjugacion&v=ir`, so links and the back button work.
-- **The footer links to the Render site**, profegpt.onrender.com, so a reader
-  in the Apps Script version always has the real address to bookmark or share.
-  On the Render site itself the link is left out.
+- **The Apps Script page is in an iframe** on another host. Routes are mirrored
+  into the address bar as `?page=es/conjugacion&v=ir`, so links and the back
+  button work.
+- **The footer links to the Pages site**, so a reader anywhere else always has
+  the real address to bookmark or share. On the Pages site the link is left out.
 - **Quotas are the owner's.** Every visitor's request runs as the deploying
   account: about 20,000 URL fetches a day on a personal Google account, and
-  30 requests at a time.
+  30 requests at a time. The Pages site's lock check is one request every
+  twenty seconds per open page.
 
-### Environment variables in production
+### Running it yourself
+
+`npm start` runs the whole site — page and server — on Node, at
+<http://localhost:4000>, reading keys from `.env`. That is how it is developed;
+any Node host would also serve it as one process. It needs to be **one
+instance**, since the lock and the caches are held in memory.
+
+**Change the passcode before anyone has the URL.** `TEACHER_PASSCODE` has a
+default, and the default is in the source of a public repository.
+
+`GET /api/health` answers `{ ok, translator }` — whether a DeepL key is set — and
+on Apps Script also the runtime and how many of the three keys are present.
+
+### Keys
 
 | Variable | Why it matters live |
 | --- | --- |
@@ -1025,13 +1068,8 @@ How it differs from the Node server:
 | `DEEPL_API_KEY` | **Get one.** It is the translator, on every side; without it the translator says it is unavailable. Free tier, 500k characters a month; only a free key (ending `:fx`) is used, so it cannot be billed. |
 | `ELEVENLABS_API_KEY` | Pronunciation. Free tier, 10,000 characters a month for the whole site; use a free account, which refuses past the limit rather than charging. |
 
-### Things that will surprise you otherwise
-
-- **Free tiers sleep.** Render's free plan spins down when idle; the first
-  request afterwards is slow, and the lock and caches reset. That reset is
-  harmless — arguably a feature for the lock — but the delay is visible.
-- **The lock clears on every deploy and restart**, by design. Nobody should be
-  locked out by a process nobody is watching.
+On the Pages site all of these live in the Apps Script project's script
+properties. None of them is ever in the repository or in the site's files.
 
 ## Notes
 

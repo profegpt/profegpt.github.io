@@ -1,7 +1,7 @@
 /**
  * The slice of Express the routes use, without a server under it.
  *
- * On Render a route answers an HTTP request. Here it answers a google.script.run
+ * On the Node server a route answers an HTTP request. Here it answers a google.script.run
  * call, so `req` is built from the call's arguments and `res` records what the
  * route did, to be handed back to the browser in one piece. The routes
  * themselves are the same files, unchanged.
