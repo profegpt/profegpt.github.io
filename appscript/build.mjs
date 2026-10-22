@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Builds the Apps Script project in appscript/dist from the same sources the
- * Render site runs. Nothing under server/ or public/ is copied by hand or
+ * Node server runs. Nothing under server/ or public/ is copied by hand or
  * edited for Apps Script; this script turns them into what Apps Script can
  * load, and appscript/src supplies the parts Apps Script lacks.
  *

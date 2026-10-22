@@ -46,7 +46,7 @@ async function test(name, run) {
 await test('only the entry points are callable', () => {
   const context = project().execution();
   const callable = Object.keys(context).filter((key) => typeof context[key] === 'function' && !key.endsWith('_'));
-  assert.deepEqual(callable.sort(), ['api', 'apiResult', 'doGet']);
+  assert.deepEqual(callable.sort(), ['api', 'apiResult', 'doGet', 'doPost']);
 });
 
 await test('doGet turns the path and query into the first route', () => {
@@ -205,6 +205,50 @@ await test('when DeepL fails the translator says it is unavailable', async () =>
   assert.equal(response.status, 503, response.body);
   assert.equal(json(response).unavailable, true);
   assert.equal(json(response).translation, undefined);
+});
+
+await test('the HTTP API for GitHub Pages: a POST starts the request, ?result collects it', async () => {
+  const app = project({
+    properties: { DEEPL_API_KEY: 'abc:fx' },
+    respond: (url) => (url.includes('deepl')
+      ? { body: { translations: [{ text: 'il cane' }] } }
+      : { status: 404, body: {} }),
+  });
+
+  const posted = app.execution().doPost({
+    postData: {
+      contents: JSON.stringify({
+        method: 'POST',
+        url: '/api/translate',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text: 'the dog', from: 'en', study: 'it' }),
+      }),
+    },
+  });
+  assert.equal(posted.mimeType, 'application/json');
+  const { id } = JSON.parse(posted.getContent());
+  assert.match(id, /^[0-9a-f]{32}$/);
+
+  // The handler settles after doPost returns, as it does on Apps Script.
+  await new Promise((resolve) => { setImmediate(resolve); });
+
+  // A different execution collects it, as the browser's second request would.
+  const collected = JSON.parse(app.execution().doGet({ parameter: { result: id } }).getContent());
+  assert.equal(collected.status, 200, JSON.stringify(collected));
+  assert.equal(JSON.parse(collected.body).translation, 'il cane');
+
+  // Collected once only.
+  const again = JSON.parse(app.execution().doGet({ parameter: { result: id } }).getContent());
+  assert.equal(again.pending, true);
+});
+
+await test('the HTTP API refuses anything that is not an /api/ request', () => {
+  const context = project().execution();
+  for (const contents of ['not json', JSON.stringify({ url: '/index.html' }), JSON.stringify({})]) {
+    const answer = JSON.parse(context.doPost({ postData: { contents } }).getContent());
+    assert.ok(answer.error && !answer.id, contents);
+  }
+  assert.equal(JSON.parse(context.doGet({ parameter: { result: '../nope' } }).getContent()).pending, true);
 });
 
 await test('a failing host is a 5xx answer, not a crashed execution', async () => {

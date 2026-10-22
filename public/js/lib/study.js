@@ -17,6 +17,8 @@
  * English, on the Spanish side Spanish or English.
  */
 
+import { withBase, withoutBase } from './site.js';
+
 export const STUDY_LANGUAGES = ['es', 'fr', 'it'];
 
 /** The default, and the one the home page has selected when it opens. */
@@ -28,15 +30,16 @@ function valid(value) {
 
 /** The side of the site a path belongs to, or null for the home page. */
 export function studyFromPath(pathname) {
-  const first = String(pathname ?? '').split('/')[1];
+  const first = withoutBase(pathname).split('/')[1];
   return STUDY_LANGUAGES.includes(first) ? first : null;
 }
 
 /** The rest of the path once the language is taken off: /es/chat → /chat. */
 export function pageOf(pathname) {
-  return studyFromPath(pathname)
-    ? String(pathname).replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/'
-    : String(pathname || '/');
+  const path = withoutBase(pathname);
+  return studyFromPath(path)
+    ? path.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/'
+    : path || '/';
 }
 
 // The engines and the tutor are tested in Node, which has no address bar; they
@@ -65,7 +68,7 @@ export function studyLang() {
  */
 export function page(path = '/', study = current) {
   const rest = path === '/' ? '' : path;
-  return `/${study}${rest}`;
+  return withBase(`/${study}${rest}`);
 }
 
 /**
