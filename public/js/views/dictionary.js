@@ -1,5 +1,4 @@
 import { el, icon, ICONS, clear, getJson } from '../lib/dom.js';
-import { startWallpaper, wallpaperLayer } from '../lib/wallpaper.js';
 import { lang, t } from '../lib/i18n.js';
 import { studyLang } from '../lib/study.js';
 
@@ -134,7 +133,6 @@ export function renderDictionary(main) {
   });
 
   const results = el('div', {});
-  const wallpaper = wallpaperLayer({ band: true });
 
   const form = el('form', { class: 'search', style: { maxWidth: '560px' } },
     el('div', { class: 'search__field' },
@@ -147,7 +145,7 @@ export function renderDictionary(main) {
     search(input.value);
   });
 
-  main.append(wallpaper, el('div', { class: 'page shell' },
+  main.append(el('div', { class: 'page shell' },
     el('div', { class: 'page__head' },
       el('p', { class: 'eyebrow' }, t('dictionary.eyebrow')),
       el('h1', {}, t('dictionary.title')),
@@ -187,7 +185,6 @@ export function renderDictionary(main) {
     }
   }
 
-  const stopWallpaper = startWallpaper(wallpaper, results);
 
   const initial = new URLSearchParams(window.location.search).get('q');
   if (initial) search(initial);
@@ -198,7 +195,7 @@ export function renderDictionary(main) {
     input.focus();
   }
 
-  return () => stopWallpaper();
+  return null;
 }
 
 // ---------------------------------------------------------------------------

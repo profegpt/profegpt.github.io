@@ -103,8 +103,8 @@ const SPANISH = {
   hero: {
     badge: two('Español ↔ Inglés', 'Spanish ↔ English'),
     sub: two(
-      'Traduce en los dos sentidos, conjuga cualquier verbo en todos los tiempos, consulta la RAE y pregunta lo que quieras. Todo en una página.',
-      'Translate both ways, conjugate any verb in every tense, look words up in the RAE dictionary, and ask whatever you like. All on one page.',
+      'Traduce en los dos sentidos, conjuga cualquier verbo en todos los tiempos, consulta la RAE y pregúntale al tutor. Todo en una página.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the RAE dictionary, and ask the tutor. All on one page.',
     ),
     ctaTranslate: two('Probar el traductor', 'Try the translator'),
     ctaChat: two('Hablar con ProfeGPT', 'Talk to ProfeGPT'),
@@ -335,8 +335,8 @@ const FRENCH = {
   hero: {
     badge: deux('Français ↔ Anglais', 'French ↔ English'),
     sub: deux(
-      'Traduisez dans les deux sens, conjuguez n’importe quel verbe à tous les temps, cherchez un mot et posez la question que vous voulez. Le tout sur une page.',
-      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask whatever you like. All on one page.',
+      'Traduisez dans les deux sens, conjuguez n’importe quel verbe à tous les temps, cherchez un mot et interrogez le tuteur. Le tout sur une page.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask the tutor. All on one page.',
     ),
     ctaTranslate: deux('Essayer le traducteur', 'Try the translator'),
     ctaChat: deux('Parler à ProfeGPT', 'Talk to ProfeGPT'),
@@ -569,8 +569,8 @@ const ITALIAN = {
   hero: {
     badge: due('Italiano ↔ Inglese', 'Italian ↔ English'),
     sub: due(
-      'Traduci in tutte e due le direzioni, coniuga qualsiasi verbo in tutti i tempi, cerca una parola e chiedi quello che vuoi. Tutto in una pagina.',
-      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask whatever you like. All on one page.',
+      'Traduci in tutte e due le direzioni, coniuga qualsiasi verbo in tutti i tempi, cerca una parola e chiedi al tutor. Tutto in una pagina.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask the tutor. All on one page.',
     ),
     ctaTranslate: due('Prova il traduttore', 'Try the translator'),
     ctaChat: due('Parla con ProfeGPT', 'Talk to ProfeGPT'),

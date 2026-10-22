@@ -21,8 +21,8 @@ A home page, and four pages per language.
 
 | Route          | What it does |
 | -------------- | ------------ |
-| `/`            | The **home page**: the title and a box per language — Español, Français, Italiano, and a dashed *More languages — coming soon*. See below. |
-| `/es`          | The language's front page. Hero with an animated node network; the **translator**, whose centre button flips the languages and carries the text across; and a **dictionary search** that opens the dictionary page with your query already applied. |
+| `/`            | The **home page**: the title and the mascot, and a card per language — Español, Français, Italiano, and a dashed *More languages — coming soon*. See below. |
+| `/es`          | The language's front page. A hero with the language's landmark; the **translator**, whose centre button flips the languages and carries the text across; and a **dictionary search** that opens the dictionary page with your query already applied. |
 | `/es/conjugacion` | Every tense of the indicative, subjunctive and imperative. Three tabs for the regular **-ar / -er / -ir** models, plus a verb search that conjugates anything you type. Irregular forms are highlighted. |
 | `/es/diccionario` | Definitions from the *Diccionario de la lengua española*, with senses, synonyms and locutions, plus real example sentences and — in English mode — an English gloss. |
 | `/es/chat`     | A **grounded tutor** that answers from the site's own data — the conjugator, the dictionary, the translator, and hand-written grammar explanations. Needs no API key and invents nothing. |
@@ -42,8 +42,8 @@ deliberately small: a title, the choice, and a way in.
 Spanish is selected every time the page opens, whatever was read last, because
 it is the site's default. Choosing a box — with a click, or the arrow keys,
 since the boxes are a radio group — does not go anywhere by itself. It
-previews: the wallpaper turns to that language's city and the page's own words
-turn to that language, so the reader sees what they are about to walk into.
+previews: the page's own words turn to that language, so the reader sees what
+they are about to walk into.
 **Enter**, the *Enter* button, or a second click on the chosen box goes in. The
 keyboard path is the same three steps as the mouse one.
 
@@ -389,7 +389,8 @@ string, so the leading name is always capitalised and the hint never is.
 ### One easter egg
 
 Translating **"graduation 2028"**, in any capitalisation, doesn't translate
-anything — it fires confetti and a full-screen *¡Olé!*. Canvas only, no library.
+anything — it puts up a full-screen *¡Olé!* over a drawn trophy and confetti.
+A still picture; click or Escape takes it away.
 
 ### The profe's interjections
 
@@ -423,9 +424,9 @@ What changes:
 | the dictionary | a free French dictionary, credited where its licence requires it |
 | the tutor | French grammar, French verb forms, answers in French |
 | the interface | every string, in French or English |
-| the wallpaper | Paris |
+| the picture | the Eiffel Tower |
 
-What does not change: the theme, the teacher's lock, the confetti, and the shape
+What does not change: the theme, the teacher's lock, and the shape
 of every page. It is the same site pointed at a different language, not a
 second site.
 
@@ -564,7 +565,7 @@ What changes:
 | the dictionary | the Wikizionario, credited where its licence requires it |
 | the tutor | Italian grammar, Italian verb forms, answers in Italian |
 | the interface | every string, in Italian or English |
-| the wallpaper | Rome |
+| the picture | the Leaning Tower of Pisa |
 
 As with French, the sides never mix: the Italian tutor declines a Spanish
 question, and the chat clears when you change language.
@@ -690,70 +691,68 @@ code `it`.
 
 ## Design
 
-**Dark and light.** The choice is stamped onto `<html data-theme>` by an inline
-script in the page head, before the first paint, so the site never flashes the
-wrong palette. The **subject** goes on `<html data-study>` in the same script and
-for the same reason — the wallpaper is chosen in CSS, so it has to be right
-before anything is drawn, and the script reads it from the first part of the
-address. The theme follows the system setting until you choose one in the
-settings menu, then remembers. Colours that get painted to canvas — the hero network, the wallpaper
-strength — are CSS custom properties the JS reads back, so the palette has a
-single home.
+Modelled on [investors.duolingo.com](https://investors.duolingo.com/), measured
+from the live page rather than eyeballed: a white page, huge chunky **lowercase
+headings in Duolingo green** (`#58CC02`), grey body text (`#4B4B4B`), and cards
+and buttons with a **2px border and a 4px bottom edge** (`#E5E5E5`, 12–16px
+corners) that press down two pixels when clicked. Duolingo blue (`#1CB0F6`) is
+for links and secondary buttons, and marks what is selected — a chosen language
+card, the active tab, the interface language — the way Duolingo marks a chosen
+answer. Gold is for notices and idioms; red for irregular forms.
 
-Icons are drawn sprites in `public/js/lib/dom.js`, not emoji or text glyphs:
-those render differently on every platform and the hairline ☀/☾ characters
-disappeared against the header. Solid bodies with stroked details, because an
-all-outline padlock or gear turns to mush at the 16px they run at. Each was rendered at
-real size in both palettes before being wired in.
+**Fonts.** Duolingo's own faces, Feather Bold and DIN Round, are not free.
+**Fredoka** stands in for Feather on the big headings and **Nunito** for DIN
+Round everywhere else, both from Google Fonts.
 
-**Inter** throughout — headings uppercase at weight 700 with `letter-spacing:
--0.03em`. A system monospace is kept only for literal code inside chat replies.
-Flat colour: no gradients, no rounded corners.
+**The header is Duolingo's**: the mark and the lowercase wordmark on the left;
+plain uppercase links on the right, light grey, a shade darker on hover and for
+the page you are on; then the **ES | EN** switch and the settings gear, both
+drawn as Duolingo buttons. On a phone the links move to a row of their own under
+the logo, spread edge to edge. **There is no menu button at any width.**
 
-Between the translator and the dictionary search, a photograph fades in behind
-the page and parallaxes against the scroll. **One city per subject, at night in
-the dark palette and by day in the light one** — the city the language belongs
-to:
+**The illustrations are drawn SVGs in `public/assets/art/`**, generated by
+`scripts/draw-art.py` (standard library only; run it again after editing):
 
-| | dark | light |
-| --- | --- | --- |
-| Spanish | Gran Vía at night | the Plaza de Cibeles by day |
-| French | Paris at night | Notre-Dame by day |
-| Italian | the Colosseum at night | Rome by day |
+| | |
+| --- | --- |
+| `logo.svg` | the mascot's head — a green speech bubble with big eyes and a mortarboard. Also the favicon. |
+| `mascot.svg` | the home page: the mascot with an open book, waving, between *¡Hola!*, *Bonjour* and *Ciao* |
+| `es.svg` `fr.svg` `it.svg` | each language's landmark: La Mancha windmills, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
+| `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
+| `soon.svg` | the *More languages* card |
+| `celebrate.svg` | the trophy behind the easter egg |
 
-Six photographs, each a webp with a jpeg fallback. A theme-coloured scrim keeps
-the text in front readable; the strengths were calibrated by rendering the actual
-composite with text over it rather than guessing.
+The mascot is original — a speech bubble, not an owl — and nothing is copied
+from Duolingo's artwork. The style is theirs: flat shapes with no outlines, a
+darker shade down one side, a light highlight pill, rounded everything, and
+confetti around the big scenes. The script asserts that every shape stays inside
+its canvas and that everything that should touch does — the mascot's feet on the
+grass, every Eiffel platform covering the section below it, the Pisa drums
+stacked without a gap after the lean — and every picture was rendered on both
+the white and the dark background and looked at before it was kept.
 
-The six rules are ordered rather than fought over with `!important`. A subject
-rule carries the same weight as the light-mode rule it has to beat, so it comes
-after it in the file; each subject's light rule carries one attribute more, so it
-wins over its own dark one wherever it sits.
+**Everything is still.** No transitions, no animations, no canvas: the old
+animated network behind the hero, the parallax wallpaper and the thrown confetti
+are gone. Waiting is three still dots. The teacher's lock crosses the page with
+two flat strips of yellow tape rather than rolling them in.
 
-It runs behind the language boxes on the home page — where choosing a box
-changes the city before you go in — behind the hero and the translator on each
-language's front page, and as a band behind the header on the conjugation and dictionary pages, fading out as the
-next section rises into view.
+**The photographs are retired, not deleted.** The six city wallpapers (Madrid,
+Paris, Rome; day and night) are in `archive/wallpapers/`, outside `public/`, so
+they are kept but never served or loaded.
 
-Both sources are about 1024 px wide, which is well short of a modern display, so
-the photo carries a 1.5 px blur: it turns the upscaling softness into something
-that reads as depth of field instead of as a low-resolution image. **For genuinely
-higher resolution, drop a larger original into `public/assets/` under the same
-names** — nothing in the code assumes the current dimensions. The Paris night
-photograph is the smallest at 706px and leans on the blur hardest.
+**Light and dark.** Light is the default, as Duolingo's page is; dark is a
+choice in the settings menu, and uses Duolingo's own dark palette — deep
+blue-grey `#131F24` rather than black, slate borders, the same green. The choice
+is stamped onto `<html data-theme>` by an inline script before the first paint,
+so the page never flashes the wrong one.
 
-The image is declared as a plain `url()` followed by an `image-set()`, rather
-than through a custom property. A `var()` whose value a browser cannot parse is
-invalid at computed-value time and resets to *initial* — it does not fall back
-to the previous declaration — which is how the photo silently disappeared once.
+**Checkboxes are drawn, not the browser's**: a rounded box with a thick bottom
+edge that fills green with a white tick.
 
-The hero hands over to the translator with a soft dissolve rather than a hard
-edge: the hero is masked out over its last stretch while the wallpaper is
-already fading up underneath it.
+**No rubber-band bounce** at either end of the page (`overscroll-behavior`).
 
-The highlight colour is blue — `#4d8dff` on the dark palette, `#1d5fd0` on the
-light one — with teal as the second language's marker so the two stay
-distinguishable.
+Icons inside buttons are drawn sprites in `public/js/lib/dom.js`, not emoji or
+text glyphs, which render differently on every platform.
 
 ## Configuration
 
@@ -797,7 +796,7 @@ Everything the site talks to, and nothing else:
 | [en.wiktionary.org](https://en.wiktionary.org) | the English gloss beside a headword | none |
 | [Tatoeba](https://tatoeba.org) | example sentences | none |
 | [ElevenLabs](https://elevenlabs.io) | pronunciation | `ELEVENLABS_API_KEY` |
-| [Google Fonts](https://fonts.google.com) | the Inter font, loaded by the visitor's browser | none |
+| [Google Fonts](https://fonts.google.com) | Fredoka and Nunito, loaded by the visitor's browser | none |
 
 Plus the host itself — Render, or Google Apps Script. Every one of them is used
 on a free tier.
@@ -843,7 +842,7 @@ public/
     lib/conjugator-fr.js ·fr the French one: two stems, two auxiliaries
     lib/conjugator-it.js ·it the Italian one: -isc-, the 1-3-3 passato remoto,
                              reflexive pronouns in the forms
-    lib/network.js      the hero node network
+    lib/art.js          the drawings, by name — one place for the paths
     lib/markdown.js     DOM-building markdown renderer (no innerHTML)
     lib/tutor.js        intent routing for the chat — shared by every language —
                         and the rephrasings offered when it cannot answer
@@ -854,7 +853,6 @@ public/
                         away cannot interrupt an answer
     lib/theme.js        dark/light switching
     lib/tape.js         the X that seals the page when the teacher locks it
-    lib/wallpaper.js    the city photo: parallax, scrim, scroll fade
     lib/i18n.js         every interface string — one table per study language
     lib/language-switch.js  the ES/EN — or FR/EN, IT/EN — switch
     data/grammar.js     22 grammar explanations, Spanish and English
@@ -894,12 +892,12 @@ test/
 
 appscript/
   build.mjs             server/ and public/ → an Apps Script project in dist/
-  src/Code.js           the four functions a browser may call: doGet, api,
-                        apiResult, asset
+  src/Code.js           the three functions a browser may call: doGet, api,
+                        apiResult
   src/shim.js           fetch, URL, Buffer, timers and process.env, on
                         UrlFetchApp and friends; caches on CacheService
   src/client.js         fetch('/api/…') over google.script.run, routing
-                        through the iframe, wallpapers on demand
+                        through the iframe
   src/modules/          stand-ins for Express and the throttle, and the
                         request handler
   emulator.mjs          enough Apps Script to run dist/ under Node

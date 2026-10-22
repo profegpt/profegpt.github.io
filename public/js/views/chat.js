@@ -1,6 +1,6 @@
 import { el, icon, ICONS, clear } from '../lib/dom.js';
 import { renderMarkdown } from '../lib/markdown.js';
-import { startWallpaper, wallpaperLayer } from '../lib/wallpaper.js';
+import { art } from '../lib/art.js';
 import { t } from '../lib/i18n.js';
 import { ask, getState, isBusy, subscribe } from '../lib/chat-session.js';
 
@@ -19,11 +19,7 @@ export function renderChat(main) {
   const composer = el('form', { class: 'composer' }, input, send);
   const hint = el('p', { class: 'composer__hint' }, t('chat.enterHint'), ' · ', t('chat.groundedOnly'));
   const chat = el('div', { class: 'chat' }, log, composer, hint);
-  // Long-form text over the busiest part of the photo needs a heavier scrim.
-  const wallpaper = wallpaperLayer({ band: true, strong: true });
-
-  main.append(wallpaper, el('div', { class: 'page shell', style: { paddingBottom: '24px' } }, chat));
-  const stopWallpaper = startWallpaper(wallpaper, composer);
+  main.append(el('div', { class: 'page shell' }, chat));
 
   // --- painting ------------------------------------------------------------
 
@@ -70,7 +66,8 @@ export function renderChat(main) {
   }
 
   function greeting() {
-    return el('div', { class: 'empty' },
+    return el('div', { class: 'empty chat__greeting' },
+      art('chat', { className: 'chat__art' }),
       el('h3', {}, t('chat.title')),
       el('p', {}, t('chat.lead')),
       el('div', { class: 'starters', style: { justifyContent: 'center' } },
@@ -140,5 +137,5 @@ export function renderChat(main) {
 
   // Deliberately does not abort the lookup: the answer finishes in the
   // background and is waiting when the visitor comes back.
-  return () => { unsubscribe(); stopWallpaper(); };
+  return () => { unsubscribe(); };
 }

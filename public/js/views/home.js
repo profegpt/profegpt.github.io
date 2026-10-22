@@ -1,5 +1,5 @@
-import { el, icon, ICONS } from '../lib/dom.js';
-import { startWallpaper, wallpaperLayer } from '../lib/wallpaper.js';
+import { el, icon } from '../lib/dom.js';
+import { art } from '../lib/art.js';
 import { t } from '../lib/i18n.js';
 import { DEFAULT_STUDY, page, setStudyLang, studyLang } from '../lib/study.js';
 
@@ -10,9 +10,9 @@ import { DEFAULT_STUDY, page, setStudyLang, studyLang } from '../lib/study.js';
  * front page with the translator on it — so it is deliberately small. A title,
  * the choice, and a way in.
  *
- * Choosing a box does not go anywhere by itself. It previews: the wallpaper
- * turns to that language's city and the page's own words turn to that
- * language, so the reader sees what they are about to walk into. Enter, the
+ * Choosing a card does not go anywhere by itself. It previews: the page's own
+ * words turn to that language, so the reader sees what they are about to walk
+ * into. Enter, the
  * button, or a second click on the chosen box goes in. Spanish is chosen when
  * the page opens, whatever was read last, because it is the site's default.
  *
@@ -30,10 +30,8 @@ export function renderHome(main) {
   // The page opens on Spanish, and every visit starts there.
   setStudyLang(DEFAULT_STUDY);
 
-  const wallpaper = wallpaperLayer();
-
   const lead = el('p', { class: 'home__lead' });
-  const choose = el('p', { class: 'eyebrow', id: 'home-choose' });
+  const choose = el('span', {});
   const enterLabel = el('span', {});
   const hint = el('p', { class: 'home__hint' });
   const soonTitle = el('span', { class: 'langbox__name' });
@@ -55,6 +53,7 @@ export function renderHome(main) {
       },
       ondblclick: () => go(),
     },
+    art(language.code, { className: 'langbox__art' }),
     el('span', { class: 'langbox__code' }, language.code.toUpperCase()),
     el('span', { class: 'langbox__name' }, language.name),
     el('span', { class: 'langbox__english' }, language.english));
@@ -63,7 +62,9 @@ export function renderHome(main) {
 
   // Not a button: there is nothing to press yet.
   const soon = el('div', { class: 'langbox langbox--soon', 'aria-disabled': 'true' },
-    el('span', { class: 'langbox__code' }, icon('M12 5v14M5 12h14', { size: 22 })),
+    art('soon', { className: 'langbox__art' }),
+    // An empty code line, so the name sits level with the other three.
+    el('span', { class: 'langbox__code', 'aria-hidden': 'true' }, '\u00a0'),
     soonTitle,
     soonBody);
 
@@ -73,15 +74,20 @@ export function renderHome(main) {
     'aria-labelledby': 'home-choose',
   }, ...boxes, soon);
 
-  const section = el('section', { class: 'home shell' },
-    el('div', { class: 'home__inner' },
-      el('h1', { class: 'hero__title home__title' }, 'ProfeGPT'),
-      lead,
-      choose,
-      grid,
-      el('div', { class: 'home__go' }, enter, hint)));
+  // Duolingo's front page: the name huge on the left with a line under it, the
+  // mascot on the right, and the choice below a rule.
+  const hero = el('section', { class: 'hero shell' },
+    el('div', { class: 'hero__copy' },
+      el('h1', { class: 'hero__title' }, 'profegpt'),
+      lead),
+    el('div', { class: 'hero__art' }, art('mascot')));
 
-  main.append(wallpaper, section);
+  const section = el('section', { class: 'home shell' },
+    el('h2', { class: 'section__title', id: 'home-choose' }, choose),
+    grid,
+    el('div', { class: 'home__go' }, enter, hint));
+
+  main.append(hero, el('hr', { class: 'rule' }), section);
 
   /** The page's own words, in whichever language is chosen. */
   function paint() {
@@ -136,11 +142,8 @@ export function renderHome(main) {
   paint();
   document.addEventListener('keydown', onKey);
   window.addEventListener('langchange', paint);
-  const stopWallpaper = startWallpaper(wallpaper, null);
-
   return () => {
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('langchange', paint);
-    stopWallpaper();
   };
 }
