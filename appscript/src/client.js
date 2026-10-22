@@ -12,7 +12,6 @@
  *     address bar as `?page=…`, which is also what doGet() reads when a link
  *     is opened fresh. Back and forward come back through google.script.history.
  *
- *   - Wallpapers arrive on demand, one photograph at a time, and are kept.
  */
 
 /* global google */
@@ -218,39 +217,4 @@
       .then((health) => { if (health.apiKeys === 0) showNotice(); })
       .catch(() => {});
   }
-
-  // ----------------------------------------------------------- wallpaper ----
-
-  const CITY = { es: 'madrid', fr: 'paris', it: 'rome' };
-  const VERSION = '__ASSET_VERSION__';
-  const requested = new Set();
-
-  function show(name, data) {
-    document.documentElement.style.setProperty(`--asset-${name}`, `url("data:image/webp;base64,${data}")`);
-  }
-
-  function load(name) {
-    if (requested.has(name) || !script) return;
-    requested.add(name);
-    const key = `profegpt:asset:${name}:${VERSION}`;
-    try {
-      const kept = localStorage.getItem(key);
-      if (kept) { show(name, kept); return; }
-    } catch { /* fetch it */ }
-
-    call('asset', name).then((data) => {
-      if (!data) return;
-      show(name, data);
-      try { localStorage.setItem(key, data); } catch { /* fetched again next visit */ }
-    }).catch(() => requested.delete(name));
-  }
-
-  function current() {
-    const root = document.documentElement;
-    return `${CITY[root.dataset.study] || 'madrid'}-${root.dataset.theme === 'light' ? 'day' : 'night'}`;
-  }
-
-  load(current());
-  new MutationObserver(() => load(current()))
-    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-study', 'data-theme'] });
 })();

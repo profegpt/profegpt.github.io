@@ -1,5 +1,4 @@
 import { el, icon, ICONS, clear, debounce, fold, getJson } from '../lib/dom.js';
-import { startWallpaper, wallpaperLayer } from '../lib/wallpaper.js';
 import * as spanish from '../lib/conjugator.js';
 import * as french from '../lib/conjugator-fr.js';
 import * as italian from '../lib/conjugator-it.js';
@@ -177,7 +176,6 @@ export function renderConjugator(main) {
   const firstValue = MODEL_VERBS[firstMode].verb;
 
   const results = el('div', {});
-  const wallpaper = wallpaperLayer({ band: true });
   const searchInput = el('input', {
     type: 'search',
     placeholder: t('conjugator.search'),
@@ -205,7 +203,7 @@ export function renderConjugator(main) {
     results.querySelector('.conj-tables')?.classList.toggle('mark-irregular', state.highlight);
   });
 
-  main.append(wallpaper, el('div', { class: 'page shell' },
+  main.append(el('div', { class: 'page shell' },
     el('div', { class: 'page__head' },
       el('p', { class: 'eyebrow' }, t('conjugator.eyebrow')),
       el('h1', {}, t('conjugator.title')),
@@ -340,11 +338,8 @@ export function renderConjugator(main) {
     show(firstValue, firstMode);
   }
 
-  const stopWallpaper = startWallpaper(wallpaper, results);
-
   return () => {
     document.removeEventListener('click', onDocumentClick);
-    stopWallpaper();
   };
 }
 

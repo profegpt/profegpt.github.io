@@ -30,8 +30,6 @@ const ROUTES = [
 const HOME = { path: '/', nav: null, render: renderHome, home: true };
 
 const main = document.getElementById('main');
-const links = document.querySelector('.nav__links');
-const toggle = document.querySelector('.nav__toggle');
 
 mountLanguageSwitch(document.querySelector('.langswitch'));
 mountSettings(document.querySelector('.nav__end'));
@@ -70,19 +68,15 @@ function paintChrome() {
   }
   const brand = document.querySelector('.nav__brand');
   brand.title = t('home.back');
-  toggle.setAttribute('aria-label', t('nav.menu'));
   document.querySelector('.skip-link').textContent = t('meta.skip');
-  const footer = document.querySelector('.footer p');
+  const footer = document.querySelector('.footer__text');
   clear(footer);
   // The dictionary's credit is a footnote on the dictionary page, where the
   // definitions are, rather than a line on every page of the site.
-  footer.append('ProfeGPT');
   if (window.location.origin !== WEBSITE) {
-    const site = Object.assign(document.createElement('span'), { className: 'footer__site' });
-    site.appendChild(Object.assign(document.createElement('a'), {
-      href: WEBSITE, target: '_blank', rel: 'noopener', textContent: new URL(WEBSITE).host,
+    footer.appendChild(Object.assign(document.createElement('a'), {
+      className: 'footer__site', href: WEBSITE, target: '_blank', rel: 'noopener', textContent: new URL(WEBSITE).host,
     }));
-    footer.appendChild(site);
   }
   footer.appendChild(Object.assign(document.createElement('span'), {
     className: 'footer__legal',
@@ -145,6 +139,8 @@ async function navigate() {
     if (typeof teardown === 'function') teardown();
     teardown = null;
     clear(main);
+    // Each page is drawn with its own picture, chosen in CSS off this.
+    main.dataset.page = route.home ? 'home' : route.nav;
     document.title = route.home || route.path === '/'
       ? t('meta.home')
       : `ProfeGPT · ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
@@ -166,8 +162,6 @@ function onClick(event) {
   if (url.origin !== window.location.origin) return;
 
   event.preventDefault();
-  links.classList.remove('is-open');
-  toggle.setAttribute('aria-expanded', 'false');
 
   const samePage = url.pathname === window.location.pathname;
   if (samePage && url.hash) {
@@ -191,10 +185,6 @@ export function go(to) {
   navigate();
 }
 
-toggle.addEventListener('click', () => {
-  const open = links.classList.toggle('is-open');
-  toggle.setAttribute('aria-expanded', String(open));
-});
 
 document.addEventListener('click', onClick);
 window.addEventListener('popstate', () => navigate());

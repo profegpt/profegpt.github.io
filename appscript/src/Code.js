@@ -3,7 +3,7 @@
  *
  * Every top-level function in this project without a trailing underscore can
  * be called by any visitor's browser through google.script.run, so there are
- * exactly four: the page, the API, the API's fallback, and the wallpapers.
+ * exactly three: the page, the API and the API's fallback.
  * Everything else lives inside profegpt_(), in the generated server.js.
  *
  * This folder is generated: edit appscript/src/ and run `npm run appscript:build`.
@@ -68,12 +68,6 @@ function apiResult(id) {
 
   cache.removeAll(keys.concat(`r:${id}`));
   return JSON.parse(keys.map((key) => parts[key]).join(''));
-}
-
-/** One wallpaper, as base64. They are fetched on demand rather than all inlined into the page. */
-function asset(name) {
-  if (!/^(madrid|paris|rome)-(day|night)$/.test(String(name))) return null;
-  return HtmlService.createHtmlOutputFromFile(`assets/${name}`).getContent();
 }
 
 // ---------------------------------------------------------------------------

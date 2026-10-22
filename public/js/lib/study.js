@@ -72,15 +72,15 @@ export function page(path = '/', study = current) {
  * Switch the site's subject language.
  *
  * Fires `studychange` so anything painted outside a view — the header, the
- * wallpaper — can follow. The router calls this as it navigates; nothing else
+ * footer — can follow. The router calls this as it navigates; nothing else
  * should need to, since the language lives in the address.
  */
 export function setStudyLang(next) {
   const value = valid(next);
   if (value === current) return current;
   current = value;
-  // The wallpaper is chosen in CSS off this attribute, so it has to move with
-  // the subject rather than waiting for a view to re-render.
+  // Anything chosen in CSS by language reads this attribute, so it has to move
+  // with the subject rather than waiting for a view to re-render.
   document.documentElement.dataset.study = current;
   window.dispatchEvent(new CustomEvent('studychange', { detail: { study: current } }));
   return current;

@@ -46,7 +46,7 @@ async function test(name, run) {
 await test('only the entry points are callable', () => {
   const context = project().execution();
   const callable = Object.keys(context).filter((key) => typeof context[key] === 'function' && !key.endsWith('_'));
-  assert.deepEqual(callable.sort(), ['api', 'apiResult', 'asset', 'doGet']);
+  assert.deepEqual(callable.sort(), ['api', 'apiResult', 'doGet']);
 });
 
 await test('doGet turns the path and query into the first route', () => {
@@ -235,10 +235,11 @@ await test('a browser that gets real answers stops the stashing', async () => {
   assert.equal(app.execution().apiResult('abcdef123456'), null);
 });
 
-await test('wallpapers are served by name and nothing else', () => {
-  const context = project().execution();
-  assert.ok(context.asset('rome-day').length > 1000);
-  assert.equal(context.asset('../index'), null);
+await test('the drawings are inlined into the page, and the old photographs are not', () => {
+  const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+  assert.ok(html.includes('data:image/svg+xml;base64,'));
+  assert.ok(!/madrid|paris-|rome-|\.webp/.test(html), 'a wallpaper made it into the page');
+  assert.ok(!fs.existsSync(path.join(dist, 'assets')));
 });
 
 console.log(`✓ all ${passed} Apps Script checks passed`);
