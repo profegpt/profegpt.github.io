@@ -386,12 +386,6 @@ In English the conjugation tables lead with the English tense name and keep the
 Spanish one underneath. Capitalisation belongs to the role rather than the
 string, so the leading name is always capitalised and the hint never is.
 
-### One easter egg
-
-Translating **"graduation 2028"**, in any capitalisation, doesn't translate
-anything — it puts up a full-screen *¡Olé!* over a drawn trophy and confetti.
-A still picture; click or Escape takes it away.
-
 ### The profe's interjections
 
 Three expressions she actually used, spelled as the RAE has them, fired on the
@@ -720,7 +714,6 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 | `es.svg` `fr.svg` `it.svg` | each language's landmark: La Mancha windmills, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
-| `celebrate.svg` | the trophy behind the easter egg |
 
 The mascot is original — a speech bubble, not an owl — and nothing is copied
 from Duolingo's artwork. The style is theirs: flat shapes with no outlines, a
