@@ -1,39 +1,41 @@
 import { renderHome } from './views/home.js';
+import { renderTranslatorPage } from './views/translator.js';
 import { renderConjugator } from './views/conjugator.js';
 import { renderDictionary } from './views/dictionary.js';
 import { renderChat } from './views/chat.js';
-import { renderDeclensions } from './views/declensions.js';
-import { renderStages } from './views/stages.js';
 import { clear } from './lib/dom.js';
-import { mountThemeToggle } from './lib/theme.js';
-import { mountLanguageSwitch, restoreLock } from './lib/language-switch.js';
+import { mountLanguageSwitch } from './lib/language-switch.js';
 import { mountSiteLock } from './lib/site-lock.js';
-import { followStudyLanguage, t } from './lib/i18n.js';
-import { studyLang } from './lib/study.js';
+import { mountSettings } from './lib/settings.js';
+import { t } from './lib/i18n.js';
+import {
+  DEFAULT_STUDY, page, pageOf, setStudyLang, studyFromPath,
+} from './lib/study.js';
 
 /**
- * `only` marks a page that exists in one study language. Latin grows two the
- * modern languages have no use for — a declension table, and the course's
- * vocabulary by stage — and asking for one in Spanish falls back to the home
- * page rather than rendering something the site is not about.
+ * Every language has the same four pages, under its own prefix: /es/chat,
+ * /fr/conjugacion, /it/diccionario. The paths keep their Spanish names on every
+ * side — they are the site's, not the language's, and links that already exist
+ * should keep working.
+ *
+ * The bare / is the home page, which belongs to no language.
  */
 const ROUTES = [
-  { path: '/', nav: 'traductor', render: renderHome },
+  { path: '/', nav: 'traductor', render: renderTranslatorPage },
   { path: '/conjugacion', nav: 'conjugacion', render: renderConjugator },
-  { path: '/declinationes', nav: 'declinationes', render: renderDeclensions, only: 'la' },
-  { path: '/stadia', nav: 'stadia', render: renderStages, only: 'la' },
   { path: '/diccionario', nav: 'diccionario', render: renderDictionary },
   { path: '/chat', nav: 'chat', render: renderChat },
 ];
+
+const HOME = { path: '/', nav: null, render: renderHome, home: true };
 
 const main = document.getElementById('main');
 const links = document.querySelector('.nav__links');
 const toggle = document.querySelector('.nav__toggle');
 
-mountThemeToggle(document.querySelector('.nav__theme'));
-const refreshLanguageSwitch = mountLanguageSwitch(document.querySelector('.langswitch'));
-mountSiteLock(document.querySelector('.nav__lock'));
-restoreLock();
+mountLanguageSwitch(document.querySelector('.langswitch'));
+mountSettings(document.querySelector('.nav__end'));
+mountSiteLock();
 
 /**
  * The site's own address, for the footer. Shown everywhere except on it — the
@@ -45,29 +47,36 @@ const WEBSITE = 'https://profegpt.onrender.com';
 const NAV_KEYS = {
   traductor: 'translator',
   conjugacion: 'conjugation',
-  declinationes: 'declension',
-  stadia: 'stages',
   diccionario: 'dictionary',
   chat: 'chat',
 };
 
+const NAV_PATHS = {
+  traductor: '/#traductor',
+  conjugacion: '/conjugacion',
+  diccionario: '/diccionario',
+  chat: '/chat',
+};
+
+/** Whether the page on screen is the home page, which has no language's links. */
+let onHome = false;
+
 function paintChrome() {
+  document.documentElement.classList.toggle('is-home', onHome);
   for (const link of document.querySelectorAll('[data-nav]')) {
-    const only = link.dataset.only;
-    // A link to a page this language does not have is taken out of the nav
-    // entirely rather than left to lead somewhere unhelpful.
-    link.hidden = Boolean(only) && only !== studyLang();
-    if (link.hidden) continue;
+    const path = NAV_PATHS[link.dataset.nav];
+    link.href = path.startsWith('/#') ? `${page()}${path.slice(1)}` : page(path);
     link.textContent = t(`nav.${NAV_KEYS[link.dataset.nav]}`);
   }
+  const brand = document.querySelector('.nav__brand');
+  brand.title = t('home.back');
+  toggle.setAttribute('aria-label', t('nav.menu'));
   document.querySelector('.skip-link').textContent = t('meta.skip');
   const footer = document.querySelector('.footer p');
   clear(footer);
-  footer.append('ProfeGPT · ', t('meta.footer'), ' ');
-  footer.appendChild(Object.assign(document.createElement('a'), {
-    href: t('meta.footerHref'), target: '_blank', rel: 'noopener', textContent: t('meta.footerDict'),
-  }));
-  footer.append(t('meta.footerCredit'));
+  // The dictionary's credit is a footnote on the dictionary page, where the
+  // definitions are, rather than a line on every page of the site.
+  footer.append('ProfeGPT');
   if (window.location.origin !== WEBSITE) {
     const site = Object.assign(document.createElement('span'), { className: 'footer__site' });
     site.appendChild(Object.assign(document.createElement('a'), {
@@ -86,10 +95,26 @@ let teardown = null;
 // /conjugacion — the verb lives in the query, not the path.
 let currentKey = null;
 
-function match(pathname) {
-  const found = ROUTES.find((route) => route.path === pathname);
-  if (!found) return ROUTES[0];
-  return !found.only || found.only === studyLang() ? found : ROUTES[0];
+/**
+ * The route for an address, settling the study language on the way.
+ *
+ * An address with no language on it that is not the home page is an old link
+ * from before the languages had prefixes — /conjugacion?v=ir, say. Those were
+ * all Spanish, so they are moved onto the Spanish side rather than broken.
+ */
+function match() {
+  const { pathname, search, hash } = window.location;
+  const study = studyFromPath(pathname);
+
+  if (!study) {
+    if (pathname === '/' || pathname === '') return HOME;
+    history.replaceState({}, '', `/${DEFAULT_STUDY}${pathname}${search}${hash}`);
+    return match();
+  }
+
+  setStudyLang(study);
+  const rest = pageOf(pathname).replace(/\/+$/, '') || '/';
+  return ROUTES.find((route) => route.path === rest) ?? ROUTES[0];
 }
 
 function markActive(nav) {
@@ -106,16 +131,23 @@ function scrollToHash(hash) {
   return true;
 }
 
-async function navigate({ replace = false } = {}) {
-  const route = match(window.location.pathname);
+async function navigate() {
+  const route = match();
   const { hash } = window.location;
+
+  if (onHome !== Boolean(route.home)) {
+    onHome = Boolean(route.home);
+    paintChrome();
+  }
 
   const key = window.location.pathname + window.location.search;
   if (key !== currentKey) {
     if (typeof teardown === 'function') teardown();
     teardown = null;
     clear(main);
-    document.title = route.path === '/' ? t('meta.home') : `ProfeGPT · ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
+    document.title = route.home || route.path === '/'
+      ? t('meta.home')
+      : `ProfeGPT · ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
     teardown = (await route.render(main)) || null;
     currentKey = key;
     if (!hash) window.scrollTo({ top: 0 });
@@ -148,7 +180,7 @@ function onClick(event) {
     return;
   }
 
-  history.pushState({}, '', url.pathname + url.hash);
+  history.pushState({}, '', url.pathname + url.search + url.hash);
   navigate();
 }
 
@@ -165,38 +197,23 @@ toggle.addEventListener('click', () => {
 });
 
 document.addEventListener('click', onClick);
-window.addEventListener('popstate', () => navigate({ replace: true }));
+window.addEventListener('popstate', () => navigate());
 
 // A language change rebuilds the current view, since every string is baked in
-// at render time rather than bound.
+// at render time rather than bound. The home page is the exception: it repaints
+// its own few words in place, so the chosen box keeps its focus.
 window.addEventListener('langchange', () => {
   paintChrome();
+  if (onHome) return;
   currentKey = null;
-  navigate({ replace: true });
+  navigate();
 });
 
-// So does a change of *study* language — the site swapping from Spanish to
-// French replaces the strings, the tables and the dictionary behind the page,
-// which is every bit as much of a rebuild. The chrome language follows first,
-// since ES is no longer one of the options once the site is about French.
-window.addEventListener('studychange', () => {
-  // Order matters: the interface language has to settle before the switch is
-  // rebuilt, or it paints LA and EN against a language that is still ES and
-  // marks neither of them as the one you are reading.
-  followStudyLanguage();
-  refreshLanguageSwitch();
-  paintChrome();
-
-  // Drop the query as well. Every page keeps what you looked at in the URL —
-  // ?v=parler, ?q=sobremesa — and rebuilding the view would otherwise reload a
-  // French verb into the Latin conjugator. The subject changed; the search
-  // should start empty.
-  history.replaceState({}, '', window.location.pathname);
-
-  currentKey = null;
-  navigate({ replace: true });
-});
+// A change of study language comes either from the address — in which case
+// navigate() is already rebuilding the view — or from a box being chosen on
+// the home page, which only needs the header and footer to follow.
+window.addEventListener('studychange', paintChrome);
 
 paintChrome();
 
-navigate({ replace: true });
+navigate();

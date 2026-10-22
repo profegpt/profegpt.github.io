@@ -1,11 +1,10 @@
 /**
- * The teacher's padlock: two switches behind one dialog.
+ * The teacher's padlock: one switch, one passcode.
  *
- * The lock seals the site for everybody. The restriction is softer — it leaves
- * everything working and narrows the site to Spanish, taking away the two
- * languages that are not today's lesson. They have separate passcodes and must
- * not reach each other: restricting must never seal the room, and unlocking
- * must never quietly open French and Latin back up.
+ * There used to be a second word in the same dialog that opened French and
+ * Latin for one browser. The languages are now chosen freely on the home page,
+ * so that word is gone, and it must stay gone — "profe" is just a wrong
+ * passcode now.
  *
  * The router is mounted on a real express app, since that is the only way to
  * exercise what the browser actually talks to.
@@ -41,49 +40,35 @@ const send = async (passcode, body = {}) => {
 // --- it starts open --------------------------------------------------------
 let state = await read();
 ok('starts unlocked', state.locked === false);
-ok('and says nothing about subjects, which are per-browser', state.restricted === undefined);
+ok('and says nothing about subjects', state.restricted === undefined && state.opened === undefined);
 
-// --- the word that hands one browser the other languages ------------------
-let result = await send('profe');
-ok('"profe" is accepted', result.status === 200, String(result.status));
-ok('and says the browser may open them', result.state.opened === true);
-ok('and does not seal anything', result.state.locked === false);
-ok('without locking the site', result.state.locked === false);
-ok('and nothing was recorded for anyone else',
-  (await read()).restricted === undefined && (await read()).opened === undefined);
+// --- the old language passcodes are gone ---------------------------------
+for (const old of ['profe', 'walsh']) {
+  const result = await send(old);
+  ok(`"${old}" is now just a wrong passcode`, result.status === 403, String(result.status));
+  ok('and opens nothing', result.state.opened === undefined && result.state.locked === false);
+}
 
-// There is no word that takes the languages away again — that would be a
-// switch over other people's screens, which this deliberately is not.
-result = await send('walsh');
-ok('"walsh" is now just a wrong passcode', result.status === 403, String(result.status));
-ok('and still does not lock', result.state.locked === false);
-
-// Case and stray spaces are forgiven, as they are for the lock.
-ok('the passcode is case-insensitive', (await send('  PROFE ')).state.opened === true);
-
-// --- the lock, which is a different switch ---------------------------------
-result = await send('AP_Lit');
+// --- the lock --------------------------------------------------------------
+let result = await send('AP_Lit');
 ok('the teacher passcode locks', result.state.locked === true);
-ok('and does not open the subjects', result.state.opened === undefined);
 ok('a lock records when', typeof result.state.since === 'number');
 
 result = await send('AP_Lit');
 ok('and toggles back', result.state.locked === false);
 ok('clearing the timestamp', result.state.since === null);
 
-// --- the two do not reach each other --------------------------------------
-await send('profe');
-result = await send('AP_Lit', { locked: true });
-ok('locking says nothing about subjects', result.state.opened === undefined && result.state.locked === true);
+// Case and stray spaces are forgiven.
+result = await send('  ap_lit ', { locked: true });
+ok('the passcode is case-insensitive', result.state.locked === true);
 result = await send('AP_Lit', { locked: false });
-ok('and neither does unlocking', result.state.opened === undefined && result.state.locked === false);
-await send('walsh');
+ok('and an explicit target is honoured', result.state.locked === false);
 
 // --- anything else is refused ---------------------------------------------
 result = await send('nope');
 ok('a wrong passcode is refused', result.status === 403, String(result.status));
 ok('and changes nothing', result.state.locked === false && result.state.opened === undefined);
-ok('and says nothing about which was wrong', !/profe|walsh|AP_Lit/i.test(JSON.stringify(result.state)));
+ok('and does not give the passcode away', !/AP_Lit/i.test(JSON.stringify(result.state)));
 result = await send('');
 ok('an empty passcode is refused', result.status === 403);
 

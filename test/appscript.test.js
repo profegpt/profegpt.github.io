@@ -77,24 +77,17 @@ await test('the page carries every module and no unresolved asset', () => {
   assert.ok(!html.includes('__ASSET_VERSION__'));
 });
 
-await test('only free providers run, whatever keys are set', async () => {
+await test('only the three service keys count, and no model is configured', async () => {
   const app = project({
-    properties: { GEMINI_API_KEY: 'k', ANTHROPIC_API_KEY: 'paid', VERTEX_PROJECT: 'billed-project' },
+    properties: {
+      DEEPL_API_KEY: 'k:fx', RAE_API_KEY: 'r', ELEVENLABS_API_KEY: 'e', GEMINI_API_KEY: 'leftover',
+    },
   });
   const health = json(await call(app, { url: '/api/health' }));
   assert.equal(health.runtime, 'apps-script');
-  assert.equal(health.apiKeys, 1, 'only the Gemini key counts; the paid ones are not API keys here');
-  assert.deepEqual(health.chain.map((provider) => provider.id), ['gemini']);
-  assert.ok(health.chain.every((provider) => provider.free === true));
-});
-
-await test('the session secret is minted once and kept', async () => {
-  const app = project();
-  await call(app, { url: '/api/health' });
-  const secret = app.props.SESSION_SECRET;
-  assert.match(secret, /^[0-9a-f]{64}$/);
-  await call(app, { url: '/api/health' });
-  assert.equal(app.props.SESSION_SECRET, secret);
+  assert.equal(health.apiKeys, 3, 'a leftover model key is not one of the site’s keys');
+  assert.equal(health.translator, true);
+  assert.equal(health.chain, undefined);
 });
 
 await test('the teacher lock survives between executions', async () => {
@@ -112,48 +105,20 @@ await test('the teacher lock survives between executions', async () => {
   // A different execution, as the next visitor's request would be.
   assert.equal(json(await call(app, { url: '/api/lock' })).locked, true);
 
-  const opened = json(await post({ passcode: 'profe' }));
-  assert.equal(opened.opened, true);
+  // The old word that opened French and Latin is gone with them.
+  const old = await post({ passcode: 'profe' });
+  assert.equal(old.status, 403);
+  assert.equal(json(old).opened, undefined);
 });
 
-await test('chat runs through Gemini, keyed to a cookie, and spends the allowance', async () => {
-  let seen = null;
-  const app = project({
-    properties: { GEMINI_API_KEY: 'studio-key', CHAT_FREE_LIMIT: '2' },
-    respond(url, params) {
-      seen = { url, params };
-      return { body: { candidates: [{ content: { parts: [{ text: 'Hola, ¿qué tal?' }] } }] } };
-    },
-  });
-
-  const status = await call(app, { url: '/api/chat/status' });
-  assert.equal(json(status).quota.remaining, 2);
-  assert.equal(status.cookies.length, 1);
-  const cookie = `${status.cookies[0].name}=${encodeURIComponent(status.cookies[0].value)}`;
-
-  const ask = () => call(app, {
+await test('there is no chat endpoint: the tutor answers in the browser', async () => {
+  const response = await call(project(), {
     method: 'POST',
     url: '/api/chat',
-    headers: { 'content-type': 'application/json', cookie },
-    body: JSON.stringify({ messages: [{ role: 'user', content: 'What is the capital of France?' }], study: 'es' }),
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ messages: [{ role: 'user', content: 'hola' }] }),
   });
-
-  const first = await ask();
-  assert.equal(first.status, 200);
-  assert.match(first.headers['content-type'], /event-stream/);
-  const events = first.body.trim().split('\n\n').map((event) => JSON.parse(event.slice(5)));
-  assert.equal(events.find((event) => event.type === 'delta').text, 'Hola, ¿qué tal?');
-  assert.ok(events.some((event) => event.type === 'done'));
-  assert.equal(first.cookies.length, 0, 'a known browser is not given a new identity');
-
-  // The key travels in a header, not in the URL.
-  assert.ok(!seen.url.includes('studio-key'));
-  assert.equal(seen.params.headers['x-goog-api-key'], 'studio-key');
-
-  assert.equal((await ask()).status, 200);
-  const spent = await ask();
-  assert.equal(spent.status, 429);
-  assert.equal(json(spent).quota.remaining, 0);
+  assert.equal(response.status, 404);
 });
 
 await test('verbs come from the RAE through UrlFetchApp, and are cached across executions', async () => {
@@ -224,6 +189,22 @@ await test('a billed DeepL key is never used', async () => {
     body: JSON.stringify({ text: 'Hola', from: 'es', study: 'es' }),
   });
   assert.ok(!app.requests.some((request) => request.url.includes('deepl.com')));
+});
+
+await test('when DeepL fails the translator says it is unavailable', async () => {
+  const app = project({
+    properties: { DEEPL_API_KEY: 'abc:fx' },
+    respond: (url) => (url.includes('deepl') ? { status: 456, body: {} } : { status: 404, body: {} }),
+  });
+  const response = await call(app, {
+    method: 'POST',
+    url: '/api/translate',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ text: 'Hola', from: 'es', study: 'es' }),
+  });
+  assert.equal(response.status, 503, response.body);
+  assert.equal(json(response).unavailable, true);
+  assert.equal(json(response).translation, undefined);
 });
 
 await test('a failing host is a 5xx answer, not a crashed execution', async () => {

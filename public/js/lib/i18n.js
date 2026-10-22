@@ -3,26 +3,23 @@
  *
  * Two axes meet here and they are not the same thing:
  *
- *   lib/study.js  — the language the site is *about*: Spanish, or French.
+ *   lib/study.js  — the language the site is *about*: Spanish, French or Italian.
  *   this file     — the language of the *chrome*: the study language, or English.
  *
- * So the header switch reads ES | EN on the Spanish side and FR | EN on the
- * French one, and English is gated behind a passcode on both. Getting the
- * passcode wrong seals the whole page until the right one is entered.
+ * So the header switch reads ES | EN on the Spanish side, FR | EN on the French
+ * one and IT | EN on the Italian one. Either half is one click away; nothing is
+ * behind a passcode any more.
  *
- * Switching subject takes the interface with it: the site speaks whatever it is
- * about. Latin included — turning the site Latin turns the chrome Latin, and
- * the reader can put it back to English from the same menu.
- *
- * Latin is still the exception on the passcode: neither side is gated. English
- * is the working language of a Latin classroom rather than a way round the
- * lesson, so there is nothing there to protect.
+ * What is remembered is the choice of English, not a language code. Somebody
+ * reading the Spanish side in English and then picking Italian on the home page
+ * meant "in English" rather than "in Spanish", so English carries over and
+ * everything else follows the subject.
  *
  * Content the site is about never changes language: verb forms, dictionary
  * headwords, the subject pronouns in the tables. Only the chrome moves.
  *
  * There is one string table per study language rather than one table with a
- * third column, because the English half differs too — "Spanish questions are
+ * fourth column, because the English half differs too — "Spanish questions are
  * free" and "French questions are free" are different sentences, and so is
  * every mention of the dictionary behind each side.
  */
@@ -30,41 +27,16 @@
 import { studyLang } from './study.js';
 
 const LANG_KEY = 'profegpt:lang';
-const LOCK_KEY = 'profegpt:locked';
 
-export const PASSCODE = '1206';
-
-function read(key) {
-  try { return localStorage.getItem(key); } catch { return null; }
+function readEnglish() {
+  try { return localStorage.getItem(LANG_KEY) === 'en'; } catch { return false; }
 }
 
-function write(key, value) {
-  try {
-    if (value === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, value);
-  } catch {
-    // Storage blocked — the choice still applies for this visit.
-  }
-}
+let english = readEnglish();
 
-/** Whether the half that is not the study language costs a passcode. */
-const GATED = { es: true, fr: true, la: false };
-
-/** A subject's own language is the one its side of the site starts in. */
-function defaultFor(study) {
-  return study;
-}
-
-/** A stored choice only counts if it is one of the two on offer now. */
-function settle(value) {
-  const study = studyLang();
-  return value === 'en' || value === study ? value : defaultFor(study);
-}
-
-let current = settle(read(LANG_KEY));
-
+/** The chrome language right now: English, or whatever the site is about. */
 export function lang() {
-  return current;
+  return english ? 'en' : studyLang();
 }
 
 /** The two options the switch offers right now. */
@@ -72,51 +44,24 @@ export function languageOptions() {
   return [studyLang(), 'en'];
 }
 
-/** Whether switching away from the default needs the passcode. */
-export function passcodeRequired() {
-  return GATED[studyLang()] ?? true;
-}
-
 export function setLang(next) {
-  current = settle(next === 'en' ? 'en' : studyLang());
-  write(LANG_KEY, current);
-  document.documentElement.lang = current;
-  window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: current } }));
-  return current;
-}
-
-/**
- * Follow a change of study language.
- *
- * The interface goes with the subject, unconditionally — switching to Latin
- * turns the site Latin. An earlier version kept English across the switch on
- * the grounds that the reader had paid a passcode for it, which meant choosing
- * a language and then not getting it. English is one click away in the menu.
- */
-export function followStudyLanguage() {
-  current = defaultFor(studyLang());
-  write(LANG_KEY, current);
-  document.documentElement.lang = current;
-  return current;
-}
-
-export function isLocked() {
-  return read(LOCK_KEY) === '1';
-}
-
-export function setLocked(locked) {
-  write(LOCK_KEY, locked ? '1' : null);
-}
-
-export function checkPasscode(value) {
-  return String(value ?? '').trim() === PASSCODE;
+  english = next === 'en';
+  try {
+    if (english) localStorage.setItem(LANG_KEY, 'en');
+    else localStorage.removeItem(LANG_KEY);
+  } catch {
+    // Storage blocked — the choice still applies for this visit.
+  }
+  document.documentElement.lang = lang();
+  window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: lang() } }));
+  return lang();
 }
 
 /** Look a string up, with {placeholders}. */
 export function t(key, vars = null) {
   const table = STRINGS[studyLang()] ?? STRINGS.es;
   const entry = key.split('.').reduce((node, part) => node?.[part], table);
-  let text = entry?.[current] ?? entry?.[studyLang()] ?? key;
+  let text = entry?.[lang()] ?? entry?.[studyLang()] ?? key;
   if (vars) {
     for (const [name, value] of Object.entries(vars)) {
       text = text.replaceAll(`{${name}}`, String(value));
@@ -127,11 +72,12 @@ export function t(key, vars = null) {
 
 /** Pick the right half of an object that already carries both languages. */
 export function pick(pair) {
-  return pair?.[current] ?? pair?.[studyLang()] ?? pair?.en ?? '';
+  return pair?.[lang()] ?? pair?.[studyLang()] ?? pair?.en ?? '';
 }
 
 const two = (es, en) => ({ es, en });
 const deux = (fr, en) => ({ fr, en });
+const due = (it, en) => ({ it, en });
 
 const SPANISH = {
   nav: {
@@ -142,7 +88,6 @@ const SPANISH = {
     theme: two('Cambiar de tema', 'Switch theme'),
     menu: two('Abrir menú', 'Open menu'),
     langLabel: two('Idioma de la web', 'Site language'),
-    subjectLabel: two('Idioma del sitio', 'Site subject'),
   },
 
   meta: {
@@ -166,6 +111,10 @@ const SPANISH = {
   },
 
   translator: {
+    unavailableTitle: two('El traductor no está disponible.', 'The translator is unavailable.'),
+    unavailable: two(
+      'No se ha podido traducir esta frase ahora mismo. Inténtalo de nuevo dentro de un rato; mientras tanto, el diccionario y el conjugador siguen funcionando.',
+      'This sentence could not be translated just now. Try again in a little while — the dictionary and the conjugator still work in the meantime.'),
     eyebrow: two('Traductor', 'Translator'),
     title: two('Los dos sentidos, un botón', 'Both directions, one button'),
     lead: two(
@@ -190,18 +139,6 @@ const SPANISH = {
     outStudy: two('La traducción aparecerá aquí.', 'La traducción aparecerá aquí.'),
     outEn: two('The translation will appear here.', 'The translation will appear here.'),
     engine: two('traducido con {engine}', 'translated with {engine}'),
-    uncertain: two(
-      'El traductor no está seguro de esta frase: sus versiones guardadas no coinciden. Compruébala.',
-      'The translator is unsure of this one: its stored versions disagree. Check it.'),
-    unsureWord: two(
-      'El traductor no conocía esta palabra y la dejó como estaba.',
-      'The translator did not know this word and left it as it was.'),
-    wordByWord: two(
-      'Esto no es una frase: es el texto palabra por palabra, con la función de cada una. La gramática queda fuera del traductor — móntala tú.',
-      'This is not a sentence — it is the text word by word, with what each one is doing. The grammar is beyond the translator; you assemble it.'),
-    uncertainLatin: two(
-      'Ningún motor traduce latín con fiabilidad. Esto viene de una memoria de traducción, no de la gramática del sitio: compruébalo palabra por palabra.',
-      'No engine translates Latin reliably. This came from a translation memory rather than from the site’s own grammar — check it word by word.'),
   },
 
   finder: {
@@ -231,9 +168,8 @@ const SPANISH = {
     ),
     chat: two('Chat', 'Chat'),
     chatBody: two(
-      'Un asistente para dudas de gramática, matices de vocabulario o cualquier otra cosa.',
-      'An assistant for grammar questions, shades of vocabulary, or anything else.',
-    ),
+      'Un tutor que responde con los datos del propio sitio: gramática, conjugaciones, definiciones y traducciones.',
+      'A tutor that answers from the site’s own data: grammar, conjugations, definitions and translations.'),
   },
 
   conjugator: {
@@ -304,9 +240,8 @@ const SPANISH = {
     speakFailed: two('No se pudo pronunciar.', 'Could not pronounce that.'),
     speakSpent: two('Se acabaron las pronunciaciones de este mes.', 'This month’s pronunciations are used up.'),
     templateNote: two(
-      'Ejemplo de plantilla — configura una clave gratuita para generar frases reales.',
-      'Template example — add a free API key to generate real sentences.',
-    ),
+      'Ejemplo de plantilla — no hay ninguna frase real con esta palabra todavía.',
+      'Template example — there is no real sentence with this word yet.'),
   },
 
   chat: {
@@ -321,44 +256,21 @@ const SPANISH = {
     you: two('TÚ', 'YOU'),
     enterHint: two('Enter para enviar · Shift + Enter para un salto de línea', 'Enter to send · Shift + Enter for a new line'),
     groundedOnly: two(
-      'Respuestas del conjugador, la RAE y las fichas de gramática — sin conexión a ninguna IA',
-      'Answers from the conjugator, the RAE and the grammar notes — no AI involved',
-    ),
-    withModel: two('Preguntas de español, ilimitadas · ', 'Spanish questions, unlimited · '),
-    otherTopics: two('otros temas: ', 'other topics: '),
-    perWindow: two(' cada {minutes} min', ' every {minutes} min'),
+      'Respuestas del conjugador, el diccionario, el traductor y las fichas de gramática — sin ninguna IA',
+      'Answers from the conjugator, the dictionary, the translator and the grammar notes — no AI involved'),
     failed: two('No pude responder: {error}', "I couldn't answer: {error}"),
     starters: two(
       'ser y estar|conjuga tener en subjuntivo|qué significa sobremesa|qué es «dijeron»|cómo se dice "I am tired" en español',
       'ser y estar|conjuga tener en subjuntivo|qué significa sobremesa|qué es «dijeron»|cómo se dice "I am tired" en español',
     ),
-    needsKey: two(
-      'Para las preguntas de otros temas hace falta un modelo. Añade una clave gratuita de Google AI Studio como `GEMINI_API_KEY` en tu archivo `.env` y reinicia el servidor; tendrás {limit} preguntas libres cada {minutes} minutos.',
-      'Questions on other topics need a model. Add a free Google AI Studio key as `GEMINI_API_KEY` to your `.env` and restart the server; that gives you {limit} free questions every {minutes} minutes.',
-    ),
   },
 
   tape: {
-    quotaDetail: two(
-      'Se acabaron las preguntas libres sobre otros temas. Vuelven dentro de unos {minutes} minutos.',
-      'The free questions on other topics are used up. They come back in about {minutes} minutes.',
-    ),
-    quotaNote: two(
-      'Las preguntas de español no gastan nada: conjugaciones, definiciones, traducciones y gramática siguen abiertas en el resto del sitio.',
-      'Spanish questions cost nothing: conjugations, definitions, translations and grammar are still open across the rest of the site.',
-    ),
-    lockedTitle: two('Código incorrecto', 'Wrong passcode'),
-    lockedDetail: two(
-      'La versión en inglés está protegida. Introduce el código para continuar.',
-      'The English version is protected. Enter the passcode to carry on.',
-    ),
-    lockedNote: two('Pregúntale a tu profe.', 'Ask your profe.'),
-    passcodePlaceholder: two('Código', 'Passcode'),
     unlock: two('Desbloquear', 'Unlock'),
-    wrongAgain: two('Sigue sin ser correcto.', 'Still not right.'),
   },
 
   lock: {
+    cancel: two('Cancelar', 'Cancel'),
     title: two('Bloquear la web', 'Lock the site'),
     detail: two(
       'Con el código, la web queda bloqueada para todo el mundo hasta que alguien la desbloquee.',
@@ -377,24 +289,25 @@ const SPANISH = {
     sealedNote: two('Se desbloquea para todos a la vez.', 'It unlocks for everyone at once.'),
   },
 
-  quota: {
-    understand: two('Lo entiendo', 'I understand'),
-    spent: two('No te quedan preguntas', 'No questions left'),
-    spentShort: two('Sin preguntas', 'No usage left'),
-    stillFree: two('El español sigue siendo gratis', 'Spanish is still free'),
+  home: {
+    title: two('ProfeGPT', 'ProfeGPT'),
+    lead: two(
+      'Traductor, conjugaciones, diccionario y un tutor para cada idioma. Elige uno para empezar.',
+      'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
+    choose: two('Elige un idioma', 'Choose a language'),
+    enter: two('Entrar', 'Enter'),
+    hint: two('Pulsa Intro para entrar', 'Press Enter to go in'),
+    soon: two('Más idiomas', 'More languages'),
+    soonBody: two('Próximamente.', 'Coming soon.'),
+    back: two('Inicio', 'Home'),
   },
 
-  passcode: {
-    title: two('Versión en inglés', 'English version'),
-    detail: two(
-      'Cambiar la web al inglés requiere un código.',
-      'Switching the site to English requires a passcode.',
-    ),
-    cancel: two('Cancelar', 'Cancel'),
-  },
-
-  mode: {
-    restricted: two('Tu profe ha dejado solo el español por ahora.', 'Your teacher has left only Spanish available for now.'),
+  settings: {
+    label: two('Ajustes', 'Settings'),
+    appearance: two('Apariencia', 'Appearance'),
+    light: two('Modo claro', 'Light mode'),
+    dark: two('Modo oscuro', 'Dark mode'),
+    classroom: two('Clase', 'Classroom'),
   },
 };
 
@@ -407,7 +320,6 @@ const FRENCH = {
     theme: deux('Changer de thème', 'Switch theme'),
     menu: deux('Ouvrir le menu', 'Open menu'),
     langLabel: deux('Langue du site', 'Site language'),
-    subjectLabel: deux('Sujet du site', 'Site subject'),
   },
 
   meta: {
@@ -431,6 +343,10 @@ const FRENCH = {
   },
 
   translator: {
+    unavailableTitle: deux('Le traducteur n’est pas disponible.', 'The translator is unavailable.'),
+    unavailable: deux(
+      'Cette phrase n’a pas pu être traduite pour le moment. Réessayez dans un moment ; en attendant, le dictionnaire et la conjugaison fonctionnent toujours.',
+      'This sentence could not be translated just now. Try again in a little while — the dictionary and the conjugator still work in the meantime.'),
     eyebrow: deux('Traducteur', 'Translator'),
     title: deux('Les deux sens, un bouton', 'Both directions, one button'),
     lead: deux(
@@ -455,18 +371,6 @@ const FRENCH = {
     outStudy: deux('La traduction apparaîtra ici.', 'La traduction apparaîtra ici.'),
     outEn: deux('The translation will appear here.', 'The translation will appear here.'),
     engine: deux('traduit avec {engine}', 'translated with {engine}'),
-    uncertain: deux(
-      'Le traducteur hésite sur cette phrase : ses versions enregistrées se contredisent. À vérifier.',
-      'The translator is unsure of this one: its stored versions disagree. Check it.'),
-    unsureWord: deux(
-      'Le traducteur ne connaissait pas ce mot et l’a laissé tel quel.',
-      'The translator did not know this word and left it as it was.'),
-    wordByWord: deux(
-      'Ceci n’est pas une phrase : c’est le texte mot à mot, avec la fonction de chacun. La grammaire dépasse le traducteur — à vous de l’assembler.',
-      'This is not a sentence — it is the text word by word, with what each one is doing. The grammar is beyond the translator; you assemble it.'),
-    uncertainLatin: deux(
-      'Aucun moteur ne traduit le latin de façon fiable. Ceci vient d’une mémoire de traduction, pas de la grammaire du site : vérifiez mot à mot.',
-      'No engine translates Latin reliably. This came from a translation memory rather than from the site’s own grammar — check it word by word.'),
   },
 
   finder: {
@@ -496,9 +400,8 @@ const FRENCH = {
     ),
     chat: deux('Chat', 'Chat'),
     chatBody: deux(
-      'Un assistant pour les questions de grammaire, les nuances de vocabulaire ou tout le reste.',
-      'An assistant for grammar questions, shades of vocabulary, or anything else.',
-    ),
+      'Un tuteur qui répond avec les données du site : grammaire, conjugaison, définitions et traductions.',
+      'A tutor that answers from the site’s own data: grammar, conjugations, definitions and translations.'),
   },
 
   conjugator: {
@@ -571,9 +474,8 @@ const FRENCH = {
     speakFailed: deux('Impossible de prononcer.', 'Could not pronounce that.'),
     speakSpent: deux('Les prononciations de ce mois-ci sont épuisées.', 'This month’s pronunciations are used up.'),
     templateNote: deux(
-      'Exemple type — ajoutez une clé gratuite pour générer de vraies phrases.',
-      'Template example — add a free API key to generate real sentences.',
-    ),
+      'Exemple type — il n’existe pas encore de vraie phrase avec ce mot.',
+      'Template example — there is no real sentence with this word yet.'),
   },
 
   chat: {
@@ -588,44 +490,21 @@ const FRENCH = {
     you: deux('VOUS', 'YOU'),
     enterHint: deux('Entrée pour envoyer · Maj + Entrée pour un retour à la ligne', 'Enter to send · Shift + Enter for a new line'),
     groundedOnly: deux(
-      'Réponses du conjugueur, du dictionnaire et des fiches de grammaire — sans aucune IA',
-      'Answers from the conjugator, the dictionary and the grammar notes — no AI involved',
-    ),
-    withModel: deux('Questions de français, illimitées · ', 'French questions, unlimited · '),
-    otherTopics: deux('autres sujets : ', 'other topics: '),
-    perWindow: deux(' toutes les {minutes} min', ' every {minutes} min'),
+      'Réponses du conjugueur, du dictionnaire, du traducteur et des fiches de grammaire — sans aucune IA',
+      'Answers from the conjugator, the dictionary, the translator and the grammar notes — no AI involved'),
     failed: deux('Je n’ai pas pu répondre : {error}', "I couldn't answer: {error}"),
     starters: deux(
       'être et avoir|conjugue prendre au subjonctif|que veut dire flâner|c’est quoi « vinrent »|comment dit-on "I am tired" en français',
       'être et avoir|conjugue prendre au subjonctif|que veut dire flâner|c’est quoi « vinrent »|comment dit-on "I am tired" en français',
     ),
-    needsKey: deux(
-      'Les questions sur d’autres sujets ont besoin d’un modèle. Ajoutez une clé gratuite de Google AI Studio sous le nom `GEMINI_API_KEY` dans votre fichier `.env` et redémarrez le serveur ; vous aurez {limit} questions libres toutes les {minutes} minutes.',
-      'Questions on other topics need a model. Add a free Google AI Studio key as `GEMINI_API_KEY` to your `.env` and restart the server; that gives you {limit} free questions every {minutes} minutes.',
-    ),
   },
 
   tape: {
-    quotaDetail: deux(
-      'Les questions libres sur d’autres sujets sont épuisées. Elles reviennent dans une vingtaine de minutes — {minutes} pour être exact.',
-      'The free questions on other topics are used up. They come back in about {minutes} minutes.',
-    ),
-    quotaNote: deux(
-      'Les questions de français ne coûtent rien : conjugaisons, définitions, traductions et grammaire restent ouvertes partout ailleurs sur le site.',
-      'French questions cost nothing: conjugations, definitions, translations and grammar are still open across the rest of the site.',
-    ),
-    lockedTitle: deux('Code incorrect', 'Wrong passcode'),
-    lockedDetail: deux(
-      'La version anglaise est protégée. Entrez le code pour continuer.',
-      'The English version is protected. Enter the passcode to carry on.',
-    ),
-    lockedNote: deux('Demandez à votre professeur.', 'Ask your profe.'),
-    passcodePlaceholder: deux('Code', 'Passcode'),
     unlock: deux('Débloquer', 'Unlock'),
-    wrongAgain: deux('Toujours pas.', 'Still not right.'),
   },
 
   lock: {
+    cancel: deux('Annuler', 'Cancel'),
     title: deux('Verrouiller le site', 'Lock the site'),
     detail: deux(
       'Avec le code, le site est verrouillé pour tout le monde jusqu’à ce que quelqu’un le déverrouille.',
@@ -644,389 +523,260 @@ const FRENCH = {
     sealedNote: deux('Il se déverrouille pour tout le monde à la fois.', 'It unlocks for everyone at once.'),
   },
 
-  quota: {
-    understand: deux('J’ai compris', 'I understand'),
-    spent: deux('Plus de questions', 'No questions left'),
-    spentShort: deux('Plus rien', 'No usage left'),
-    stillFree: deux('Le français reste gratuit', 'French is still free'),
+  home: {
+    title: deux('ProfeGPT', 'ProfeGPT'),
+    lead: deux(
+      'Un traducteur, la conjugaison, un dictionnaire et un tuteur pour chaque langue. Choisissez-en une pour commencer.',
+      'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
+    choose: deux('Choisissez une langue', 'Choose a language'),
+    enter: deux('Entrer', 'Enter'),
+    hint: deux('Appuyez sur Entrée pour entrer', 'Press Enter to go in'),
+    soon: deux('D’autres langues', 'More languages'),
+    soonBody: deux('Bientôt.', 'Coming soon.'),
+    back: deux('Accueil', 'Home'),
   },
 
-  passcode: {
-    title: deux('Version anglaise', 'English version'),
-    detail: deux(
-      'Passer le site en anglais demande un code.',
-      'Switching the site to English requires a passcode.',
-    ),
-    cancel: deux('Annuler', 'Cancel'),
-  },
-
-  mode: {
-    restricted: deux('Votre professeur n’a laissé que l’espagnol pour le moment.', 'Your teacher has left only Spanish available for now.'),
+  settings: {
+    label: deux('Réglages', 'Settings'),
+    appearance: deux('Apparence', 'Appearance'),
+    light: deux('Mode clair', 'Light mode'),
+    dark: deux('Mode sombre', 'Dark mode'),
+    classroom: deux('Classe', 'Classroom'),
   },
 };
 
-const latine = (la, en) => ({ la, en });
-
-/**
- * The Latin pack.
- *
- * The Latin is real Latin where Latin has a word for the thing, and a
- * respectable coinage where it does not — *colloquium* for the chat, *stadia*
- * for the course's stages. It is a curiosity to opt into rather than the
- * default, which is why nothing important depends on reading it.
- *
- * Two sections here have no counterpart in the other packs, because two pages
- * do not exist elsewhere: the declension tables and the stage vocabulary.
- */
-const LATIN = {
+const ITALIAN = {
   nav: {
-    translator: latine('Interpres', 'Translator'),
-    conjugation: latine('Coniugatio', 'Conjugation'),
-    declension: latine('Declinatio', 'Declension'),
-    stages: latine('Stadia', 'Stages'),
-    dictionary: latine('Lexicon', 'Dictionary'),
-    chat: latine('Colloquium', 'Chat'),
-    theme: latine('Mutare speciem', 'Switch theme'),
-    menu: latine('Aperire indicem', 'Open menu'),
-    langLabel: latine('Lingua paginae', 'Site language'),
-    subjectLabel: latine('Materia paginae', 'Site subject'),
+    translator: due('Traduttore', 'Translator'),
+    conjugation: due('Coniugazione', 'Conjugation'),
+    dictionary: due('Dizionario', 'Dictionary'),
+    chat: due('Chat', 'Chat'),
+    theme: due('Cambia tema', 'Switch theme'),
+    menu: due('Apri il menu', 'Open menu'),
+    langLabel: due('Lingua del sito', 'Site language'),
   },
 
   meta: {
-    home: latine('ProfeGPT', 'ProfeGPT'),
-    skip: latine('Ad contenta', 'Skip to content'),
-    footer: latine('significationes ex', 'definitions from'),
-    copyright: latine('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
-    footerDict: latine('Whitaker’s Words', 'Whitaker’s Words'),
-    footerHref: latine('https://mk270.github.io/whitakers-words/', 'https://mk270.github.io/whitakers-words/'),
-    footerCredit: latine(' (in publico)', ' (public domain)'),
+    home: due('ProfeGPT', 'ProfeGPT'),
+    skip: due('Vai al contenuto', 'Skip to content'),
+    footer: due('definizioni dal', 'definitions from the'),
+    copyright: due('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    footerDict: due('Wikizionario', 'Wikizionario'),
+    footerHref: due('https://it.wiktionary.org', 'https://it.wiktionary.org'),
+    footerCredit: due(' (CC BY-SA)', ' (CC BY-SA)'),
   },
 
   hero: {
-    badge: latine('Latine ↔ Anglice', 'Latin ↔ English'),
-    sub: latine(
-      'Verte in utramque partem, coniuga omnia verba, declina omnia nomina, quaere in lexico, et roga quod vis. Omnia in una pagina.',
-      'Translate both ways, conjugate every verb, decline every noun, look words up, and ask whatever you like. All on one page.',
+    badge: due('Italiano ↔ Inglese', 'Italian ↔ English'),
+    sub: due(
+      'Traduci in tutte e due le direzioni, coniuga qualsiasi verbo in tutti i tempi, cerca una parola e chiedi quello che vuoi. Tutto in una pagina.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask whatever you like. All on one page.',
     ),
-    ctaTranslate: latine('Interpretem probare', 'Try the translator'),
-    ctaChat: latine('Cum ProfeGPT loqui', 'Talk to ProfeGPT'),
+    ctaTranslate: due('Prova il traduttore', 'Try the translator'),
+    ctaChat: due('Parla con ProfeGPT', 'Talk to ProfeGPT'),
   },
 
   translator: {
-    eyebrow: latine('Interpres', 'Translator'),
-    title: latine('Utraque pars, unus nodus', 'Both directions, one button'),
-    lead: latine(
-      'Scribe et statim verte. Nodus medius linguas permutat et textum secum fert. Omnia verba Latina per Whitaker’s Words probantur.',
-      'Type and translate instantly. The centre button swaps the languages and carries the text across. Every Latin word is checked against Whitaker’s Words.',
+    unavailableTitle: due('Il traduttore non è disponibile.', 'The translator is unavailable.'),
+    unavailable: due(
+      'Non è stato possibile tradurre questa frase in questo momento. Riprova tra poco; nel frattempo il dizionario e il coniugatore funzionano.',
+      'This sentence could not be translated just now. Try again in a little while — the dictionary and the conjugator still work in the meantime.'),
+    eyebrow: due('Traduttore', 'Translator'),
+    title: due('Due direzioni, un solo pulsante', 'Both directions, one button'),
+    lead: due(
+      'Scrivi e traduci all’istante. Il pulsante centrale inverte le lingue e si porta dietro il testo.',
+      'Type and translate instantly. The centre button swaps the languages and carries the text across with it.',
     ),
-    button: latine('Vertere', 'Translate'),
-    clear: latine('Delere', 'Clear'),
-    copy: latine('Exscribere', 'Copy'),
-    copied: latine('Exscriptum!', 'Copied'),
-    copyFailed: latine('Non potuit', 'Could not copy'),
-    ready: latine('Paratus', 'Ready'),
-    working: latine('vertens…', 'translating…'),
-    done: latine('Versum', 'Translated'),
-    sourceLabel: latine('Textus originalis', 'Source text'),
-    swap: latine('Permutare Latinum et Anglicum', 'Swap Latin and English'),
-    swapTitle: latine('Mutare linguam', 'Swap languages'),
-    studyName: latine('Latine', 'Latin'),
-    englishName: latine('English', 'English'),
-    placeholderStudy: latine('Scribe aliquid Latine…', 'Write something in Latin…'),
-    placeholderEn: latine('Type something in English…', 'Type something in English…'),
-    outStudy: latine('Translatio hic apparebit.', 'The translation will appear here.'),
-    outEn: latine('The translation will appear here.', 'The translation will appear here.'),
-    engine: latine('versum per {engine}', 'translated with {engine}'),
-    uncertain: latine(
-      'Interpres dubitat: versiones servatae inter se discrepant. Cave.',
-      'The translator is unsure of this one: its stored versions disagree. Check it.'),
-    unsureWord: latine(
-      'Interpres hoc verbum non novit et intactum reliquit.',
-      'The translator did not know this word and left it as it was.'),
-    wordByWord: latine(
-      'Haec sententia non est: verbum de verbo, cum munere cuiusque. Grammatica interpretem superat — tu compone.',
-      'This is not a sentence — it is the text word by word, with what each one is doing. The grammar is beyond the translator; you assemble it.'),
-    uncertainLatin: latine(
-      'Nulla machina Latine fideliter vertit. Hoc ex memoria versionum venit, non ex grammatica huius situs — verbum de verbo cave.',
-      'No engine translates Latin reliably. This came from a translation memory rather than from the site’s own grammar — check it word by word.'),
-    parseTitle: latine('Verbum ac verbum', 'Word by word'),
-    parseLead: latine(
-      'Omne verbum Latinum, ut Whitaker’s Words id legit.',
-      'Every Latin word, as Whitaker’s Words reads it.',
-    ),
-    parseUnknown: latine('non agnitum', 'not recognised'),
-    caseFixed: latine('casus correctus', 'case corrected'),
+    button: due('Traduci', 'Translate'),
+    clear: due('Cancella', 'Clear'),
+    copy: due('Copia', 'Copy'),
+    copied: due('Copiato!', 'Copied'),
+    copyFailed: due('Non riuscito', 'Could not copy'),
+    ready: due('Pronto', 'Ready'),
+    working: due('traduzione in corso…', 'translating…'),
+    done: due('Tradotto', 'Translated'),
+    sourceLabel: due('Testo originale', 'Source text'),
+    swap: due('Inverti italiano e inglese', 'Swap Italian and English'),
+    swapTitle: due('Inverti le lingue', 'Swap languages'),
+    studyName: due('Italiano', 'Italiano'),
+    englishName: due('English', 'English'),
+    placeholderStudy: due('Scrivi qualcosa in italiano…', 'Scrivi qualcosa in italiano…'),
+    placeholderEn: due('Type something in English…', 'Type something in English…'),
+    outStudy: due('La traduzione apparirà qui.', 'La traduzione apparirà qui.'),
+    outEn: due('The translation will appear here.', 'The translation will appear here.'),
+    engine: due('tradotto con {engine}', 'translated with {engine}'),
   },
 
   finder: {
-    eyebrow: latine('Lexicon', 'Dictionary'),
-    title: latine('Quaere verbum', 'Look up a word'),
-    lead: latine(
-      'Whitaker’s Words dat verbum principale cum partibus principalibus, et quomodo forma quam quaeris legenda sit.',
-      'Whitaker’s Words gives the headword with its principal parts, and how the form you looked up has to be read.',
+    eyebrow: due('Dizionario', 'Dictionary'),
+    title: due('Cerca una parola', 'Look up a word'),
+    lead: due(
+      'Definizioni dal Wikizionario, significato per significato, con i sinonimi e una frase d’esempio.',
+      'Definitions from the Wikizionario, sense by sense, with synonyms and an example sentence.',
     ),
-    button: latine('Quaerere', 'Search'),
-    tryWith: latine('Proba', 'Try'),
-    note: latine('Preme Enter ut paginam lexici aperias.', 'Press Enter to open the dictionary page.'),
-    label: latine('Quaerere verbum in lexico', 'Search for a word in the dictionary'),
-    samples: latine('canem,puellae,rexit,urbium,amavissent', 'canem,puellae,rexit,urbium,amavissent'),
+    button: due('Cerca', 'Search'),
+    tryWith: due('Prova con', 'Try'),
+    note: due('Premi Invio per aprire la pagina del dizionario.', 'Press Enter to open the dictionary page.'),
+    label: due('Cerca una parola nel dizionario', 'Search for a word in the dictionary'),
+    samples: due('sprezzatura,magari,abbiocco,meriggiare,menefreghista', 'sprezzatura,magari,abbiocco,meriggiare,menefreghista'),
   },
 
   features: {
-    conjugation: latine('Coniugatio', 'Conjugation'),
-    conjugationBody: latine(
-      'Omnia tempora indicativi, coniunctivi et imperativi, activa et passiva, cum quinque coniugationibus.',
-      'Every tense of the indicative, subjunctive and imperative, active and passive, across the five conjugations.',
+    conjugation: due('Coniugazione', 'Conjugation'),
+    conjugationBody: due(
+      'Tutti i tempi dell’indicativo, del congiuntivo, del condizionale e dell’imperativo, con i tre modelli in -are, -ere e -ire e una ricerca dei verbi.',
+      'Every tense of the indicative, subjunctive, conditional and imperative, with the three -are, -ere and -ire models plus a verb search.',
     ),
-    declension: latine('Declinatio', 'Declension'),
-    declensionBody: latine(
-      'Quinque declinationes nominum et adiectiva, omni casu et numero.',
-      'The five noun declensions and the adjectives, in every case and number.',
+    dictionary: due('Dizionario', 'Dictionary'),
+    dictionaryBody: due(
+      'Definizioni dal Wikizionario, con i sinonimi e una frase d’esempio per ogni significato.',
+      'Definitions from the Wikizionario, with synonyms and an example sentence per sense.',
     ),
-    dictionary: latine('Lexicon', 'Dictionary'),
-    dictionaryBody: latine(
-      'Whitaker’s Words: partes principales, genus, declinatio, et omnis lectio formae.',
-      'Whitaker’s Words: principal parts, gender, declension, and every reading of the form.',
-    ),
-    chat: latine('Colloquium', 'Chat'),
-    chatBody: latine(
-      'Adiutor grammaticae, vocabulorum, et ceterorum. Anglice respondet.',
-      'An assistant for grammar, vocabulary and anything else. It answers in English.',
-    ),
-    stages: latine('Stadia', 'Stages'),
-    stagesBody: latine(
-      'Vocabula omnium stadiorum Cambridge Latin Course, libri primi.',
-      'The vocabulary of every stage of the Cambridge Latin Course, Book I.',
-    ),
+    chat: due('Chat', 'Chat'),
+    chatBody: due(
+      'Un tutor che risponde con i dati del sito: grammatica, coniugazioni, definizioni e traduzioni.',
+      'A tutor that answers from the site’s own data: grammar, conjugations, definitions and translations.'),
   },
 
   conjugator: {
-    eyebrow: latine('Coniugatio', 'Conjugation'),
-    title: latine('Omnia tempora, omnia verba', 'Every tense, every verb'),
-    lead: latine(
-      'Incipe ab una quinque coniugationum, aut quaere verbum. Verbum Latinum partibus principalibus coniugatur — sine iis coniugari non potest.',
-      'Start from one of the five conjugations, or search for a verb. A Latin verb is conjugated from its principal parts — without them it cannot be conjugated at all.',
+    eyebrow: due('Coniugazione', 'Conjugation'),
+    title: due('Tutti i tempi, tutti i verbi', 'Every tense, every verb'),
+    lead: due(
+      'Parti da uno dei tre modelli regolari o cerca il verbo che ti serve. Le forme irregolari sono evidenziate.',
+      'Start from one of the three regular models, or search for the verb you need. Irregular forms are highlighted.',
     ),
-    tab: latine('coniugatio {ending}', '{ending} conjugation'),
-    search: latine('Quaerere verbum', 'Search a verb'),
-    searchLabel: latine('Quaerere verbum', 'Search for a verb'),
-    highlight: latine('Notare irregularia', 'Highlight irregulars'),
-    notAVerb: latine('Hoc verbum non agnosco', "I don't recognise that verb"),
-    indicative: latine('Indicativus', 'Indicative'),
-    subjunctive: latine('Coniunctivus', 'Subjunctive'),
-    imperative: latine('Imperativus', 'Imperative'),
-    simple: latine('Activum', 'Active'),
-    compound: latine('Passivum', 'Passive'),
-    affirmative: latine('Affirmativus', 'Affirmative'),
-    negative: latine('Negativus', 'Negative'),
-    gerund: latine('participium praesens', 'present participle'),
-    participle: latine('participium perfectum', 'perfect participle'),
-    compoundInf: latine('gerundivum', 'gerundive'),
-    compoundGer: latine('supinum', 'supine'),
-    fullTable: latine('Tabula plena', 'Full conjugation'),
-    verbClass: latine('coniugatio {ending}', '{ending} conjugation'),
-    irregular: latine('irregulare', 'irregular'),
-    stemChange: latine('{change}', '{change}'),
-    spelling: latine('{change}', '{change}'),
-    likeVerb: latine('compositum ex {verb}', 'compound of {verb}'),
-    pronominal: latine('deponens', 'deponent'),
-    voseo: latine('{form}', '{form}'),
-    fromRae: latine('formae probatae', 'checked forms'),
-    generated: latine('formae generatae', 'generated forms'),
-    auxiliary: latine('{aux}', '{aux}'),
-    principalParts: latine('partes principales', 'principal parts'),
-    needsParts: latine(
-      'Verbum Latinum sine partibus principalibus coniugari non potest. Scribe eas omnes — ut “rego, regere, rexi, rectus”.',
-      'A Latin verb cannot be conjugated without its principal parts. Type them all — like “rego, regere, rexi, rectus”.',
-    ),
-  },
-
-  declension: {
-    eyebrow: latine('Declinatio', 'Declension'),
-    title: latine('Quinque declinationes', 'The five declensions'),
-    lead: latine(
-      'Scribe nomen cum genetivo — ut “rex, regis” — aut adiectivum cum omnibus formis. Genetivus declinationem et stirpem dat, ideo lexica eum semper ponunt.',
-      'Type a noun with its genitive — like “rex, regis” — or an adjective with all its forms. The genitive is what gives you the declension and the stem, which is why a dictionary always quotes it.',
-    ),
-    search: latine('rex, regis', 'rex, regis'),
-    searchLabel: latine('Quaerere nomen aut adiectivum', 'Search a noun or adjective'),
-    button: latine('Declinare', 'Decline'),
-    tab: latine('declinatio {n}', '{n} declension'),
-    adjectives: latine('Adiectiva', 'Adjectives'),
-    singular: latine('singularis', 'singular'),
-    plural: latine('pluralis', 'plural'),
-    notANoun: latine('Hoc declinare non possum', "I can't decline that"),
-    needsGenitive: latine(
-      'Scribe etiam genetivum — “puella, puellae”. Sine eo declinatio ignota est.',
-      'Give the genitive too — “puella, puellae”. Without it the declension is unknowable.',
-    ),
-    wrongGenitive: latine(
-      'Genetivus verbi “{lemma}” est “{expected}”, non id quod scripsisti.',
-      'The genitive of “{lemma}” is “{expected}”, not what you typed.',
-    ),
-    unknown: latine(
-      'Hoc verbum in lexico non est. Scribe et nominativum et genetivum.',
-      'The dictionary does not have that word. Give both the nominative and the genitive.',
-    ),
-    completed: latine(
-      'Genetivum ex lexico addidi: {parts}.',
-      'Genitive filled in from the dictionary: {parts}.',
-    ),
-    gendered: latine('masculinum / femininum', 'masculine / feminine'),
-    pickGender: latine('Elige genus', 'Choose a gender'),
-    iStem: latine('stirps in -i', 'i-stem'),
-    stem: latine('stirps', 'stem'),
-    cases: latine('Casus', 'Cases'),
-    masculine: latine('masculinum', 'masculine'),
-    feminine: latine('femininum', 'feminine'),
-    neuter: latine('neutrum', 'neuter'),
-    nominative: latine('nominativus', 'nominative'),
-    vocative: latine('vocativus', 'vocative'),
-    accusative: latine('accusativus', 'accusative'),
-    genitive: latine('genetivus', 'genitive'),
-    dative: latine('dativus', 'dative'),
-    ablative: latine('ablativus', 'ablative'),
-  },
-
-  stages: {
-    eyebrow: latine('Stadia', 'Stages'),
-    title: latine('Vocabula per stadia', 'Vocabulary by stage'),
-    lead: latine(
-      'Scribe numerum stadii ut omnia eius vocabula videas.',
-      'Type a stage number to see all of its vocabulary.',
-    ),
-    search: latine('numerus stadii', 'stage number'),
-    searchLabel: latine('Quaerere stadium', 'Search a stage'),
-    button: latine('Ostendere', 'Show'),
-    notFound: latine('Hoc stadium non habeo', "I don't have that stage"),
-    wordCount: latine('{n} vocabula', '{n} words'),
-    latinWord: latine('Latine', 'Latin'),
-    englishWord: latine('Anglice', 'English'),
-    provenance: latine(
-      'Manu collecta ex cursu, non ex datis editis — cum libro tuo confer. Omnia verba per Whitaker’s Words probantur.',
-      'Hand-compiled from the course, not from published data — check against your book. Every word is verified against Whitaker’s Words.',
-    ),
-    allStages: latine('Omnia stadia', 'All stages'),
-    fromStage: latine('Unde', 'From'),
+    tab: due('verbi in -{ending}', '-{ending} verbs'),
+    search: due('Cerca un verbo', 'Search a verb'),
+    searchLabel: due('Cerca un verbo', 'Search for a verb'),
+    highlight: due('Evidenzia le forme irregolari', 'Highlight irregulars'),
+    notAVerb: due('Non riconosco questo verbo', "I don't recognise that verb"),
+    indicative: due('Indicativo', 'Indicative'),
+    subjunctive: due('Congiuntivo', 'Subjunctive'),
+    imperative: due('Imperativo', 'Imperative'),
+    simple: due('Tempi semplici', 'Simple tenses'),
+    compound: due('Tempi composti', 'Compound tenses'),
+    affirmative: due('Affermativo', 'Affirmative'),
+    negative: due('Negativo', 'Negative'),
+    gerund: due('gerundio', 'gerund'),
+    participle: due('participio passato', 'past participle'),
+    compoundInf: due('infinito passato', 'perfect infinitive'),
+    compoundGer: due('gerundio passato', 'perfect gerund'),
+    fullTable: due('Coniugazione completa', 'Full conjugation'),
+    verbClass: due('verbo in -{ending}', '-{ending} verb'),
+    irregular: due('irregolare', 'irregular'),
+    stemChange: due('cambio della radice {change}', 'stem change {change}'),
+    spelling: due('ortografia {change}', 'spelling {change}'),
+    likeVerb: due('si coniuga come {verb}', 'conjugated like {verb}'),
+    pronominal: due('pronominale · mi / ti / si', 'pronominal · mi / ti / si'),
+    voseo: due('{form}', '{form}'),
+    fromRae: due('forme del dizionario', 'forms from the dictionary'),
+    generated: due('forme generate', 'generated forms'),
+    auxiliary: due('ausiliare {aux}', 'auxiliary {aux}'),
   },
 
   dictionary: {
-    eyebrow: latine('Lexicon', 'Dictionary'),
-    title: latine('Quid Whitaker dicit', 'What Whitaker’s says'),
-    lead: latine(
-      'Scribe formam quam in textu invenisti. Lexicon verbum principale cum partibus principalibus dat, et omnem modum quo forma legi potest.',
-      'Type the form you met in the text. The dictionary gives the headword with its principal parts, and every way the form can be read.',
+    eyebrow: due('Dizionario', 'Dictionary'),
+    title: due('Che cosa dice il dizionario', 'What the dictionary says'),
+    lead: due(
+      'Definizioni dal Wikizionario, con tutti i significati, i loro sinonimi e una frase d’esempio per ciascuno.',
+      'Definitions from the Wikizionario, with every sense, its synonyms, and an example sentence for each.',
     ),
-    search: latine('Quaerere verbum', 'Search a word'),
-    button: latine('Quaerere', 'Search'),
-    emptyTitle: latine('Scribe verbum', 'Type a word'),
-    emptyBody: latine(
-      'Proba canem, puellae, rexit, urbium — quamlibet formam, non solum verbum principale.',
-      'Try canem, puellae, rexit, urbium — any form, not just the dictionary headword.',
+    search: due('Cerca una parola', 'Search a word'),
+    button: due('Cerca', 'Search'),
+    emptyTitle: due('Scrivi una parola', 'Type a word'),
+    emptyBody: due(
+      'Prova con sprezzatura, magari, abbiocco, o qualsiasi parola che ti abbia incuriosito.',
+      'Try sprezzatura, magari, abbiocco, or any word that has caught your eye.',
     ),
-    looking: latine('Lexicon consulens…', 'Looking it up…'),
-    noResults: latine('Nihil inventum', 'No results'),
-    didYouMean: latine('Fortasse?', 'Did you mean?'),
-    corrected: latine('“{to}”', 'Showing “{to}” for “{from}”.'),
-    seeOnRae: latine('videre apud Whitaker ↗', 'view Whitaker’s Words ↗'),
-    synonyms: latine('Synonyma', 'Synonyms'),
-    antonyms: latine('Contraria', 'Antonyms'),
-    locutions: latine('Locutiones', 'Phrases'),
-    inUse: latine('In usu', 'In use'),
-    seeEntry: latine('vide lemma ↗', 'view the entry ↗'),
-    notRae: latine('', ''),
-    speak: latine('Verbum audire', 'Hear the word'),
-    speakFailed: latine('Non potest pronuntiari.', 'Could not pronounce that.'),
-    speakSpent: latine('Pronuntiationes huius mensis consumptae sunt.', 'This month’s pronunciations are used up.'),
-    // Said next to the button, not buried in a footnote: no speech model has
-    // Latin, so this is an approximation and closer to ecclesiastical than to
-    // the classical pronunciation the course teaches.
-    speakLatin: latine(
-      'Sonus per machinam fictus est — non est pronuntiatio classica.',
-      'Approximated by a machine — closer to church Latin than to the classical pronunciation your course teaches.'),
-    templateNote: latine('', ''),
-    parses: latine('Formae lectiones', 'How this form reads'),
-    principalParts: latine('Partes principales', 'Principal parts'),
+    looking: due('Consulto il dizionario…', 'Looking it up…'),
+    noResults: due('Nessun risultato', 'No results'),
+    didYouMean: due('Forse cercavi?', 'Did you mean?'),
+    corrected: due('Risultati per «{to}» — a «{from}» manca l’accento.', 'Showing “{to}” — “{from}” is missing its accent.'),
+    seeOnRae: due('vedi su it.wiktionary.org ↗', 'view on it.wiktionary.org ↗'),
+    synonyms: due('Sinonimi', 'Synonyms'),
+    antonyms: due('Contrari', 'Antonyms'),
+    locutions: due('Locuzioni ed espressioni', 'Phrases and expressions'),
+    inUse: due('Nell’uso', 'In use'),
+    seeEntry: due('vedi la voce ↗', 'view the entry ↗'),
+    notRae: due(
+      'Il dizionario non è raggiungibile in questo momento.',
+      'The dictionary is unavailable right now.',
+    ),
+    // No Italian authority publishes an API, so this side says where its
+    // definitions really come from rather than implying an authority it has not got.
+    speak: due('Ascolta la parola', 'Hear the word'),
+    speakFailed: due('Impossibile pronunciarla.', 'Could not pronounce that.'),
+    speakSpent: due('Le pronunce di questo mese sono finite.', 'This month’s pronunciations are used up.'),
+    templateNote: due(
+      'Esempio di modello — non c’è ancora una frase vera con questa parola.',
+      'Template example — there is no real sentence with this word yet.'),
   },
 
   chat: {
-    title: latine('Roga ProfeGPT', 'Ask ProfeGPT'),
-    lead: latine(
-      'Coniugationes, declinationes, lexicon, translationes et grammatica. Anglice respondet.',
-      'Conjugations, declensions, the dictionary, translations and grammar. It answers in English.',
+    title: due('Chiedi a ProfeGPT', 'Ask ProfeGPT'),
+    lead: due(
+      'Coniugazioni, definizioni, traduzioni e spiegazioni di grammatica.',
+      'Conjugations, definitions, translations and grammar explanations.',
     ),
-    placeholder: latine('Roga quod vis…', 'Ask whatever you like…'),
-    messageLabel: latine('Nuntius', 'Message'),
-    send: latine('Mittere', 'Send'),
-    you: latine('TU', 'YOU'),
-    enterHint: latine('Enter ut mittas · Shift + Enter ad novam lineam', 'Enter to send · Shift + Enter for a new line'),
-    groundedOnly: latine(
-      'Responsa ex coniugatore, declinatore, Whitaker’s Words et schedis grammaticae — sine ulla IA',
-      'Answers from the conjugator, the decliner, Whitaker’s Words and the grammar notes — no AI involved',
-    ),
-    withModel: latine('Quaestiones Latinae, infinitae · ', 'Latin questions, unlimited · '),
-    otherTopics: latine('alia: ', 'other topics: '),
-    perWindow: latine(' per {minutes} min', ' every {minutes} min'),
-    failed: latine('Respondere non potui: {error}', "I couldn't answer: {error}"),
-    starters: latine(
-      'decline rex, regis|conjugate capio|parse canem|stage 5|the ablative absolute',
-      'decline rex, regis|conjugate capio|parse canem|stage 5|the ablative absolute',
-    ),
-    needsKey: latine(
-      'Quaestiones de aliis rebus modelo egent. Adde clavem gratuitam Google AI Studio ut `GEMINI_API_KEY` in .env et servitorem restitue; tunc {limit} quaestiones liberas per {minutes} minuta habebis.',
-      'Questions on other topics need a model. Add a free Google AI Studio key as `GEMINI_API_KEY` to your `.env` and restart the server; that gives you {limit} free questions every {minutes} minutes.',
+    placeholder: due('Chiedi quello che vuoi…', 'Ask whatever you like…'),
+    messageLabel: due('Messaggio', 'Message'),
+    send: due('Invia', 'Send'),
+    you: due('TU', 'YOU'),
+    enterHint: due('Invio per inviare · Maiusc + Invio per andare a capo', 'Enter to send · Shift + Enter for a new line'),
+    groundedOnly: due(
+      'Risposte dal coniugatore, dal dizionario, dal traduttore e dalle schede di grammatica — senza alcuna IA',
+      'Answers from the conjugator, the dictionary, the translator and the grammar notes — no AI involved'),
+    failed: due('Non sono riuscito a rispondere: {error}', "I couldn't answer: {error}"),
+    starters: due(
+      'essere e avere|coniuga andare al congiuntivo|cosa vuol dire magari|che forma è «andarono»|come si dice "I\'m tired" in italiano',
+      'essere e avere|coniuga andare al congiuntivo|cosa vuol dire magari|che forma è «andarono»|come si dice "I\'m tired" in italiano',
     ),
   },
 
   tape: {
-    quotaDetail: latine(
-      'Quaestiones liberae de aliis rebus consumptae sunt. Post {minutes} minuta redibunt.',
-      'The free questions on other topics are used up. They come back in about {minutes} minutes.',
-    ),
-    quotaNote: latine(
-      'Quaestiones Latinae nihil constant: coniugationes, declinationes, lexicon et grammatica per totam paginam patent.',
-      'Latin questions cost nothing: conjugations, declensions, the dictionary and grammar are still open across the rest of the site.',
-    ),
-    lockedTitle: latine('Codex falsus', 'Wrong passcode'),
-    lockedDetail: latine('Codicem scribe ut pergas.', 'Enter the passcode to carry on.'),
-    lockedNote: latine('Roga magistrum tuum.', 'Ask your teacher.'),
-    passcodePlaceholder: latine('Codex', 'Passcode'),
-    unlock: latine('Aperire', 'Unlock'),
-    wrongAgain: latine('Adhuc falsus.', 'Still not right.'),
+    unlock: due('Sblocca', 'Unlock'),
   },
 
   lock: {
-    title: latine('Paginam claudere', 'Lock the site'),
-    detail: latine(
-      'Cum codice pagina omnibus clauditur donec aliquis eam aperiat.',
+    cancel: due('Annulla', 'Cancel'),
+    title: due('Blocca il sito', 'Lock the site'),
+    detail: due(
+      'Con il codice, il sito resta bloccato per tutti finché qualcuno non lo sblocca.',
       'With the passcode, the site is locked for everyone until someone unlocks it.',
     ),
-    passcode: latine('Codex magistri', 'Teacher passcode'),
-    lockNow: latine('Claudere', 'Lock'),
-    wrong: latine('Codex falsus.', 'Wrong passcode.'),
-    lockLabel: latine('Paginam claudere', 'Lock the site'),
-    unlockLabel: latine('Paginam aperire', 'Unlock the site'),
-    sealedTitle: latine('Schola agitur', 'Class in session'),
-    sealedDetail: latine('Magister paginam clausit. Codicem scribe ut aperias.', 'A teacher has locked the site. Enter the passcode to unlock it.'),
-    sealedNote: latine('Omnibus simul aperitur.', 'It unlocks for everyone at once.'),
+    passcode: due('Codice del prof', 'Teacher passcode'),
+    lockNow: due('Blocca', 'Lock'),
+    wrong: due('Codice errato.', 'Wrong passcode.'),
+    lockLabel: due('Blocca il sito', 'Lock the site'),
+    unlockLabel: due('Sblocca il sito', 'Unlock the site'),
+    sealedTitle: due('Lezione in corso', 'Class in session'),
+    sealedDetail: due(
+      'Un prof ha bloccato il sito. Inserisci il codice per sbloccarlo.',
+      'A teacher has locked the site. Enter the passcode to unlock it.',
+    ),
+    sealedNote: due('Si sblocca per tutti nello stesso momento.', 'It unlocks for everyone at once.'),
   },
 
-  quota: {
-    understand: latine('Intellego', 'I understand'),
-    spent: latine('Nullae quaestiones restant', 'No questions left'),
-    spentShort: latine('Nihil restat', 'No usage left'),
-    stillFree: latine('Latina adhuc gratuita', 'Latin is still free'),
+  home: {
+    title: due('ProfeGPT', 'ProfeGPT'),
+    lead: due(
+      'Un traduttore, le coniugazioni, un dizionario e un tutor per ogni lingua. Scegline una per cominciare.',
+      'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
+    choose: due('Scegli una lingua', 'Choose a language'),
+    enter: due('Entra', 'Enter'),
+    hint: due('Premi Invio per entrare', 'Press Enter to go in'),
+    soon: due('Altre lingue', 'More languages'),
+    soonBody: due('In arrivo.', 'Coming soon.'),
+    back: due('Home', 'Home'),
   },
 
-  passcode: {
-    title: latine('Versio Anglica', 'English version'),
-    detail: latine('Codex opus est.', 'A passcode is required.'),
-    cancel: latine('Renuntiare', 'Cancel'),
-  },
-
-  mode: {
-    restricted: latine('Magister solam Hispanicam reliquit.', 'Your teacher has left only Spanish available for now.'),
+  settings: {
+    label: due('Impostazioni', 'Settings'),
+    appearance: due('Aspetto', 'Appearance'),
+    light: due('Modalità chiara', 'Light mode'),
+    dark: due('Modalità scura', 'Dark mode'),
+    classroom: due('Classe', 'Classroom'),
   },
 };
 
-export const STRINGS = { es: SPANISH, fr: FRENCH, la: LATIN };
+export const STRINGS = { es: SPANISH, fr: FRENCH, it: ITALIAN };

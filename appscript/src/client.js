@@ -4,11 +4,8 @@
  * expects:
  *
  *   - `fetch('/api/…')` answers, through google.script.run instead of HTTP.
- *     Responses come back as real Response objects, so the JSON helpers, the
- *     chat's stream reader and the speaker button's blob all work unchanged.
- *
- *   - The cookie the allowance is keyed on is kept here in localStorage. The
- *     page cannot set cookies for the server: the two are on different hosts.
+ *     Responses come back as real Response objects, so the JSON helpers and
+ *     the speaker button's blob work unchanged.
  *
  *   - Routes are paths, as on Render. The page lives in an iframe on another
  *     host, so the path is changed in place there and mirrored into the real
@@ -52,32 +49,6 @@
     throw new Error('The server answered, but its reply was lost.');
   }
 
-  // ---------------------------------------------------------- cookie jar ----
-
-  const JAR = 'profegpt:cookies';
-
-  function readJar() {
-    try { return JSON.parse(localStorage.getItem(JAR) || '{}'); } catch { return {}; }
-  }
-
-  function cookieHeader() {
-    const jar = readJar();
-    const now = Date.now();
-    return Object.keys(jar)
-      .filter((name) => !jar[name].expires || jar[name].expires > now)
-      .map((name) => `${name}=${encodeURIComponent(jar[name].value)}`)
-      .join('; ');
-  }
-
-  function storeCookies(cookies) {
-    if (!cookies || !cookies.length) return;
-    const jar = readJar();
-    for (const cookie of cookies) {
-      jar[cookie.name] = { value: cookie.value, expires: cookie.maxAge ? Date.now() + cookie.maxAge : null };
-    }
-    try { localStorage.setItem(JAR, JSON.stringify(jar)); } catch { /* private window: one allowance per visit */ }
-  }
-
   // --------------------------------------------------------------- fetch ----
 
   const nativeFetch = window.fetch.bind(window);
@@ -94,8 +65,6 @@
 
   async function viaServer(target, init) {
     const headers = new Headers(init.headers || {});
-    const cookie = cookieHeader();
-    if (cookie) headers.set('cookie', cookie);
 
     const request = {
       id: requestId(),
@@ -110,7 +79,6 @@
     if (out && typeof out.status === 'number') unwrapped = true;
     else out = await collect(request.id);
 
-    storeCookies(out.cookies);
     return new Response(bodyOf(out), { status: out.status, headers: out.headers || {} });
   }
 
@@ -220,9 +188,10 @@
   // Temporary: says so while the script has no API keys at all, and goes away
   // by itself once any key is in its script properties.
   const NOTICE = {
-    es: 'Aviso: esta versión aún no tiene claves de API, así que el chat libre, los mejores traductores y la pronunciación están desactivados por ahora. La web completa está en ',
-    fr: 'À noter : cette version n’a pas encore de clés d’API ; le chat libre, les meilleurs traducteurs et la prononciation sont désactivés pour l’instant. Le site complet est sur ',
-    en: 'Note: this version has no API keys yet, so open chat, the best translators and pronunciation are off for now. The full site is at ',
+    es: 'Aviso: esta versión aún no tiene claves de API, así que el traductor y la pronunciación están desactivados por ahora. La web completa está en ',
+    fr: 'À noter : cette version n’a pas encore de clés d’API ; le traducteur et la prononciation sont désactivés pour l’instant. Le site complet est sur ',
+    it: 'Nota: questa versione non ha ancora chiavi API, quindi il traduttore e la pronuncia per ora sono disattivati. Il sito completo è su ',
+    en: 'Note: this version has no API keys yet, so the translator and pronunciation are off for now. The full site is at ',
   };
   const WEBSITE = 'https://profegpt.onrender.com';
 
@@ -252,7 +221,7 @@
 
   // ----------------------------------------------------------- wallpaper ----
 
-  const CITY = { es: 'madrid', fr: 'paris', la: 'rome' };
+  const CITY = { es: 'madrid', fr: 'paris', it: 'rome' };
   const VERSION = '__ASSET_VERSION__';
   const requested = new Set();
 

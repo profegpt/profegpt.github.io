@@ -49,7 +49,6 @@ export class Recorder {
     this.statusCode = 200;
     this.headers = {};
     this.chunks = [];
-    this.cookies = [];
     this.finished = false;
     this.headersSent = false;
     this.listeners = {};
@@ -94,12 +93,6 @@ export class Recorder {
     return this.end(value);
   }
 
-  /** Becomes an entry in the browser's cookie jar. See src/client.js. */
-  cookie(name, value, options = {}) {
-    this.cookies.push({ name, value: String(value), maxAge: options.maxAge ?? null });
-    return this;
-  }
-
   on(event, listener) {
     if (!this.listeners[event]) this.listeners[event] = [];
     this.listeners[event].push(listener);
@@ -114,7 +107,7 @@ export class Recorder {
    */
   serialise() {
     const binary = this.chunks.some((chunk) => ArrayBuffer.isView(chunk));
-    const out = { status: this.statusCode, headers: this.headers, cookies: this.cookies };
+    const out = { status: this.statusCode, headers: this.headers };
     if (binary) {
       const parts = this.chunks.map((chunk) => (ArrayBuffer.isView(chunk) ? Buffer.from(chunk) : Buffer.from(String(chunk))));
       out.base64 = Buffer.concat(parts).toString('base64');

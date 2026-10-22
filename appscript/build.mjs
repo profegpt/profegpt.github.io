@@ -34,8 +34,6 @@ const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
 /** Imports the Apps Script build answers with its own module. */
 const SERVER_ALIASES = {
   express: 'appscript/src/modules/express.js',
-  'node:crypto': 'appscript/src/modules/crypto.js',
-  'server/providers/gemini.js': 'appscript/src/modules/gemini.js',
   'server/throttle.js': 'appscript/src/modules/throttle.js',
 };
 
@@ -50,22 +48,15 @@ const cacheMap = (file, name = 'cache') => [
  * turning a persistent cache back into a per-request one.
  */
 const SERVER_PATCHES = {
-  'server/quota.js': [cacheMap('server/quota.js', 'hits')],
   'server/routes/lock.js': [[
     'const lock = { locked: false, since: null };',
     "const lock = persistentObject('lock', { locked: false, since: null });",
   ]],
   'server/corpus.js': [cacheMap('server/corpus.js')],
-  'server/latin.js': [cacheMap('server/latin.js')],
   'server/speech.js': [cacheMap('server/speech.js')],
   'server/routes/dictionary.js': [cacheMap('server/routes/dictionary.js')],
   'server/routes/verbs.js': [cacheMap('server/routes/verbs.js')],
   'server/routes/translate.js': [cacheMap('server/routes/translate.js')],
-  'server/translators.js': [cacheMap('server/translators.js', 'restingUntil')],
-  'server/latin-lexicon.js': [
-    cacheMap('server/latin-lexicon.js', 'wiktionaryCache'),
-    cacheMap('server/latin-lexicon.js', 'definitionCache'),
-  ],
 };
 
 /** The routers are loaded lazily by app.js, so they are named here rather than imported. */
@@ -74,7 +65,6 @@ const SERVER_ENTRIES = [
   'server/routes/translate.js',
   'server/routes/dictionary.js',
   'server/routes/verbs.js',
-  'server/routes/chat.js',
   'server/routes/lock.js',
   'server/routes/speak.js',
 ];

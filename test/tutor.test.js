@@ -171,6 +171,35 @@ const toBe = text((await answer('to be in spanish', { study: 'es' })).blocks);
 ok('"to be in spanish" gives ser vs estar, not one verb',
   /ser/i.test(toBe) && /estar/i.test(toBe), toBe.slice(0, 100));
 
+// --- a question it cannot answer comes back with ways it could -------------
+// There is no model behind the chat, so an unanswerable question is met with
+// rephrasings built from the reader's own words, each one askable as it stands.
+const suggestionsOf = (result) => result.blocks.find((block) => block.type === 'suggestions')?.items ?? [];
+
+for (const [question, study, language, expected] of [
+  ['is magari a nice word', 'it', 'en', 'what does magari mean'],
+  ['tell me about mangiare', 'it', 'en', 'conjugate mangiare'],
+  ['dime algo sobre cervantes', 'es', 'es', 'qué significa cervantes'],
+  ['parle-moi de flâner', 'fr', 'fr', 'que veut dire flâner'],
+]) {
+  const result = await answer(question, { study, language, force: true });
+  const items = suggestionsOf(result);
+  ok(`"${question}" is not claimed as answered`, result.confident === false);
+  ok(`"${question}" suggests "${expected}"`, items.includes(expected), JSON.stringify(items));
+  ok(`"${question}" offers a handful, not a wall`, items.length >= 2 && items.length <= 4, JSON.stringify(items));
+}
+
+// Nothing to work with still yields the pack's own examples, never an empty list.
+const gibberish = suggestionsOf(await answer('?!', { study: 'es', language: 'es', force: true }));
+ok('a question with no words still gets suggestions', gibberish.length >= 2, JSON.stringify(gibberish));
+
+// The suggestions are real questions: each one the tutor is offering for a verb
+// it knows is answered with confidence.
+for (const [study, language, item] of [['it', 'en', 'conjugate mangiare'], ['es', 'es', 'conjuga salir'], ['fr', 'fr', 'conjugue partir']]) {
+  const result = await answer(item, { study, language, force: true });
+  ok(`the suggestion "${item}" is itself answerable`, result.confident === true);
+}
+
 if (failures.length) {
   console.error(`\n✗ ${failures.length} of ${checked} tutor checks failed:\n`);
   for (const failure of failures) console.error(`  ${failure}`);
