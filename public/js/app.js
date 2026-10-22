@@ -41,7 +41,7 @@ mountSiteLock();
  * Apps Script build, a local server — so a reader always has the real URL to
  * bookmark or pass on. The address is its own label in every language.
  */
-const WEBSITE = 'https://yuzhe-chen.github.io/profegpt';
+const WEBSITE = 'https://profegpt.github.io/profegpt';
 
 const NAV_KEYS = {
   traductor: 'translator',

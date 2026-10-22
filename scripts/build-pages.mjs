@@ -7,7 +7,7 @@
  * the site with two changes, and the server half runs on Apps Script:
  *
  *   - It lives under /profegpt, since this repository is a project site of
- *     yuzhe-chen.github.io. Root-relative paths in the page and the stylesheet
+ *     the profegpt organization. Root-relative paths in the page and the stylesheet
  *     get the prefix, and a <meta name="profegpt-base"> tells the app about it
  *     (public/js/lib/site.js). The app's modules import each other relatively
  *     and need nothing.
