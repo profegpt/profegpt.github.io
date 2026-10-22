@@ -20,7 +20,6 @@ const ART = {
   dictionary: '/assets/art/dictionary.svg',
   chat: '/assets/art/chat.svg',
   soon: '/assets/art/soon.svg',
-  celebrate: '/assets/art/celebrate.svg',
 };
 
 /** A decorative picture. They say nothing the text beside them does not. */

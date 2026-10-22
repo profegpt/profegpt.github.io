@@ -890,67 +890,10 @@ def soon():
     return art
 
 
-# ------------------------------------------------------------------ celebrate
-def celebrate():
-    art = Art('celebrate.svg', 400, 320)
-    mid = 200
-    # handles, behind the cup
-    for sgn in (-1, 1):
-        hx, hy = mid + sgn * 62, 112
-        col = GOLD if sgn < 0 else GOLD_D
-        art.path(f'M{f(hx - 30)} {f(hy)}a30 30 0 1 0 60 0a30 30 0 1 0 -60 0Z'
-                 f'M{f(hx - 16)} {f(hy)}a16 16 0 1 1 32 0a16 16 0 1 1 -32 0Z',
-                 [(hx - 30, hy - 30), (hx + 30, hy + 30)], col, extra='fill-rule="evenodd"', what='handle')
-    # the cup
-    top, bot = 66, 186
-    cup = [(mid - 60, top)] + [(mid + 60, top)] + \
-        [(mid + 60, top + 26)] + bezier((mid + 60, top + 26), (mid + 60, top + 86), (mid + 38, bot), (mid, bot), 20)[0:] + \
-        bezier((mid, bot), (mid - 38, bot), (mid - 60, top + 86), (mid - 60, top + 26), 20)
-    art.poly(cup, GOLD, what='cup')
-    art.poly(clip_x(cup, mid + 12), GOLD_D, what='cup shade')
-    art.rect(mid - 70, top - 12, 140, 22, GOLD, rx=11, what='rim')
-    art.rect(mid + 12, top - 12, 58, 22, GOLD_D, rx=11, what='rim shade')
-    art.rect(mid + 12, top - 12, 12, 22, GOLD_D, what='rim shade')
-    art.rect(mid - 46, top + 22, 12, 46, WHITE, rx=6, extra=HI, what='cup pill')
-    # a star on the cup
-    star = []
-    for i in range(10):
-        a = math.radians(-90 + 36 * i)
-        rr = 22 if i % 2 == 0 else 10
-        star.append((mid + rr * math.cos(a), 120 + rr * math.sin(a)))
-    art.poly(star, WHITE, r=2.5, extra='opacity=".5"', what='star')
-    # stem, knot and base
-    art.rect(mid - 13, bot - 6, 26, 44, GOLD, what='stem')
-    art.rect(mid + 4, bot - 6, 9, 44, GOLD_D, what='stem shade')
-    art.rect(mid - 30, 220, 60, 14, GOLD, rx=7, what='knot')
-    art.rect(mid + 4, 220, 26, 14, GOLD_D, rx=7, what='knot')
-    art.rect(mid + 4, 220, 8, 14, GOLD_D, what='knot')
-    assert bot - 6 < bot and 220 < bot - 6 + 44 and 232 < 234, 'stem, knot and base must overlap'
-    art.rect(mid - 56, 232, 112, 46, ORANGE, rx=10, what='base')
-    art.rect(mid + 18, 232, 38, 46, ORANGE_D, rx=10, what='base shade')
-    art.rect(mid + 18, 232, 12, 46, ORANGE_D, what='base shade')
-    art.rect(mid - 32, 246, 64, 18, GOLD, rx=5, what='plate')
-    art.rect(mid - 20, 253, 40, 4, GOLD_D, rx=2, what='plate line')
-    art.rect(mid - 48, 240, 6, 24, WHITE, rx=3, extra=HI, what='base pill')
-    # sparkles
-    def sparkle(x, y, s, c):
-        pts = []
-        for i in range(8):
-            a = math.radians(-90 + 45 * i)
-            rr = s if i % 2 == 0 else s * 0.32
-            pts.append((x + rr * math.cos(a), y + rr * math.sin(a)))
-        art.poly(pts, c, r=1.5, what='sparkle')
-    sparkle(92, 70, 15, GOLD)
-    sparkle(318, 196, 12, BLUE)
-    sparkle(306, 54, 10, GOLD)
-    sparkle(86, 214, 9, PURPLE)
-    confetti(art, 21, (14, 14, 386, 306), 16, [(120, 40, 280, 290), (78, 56, 106, 84), (304, 182, 332, 210), (294, 42, 318, 66), (76, 204, 96, 224)], spacing=40)
-    return art
-
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for fn in (logo, hero, spain, france, italy, translator, conjugator, dictionary, chat, soon, celebrate):
+    for fn in (logo, hero, spain, france, italy, translator, conjugator, dictionary, chat, soon):
         art = fn()
         n = art.save()
         print(f'{art.name:18s} {n:6d} bytes')

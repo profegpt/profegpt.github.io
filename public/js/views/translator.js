@@ -25,9 +25,6 @@ const LANGUAGES = () => ({
 
 const MAX_CHARS = 500;
 
-/** Any capitalisation, any spacing. */
-const GRADUATION = /^\s*graduation\s*2028\s*$/i;
-
 /**
  * A language's front page: the hero, the translator, the dictionary search and
  * the way into the other pages. It sits at /es, /fr and /it; the bare / above
@@ -114,30 +111,6 @@ function buildFinder() {
             ...t('finder.samples').split(',').map((word) =>
               el('button', { type: 'button', onclick: () => openDictionary(word) }, word))),
           el('p', { class: 'finder__note' }, t('finder.note'))))));
-}
-
-// ---------------------------------------------------------------------------
-
-/**
- * The one thing on this site that is not about grammar. A still picture now —
- * the trophy and its confetti are drawn, not thrown — and it stays until it is
- * clicked away or Escape is pressed.
- */
-function celebrate() {
-  if (document.querySelector('.ole')) return;
-
-  const overlay = el('div', { class: 'ole', role: 'dialog', 'aria-label': '¡Olé!' },
-    el('div', { class: 'ole__inner' },
-      art('celebrate', { className: 'ole__art' }),
-      el('p', { class: 'ole__word' }, '¡Olé!'),
-      el('p', { class: 'ole__sub' }, 'Graduación 2028')));
-
-  const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
-  const onKey = (event) => { if (event.key === 'Escape') close(); };
-
-  overlay.addEventListener('click', close);
-  document.addEventListener('keydown', onKey);
-  document.body.appendChild(overlay);
 }
 
 function buildTranslator(root) {
@@ -250,14 +223,6 @@ function buildTranslator(root) {
   async function translate(force = false) {
     const text = input.value.trim();
     if (!text) return;
-
-    if (GRADUATION.test(text)) {
-      celebrate();
-      output.textContent = '¡Olé!';
-      engine.textContent = '';
-      status.textContent = t('translator.done');
-      return;
-    }
 
     state.pending?.abort();
     const controller = new AbortController();
