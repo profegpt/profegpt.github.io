@@ -171,7 +171,7 @@ export function renderDictionary(main) {
 
     const ticket = (state.request += 1);
     clear(results);
-    results.appendChild(el('div', { class: 'empty' }, el('p', {}, el('span', { class: 'spinner' }), ` ${t('dictionary.looking')}`)));
+    results.appendChild(el('div', { class: 'empty' }, el('p', {}, t('dictionary.looking'))));
 
     try {
       const data = await getJson(`/api/dictionary?word=${encodeURIComponent(word)}&lang=${lang()}&study=${studyLang()}`);
