@@ -399,27 +399,25 @@ def sun(art, cx, cy, r):
 
 
 # ------------------------------------------------------------------ the mascot
-# Profe is a blue axolotl, posed like the user's reference drawing
-# (mirrored): a wide flat head with Duo-style eyes on the front of its face,
-# three gill fronds fanning out each side in the body's own blue, small
-# splayed hands held out, a slim body, and a long tail sweeping down to the
-# lower right. Shaded the way Duolingo shades Duo: big flat shapes, a
-# lighter face and belly, a darker crescent down the lower right. No
+# Profe is a speech bubble with a face: the "Pregúntale a Profe" card's
+# bubble, in the site's blue. A soft squircle with a short tail down to the
+# lower left, Duo's eyes and an open smile, and nothing else: no arms, no
+# legs, no hat. Shaded the way Duolingo shades: one flat colour, a darker
+# crescent down the lower right (the same lip as a pressed button). No
 # outlines, no gradients, no white highlight spots.
 #
-# It is drawn in its own units (the reference traced at 4x, so about 520
-# units tall), with the head centred on (HX, HY), and placed by the caller.
-AX, AX_L, AX_LL = '#4B9AF3', '#A4CEFF', '#CFE5FF'    # body, belly and face, the tail fin's edge
-AX_D, AX_DD = '#3C81DB', '#2F6AC0'                   # shade, deepest shade
+# It is drawn in its own units, the bubble's body centred on (0, 0), and
+# placed by the caller: large on the home page, small as the logo.
+AX, AX_L = '#4B9AF3', '#A4CEFF'                     # the site's blue, and a pale tint for the confetti
+AX_D = '#3C81DB'                                    # its shade
 EYE_INK = '#22265A'
 PINK = '#FF8FB5'
-SAY_INK = '#3C81DB'                                  # the speech bubbles' lettering
-# the same bubbles for the dark page (mascot-dark.svg): fill, edge and lip, lettering
+SAY_INK = '#3C81DB'                                  # the greeting bubbles' lettering
+# the same bubbles for the dark page (mascot-dark.svg): fill, edge, lettering
 SAY_DARK = ('#202F36', '#37464F', '#78B0FC')
-HX, HY, HW, HH, SQK = 220, 128, 124, 74, 0.74        # the head
-GILL_X = 68                                          # gill roots, from the head's centre line
-EYE_DX, EYE_Y, EYE_W, EYE_H = 36, 116, 31, 38       # Duo's eyes: close set, taller than wide
-HEAD_TILT = 4
+BW, BH, SQK = 130, 100, 0.74                         # the body's half width and half height, squareness
+TAIL = [(-84, 58), (-26, 86), (-100, 148)]            # root, root, tip: down to the lower left
+EYE_DX, EYE_Y, EYE_W, EYE_H = 40, -20, 30, 38       # Duo's eyes: close set, taller than wide
 
 
 def squircle_pts(hw, hh, k=SQK, cx=0, cy=0, n=16):
@@ -462,23 +460,6 @@ def disc(c, r, n=16):
     return d, arc_pts(x, y, r, r, 0, 360, n)[:-1]
 
 
-def hull(p, r1, q, r2, n=10):
-    """A tapered rounded limb from p (radius r1) to q (radius r2): the
-    outline round two circles, as (path, points)."""
-    L = math.dist(p, q)
-    phi = math.atan2(q[1] - p[1], q[0] - p[0])
-    al = math.acos(max(-1.0, min(1.0, (r1 - r2) / L)))
-
-    def at(c, r, a):
-        return c[0] + r * math.cos(a), c[1] + r * math.sin(a)
-    a0, a1, b0, b1 = at(q, r2, phi + al), at(q, r2, phi - al), at(p, r1, phi - al), at(p, r1, phi + al)
-    d = (f'M{f(a0[0])} {f(a0[1])}A{f(r2)} {f(r2)} 0 {int(2 * al > math.pi)} 0 {f(a1[0])} {f(a1[1])}'
-         f'L{f(b0[0])} {f(b0[1])}A{f(r1)} {f(r1)} 0 {int(2 * al < math.pi)} 0 {f(b1[0])} {f(b1[1])}Z')
-    pts = [at(q, r2, phi + al - 2 * al * i / n) for i in range(n + 1)]
-    pts += [at(p, r1, phi - al - (2 * math.pi - 2 * al) * i / n) for i in range(n + 1)]
-    return d, pts
-
-
 def poly_shape(pts):
     """A polygon as a shape, wound like the others."""
     pts = clockwise(pts)[::-1]
@@ -502,166 +483,12 @@ def shade(art, shapes, base, dark, shift, what, extra=None):
     art.clip_end()
 
 
-def hand(centre, r, ang, fingers=4, spread=110):
-    """A chubby little hand: a round palm and round fingers fanned out
-    along `ang` (degrees, y down)."""
-    polys = [disc(centre, r)]
-    for i in range(fingers):
-        a = math.radians(ang - spread / 2 + spread * i / (fingers - 1))
-        polys.append(disc((centre[0] + math.cos(a) * r * 1.05, centre[1] + math.sin(a) * r * 1.05), r * 0.46, n=10))
-    return polys
-
-
-def head_shape():
-    """The head: a wide, soft squircle."""
-    return [poly_shape(squircle_pts(HW, HH, cx=HX, cy=HY)[1])]
-
-
-def frond(side, root, ang, length, r1, r2):
-    """One gill frond: a plump leaf, narrow where it leaves the head,
-    swelling past the middle and rounding off at the tip."""
-    a = math.radians(ang)
-    ux, uy = side * math.cos(a), -math.sin(a)
-    tip = (root[0] + ux * length, root[1] + uy * length)
-    mid = (root[0] + ux * length * 0.62, root[1] + uy * length * 0.62)
-    return [hull(root, r1, mid, r2), hull(mid, r2, tip, r2 * 0.72)], tip
-
-
-# each gill: (root x offset from GILL_X, root y, angle from the outward
-# horizontal, length): three leaves swept up and out from each side of the
-# head, the same in the mascot and the logo
-GILLS = ((20, 84, 100, 60), (32, 98, 70, 54), (36, 120, 40, 38))
-
-
-def gills(art):
-    tips, roots = [], []
-    for side in (-1, 1):
-        for dx, y, ang, L in GILLS:
-            x = HX + side * (GILL_X + dx)
-            polys, tip = frond(side, (x, y), ang, L, 11, 17)
-            # the body's own blue, told apart from the head only by its shade
-            shade(art, polys, AX, AX_D, (-5, -6), 'gill')
-            tips.append(tip)
-            roots.append((x, y))
-    return tips, roots
-
-
 def eye_pts(s, ex, ey, w, h):
     """One of Duo's eyes: a rounded, slightly squarish shape, taller than
     wide, its top sloping down toward the nose. s is -1 for the left eye."""
     inner, outer = ex - s * w, ex + s * w
     corners = [(inner, ey - h * 0.86), (outer, ey - h), (outer, ey + h), (inner, ey + h)]
     return corners, [w * 0.9, w, w, w]
-
-
-def head(art, logo=False):
-    """The head and face (gills drawn first, behind). Returns the head's
-    shapes."""
-    shapes = head_shape()
-    hpts = shapes[0][1]
-
-    def inner():
-        # the paler face below the eyes
-        art.ellipse(HX, HY + 54, 98, 46, AX_L, what='face')
-    shade(art, shapes, AX, AX_D, (-22, -14), 'head', inner)
-
-    # eyes like Duo's: big close-set whites, big dark pupils looking a
-    # little to the right, one catchlight each
-    w, h = (EYE_W, EYE_H) if not logo else (EYE_W + 3, EYE_H + 3)
-    look = (5, 3)
-    for s in (-1, 1):
-        ex, ey = HX + s * (EYE_DX if not logo else EYE_DX + 3), EYE_Y
-        corners, radii = eye_pts(s, ex, ey, w, h)
-        art.poly(corners, WHITE, r=radii, what='eye')
-        pr = w * 0.66
-        px, py = ex + look[0], ey + look[1] + h * 0.08
-        art.circle(px, py, pr, EYE_INK, what='pupil')
-        art.circle(px - pr * 0.36, py - pr * 0.4, pr * 0.3, WHITE, what='catchlight')
-        # the pupil sits well inside the white, clear of its rounded corners
-        assert px + pr < ex + w - 2 and px - pr > ex - w + 2, 'pupil falls out of the eye'
-        assert py - pr > ey - h * 0.86 + 4 and py + pr < ey + h - 4, 'pupil falls out of the eye'
-        for c in corners:
-            assert inside_poly(c, hpts), 'eye off the head'
-        assert ey < HY, 'eyes should sit in the upper half of the head'
-    assert 2 * (EYE_DX if not logo else EYE_DX + 3) - 2 * w < 16, 'eyes too far apart'
-
-    # the mouth: a sweet little open smile with a pink tongue
-    mx, my, mw, md = HX, HY + 44, 22, 15
-    if logo:
-        mw, md = 26, 18
-    mouth = (f'M{f(mx - mw)} {f(my)}Q{f(mx)} {f(my + 6)} {f(mx + mw)} {f(my)}'
-             f'C{f(mx + mw)} {f(my + md * 0.8)} {f(mx + mw * 0.5)} {f(my + md)} {f(mx)} {f(my + md)}'
-             f'C{f(mx - mw * 0.5)} {f(my + md)} {f(mx - mw)} {f(my + md * 0.8)} {f(mx - mw)} {f(my)}Z')
-    mpts = [(mx - mw, my), (mx + mw, my), (mx, my + md)]
-    art.clip_begin(mouth, mpts, 'mouth')
-    art.path(mouth, mpts, EYE_INK, what='mouth')
-    art.ellipse(mx + 2, my + md + 1, mw * 0.6, md * 0.5, PINK, what='tongue')
-    art.clip_end()
-    assert my > EYE_Y + h + 2, 'mouth runs into the eyes'
-    assert inside_poly((mx, my + md + 8), hpts), 'mouth off the face'
-    return shapes
-
-
-def logo():
-    art = Art('logo.svg', 64, 64)
-    art.push(place(32, 33, 0.186))
-    art.push(translate(-HX, -(HY - 14)))
-    art.begin_track()
-    tips, roots = gills(art)
-    shapes = head(art, logo=True)
-    for r in roots:
-        assert inside_any(r, shapes), 'gill not attached to the head'
-    art.assert_centred(art.end_track(), 'logo', tol=1.5)
-    art.pop()
-    art.pop()
-    return art
-
-
-def say(art, x, y, w, h, s, tail_to, size=28, tilt=0, dark=False):
-    """A white speech bubble with a light grey edge and lip, blue lettering,
-    and a tail toward `tail_to`. All the hero's bubbles are this one colour."""
-    cx, cy = x + w / 2, y + h / 2
-    est = 0.62 * size * len(s.replace('¡', 'i'))
-    assert est + 28 <= w, (s, 'bubble too tight for its word', est, w)
-    if tilt:
-        art.push(rotate(tilt, cx, cy))
-    tx, ty = tail_to
-    e, lip, rx = 2.5, 4.5, h / 2.3
-    # the tail grows from the point inside the bubble nearest its target,
-    # so it leaves whichever edge faces the axolotl
-    bx, by = min(max(tx, x + rx), x + w - rx), min(max(ty, y + 12), y + h - 12)
-    L = math.dist((bx, by), (tx, ty))
-    px, py = -(ty - by) / L, (tx - bx) / L
-    tail = [(bx + px * 14, by + py * 14), (bx - px * 14, by - py * 14), (tx, ty)]
-    k = 14 - e * 1.4
-    inner = [(bx + px * k, by + py * k), (bx - px * k, by - py * k),
-             (tx + (bx - tx) * 2.2 * e / L, ty + (by - ty) * 2.2 * e / L)]
-    fill, edge, ink = SAY_DARK if dark else (WHITE, GREY1, SAY_INK)
-    art.poly([(px, py + lip) for px, py in tail], edge, r=[2, 2, 3], what='bubble tail lip')
-    art.rect(x - e, y - e, w + 2 * e, h + 2 * e + lip, edge, rx=rx + e, what='bubble edge')
-    art.poly(inner, fill, r=[2, 2, 2.5], what='bubble tail')
-    art.rect(x, y, w, h, fill, rx=rx, what='bubble')
-    art.text(cx, cy + size * 0.36, s, size, ink)
-    if tilt:
-        art.pop()
-    return (x - 8, y - 8, x + w + 8, y + h + 12)
-
-
-def tail_shape(p0, p1, p2, p3, w0, w1, n=28, bulge=0.25):
-    """A tapering tail along a cubic centre line, w0 wide at the root and w1
-    at the rounded tip."""
-    c = [p0] + bezier(p0, p1, p2, p3, n)
-    left, right = [], []
-    for i, p in enumerate(c):
-        q = c[min(i + 1, n)]
-        o = c[max(i - 1, 0)]
-        t = math.hypot(q[0] - o[0], q[1] - o[1]) or 1
-        nx, ny = -(q[1] - o[1]) / t, (q[0] - o[0]) / t
-        t = i / n
-        w = w0 + (w1 - w0) * t + w0 * bulge * math.sin(math.pi * t)
-        left.append((p[0] + nx * w, p[1] + ny * w))
-        right.append((p[0] - nx * w, p[1] - ny * w))
-    return [poly_shape(left + right[::-1]), disc(p3, w1)], c
 
 
 def dots(art, seed, box, n, avoid, spacing=60):
@@ -688,64 +515,139 @@ def dots(art, seed, box, n, avoid, spacing=60):
     assert len(placed) == n, (art.name, 'could not place all the confetti', len(placed))
 
 
-def hero(dark=False):
-    """The home page's mascot; dark=True is the same drawing with the speech
-    bubbles in dark-theme colours, for the dark page."""
-    art = Art('mascot-dark.svg' if dark else 'mascot.svg', 560, 480)
-    S = 0.84
-    OX, OY = 276 - 232 * S, 236 - 262 * S          # local (232, 262) to just left of centre
-    M = place(OX, OY, S)[1]
-    art.push(place(OX, OY, S))
+def rounded_pts(pts, r, n=6):
+    """A polygon with its corners rounded (as rpoly_d draws them), as points."""
+    out = []
+    for i in range(len(pts)):
+        p0, p1, p2 = pts[i - 1], pts[i], pts[(i + 1) % len(pts)]
+        ri = r[i] if isinstance(r, (list, tuple)) else r
+        l1, l2 = math.dist(p0, p1), math.dist(p1, p2)
+        k = min(ri, l1 / 2, l2 / 2)
+        a = (p1[0] + (p0[0] - p1[0]) * k / l1, p1[1] + (p0[1] - p1[1]) * k / l1)
+        b = (p1[0] + (p2[0] - p1[0]) * k / l2, p1[1] + (p2[1] - p1[1]) * k / l2)
+        for j in range(n + 1):
+            t = j / n
+            out.append(((1 - t) ** 2 * a[0] + 2 * t * (1 - t) * p1[0] + t * t * b[0],
+                        (1 - t) ** 2 * a[1] + 2 * t * (1 - t) * p1[1] + t * t * b[1]))
+    return out
+
+
+def bubble(art, body, tail, fill, dark, shift, what):
+    """A speech bubble drawn as one shape: the body and its tail are one
+    outline, filled dark, with the fill shifted up and left over it. The
+    dark shows only as a lip along the bottom and down the tail's lower
+    edge, so the tail keeps a single point."""
+    shapes = [poly_shape(body), poly_shape(tail)]
+    shade(art, shapes, fill, dark, shift, what)
+    return shapes
+
+
+def profe(art):
+    """The mascot, in its own units. Returns its outline points."""
+    _, body = squircle_pts(BW, BH, k=SQK, n=24)
+    tail = rounded_pts(TAIL, [10, 10, 12])
+    for p in TAIL[:2]:
+        assert inside_poly(p, body), 'tail not joined to the body'
+    assert not inside_poly(TAIL[2], body), 'tail tip inside the body'
+    bubble(art, body, tail, AX, AX_D, (-6, -12), 'profe')
+
+    # eyes like Duo's: big close-set whites, big dark pupils looking a
+    # little to the right, one catchlight each
+    for s in (-1, 1):
+        ex, ey, w, h = s * EYE_DX, EYE_Y, EYE_W, EYE_H
+        corners, radii = eye_pts(s, ex, ey, w, h)
+        art.poly(corners, WHITE, r=radii, what='eye')
+        pr = w * 0.66
+        px, py = ex + 5, ey + 3 + h * 0.08
+        art.circle(px, py, pr, EYE_INK, what='pupil')
+        art.circle(px - pr * 0.36, py - pr * 0.4, pr * 0.3, WHITE, what='catchlight')
+        assert px + pr < ex + w - 2 and px - pr > ex - w + 2, 'pupil falls out of the eye'
+        assert py - pr > ey - h * 0.86 + 4 and py + pr < ey + h - 4, 'pupil falls out of the eye'
+        for c in corners:
+            assert inside_poly(c, body), 'eye off the bubble'
+    assert 2 * EYE_DX - 2 * EYE_W < 24, 'eyes too far apart'
+
+    # an open smile with a pink tongue
+    mx, my, mw, md = 0, EYE_Y + EYE_H + 16, 26, 20
+    mouth = (f'M{f(mx - mw)} {f(my)}Q{f(mx)} {f(my + 7)} {f(mx + mw)} {f(my)}'
+             f'C{f(mx + mw)} {f(my + md * 0.8)} {f(mx + mw * 0.5)} {f(my + md)} {f(mx)} {f(my + md)}'
+             f'C{f(mx - mw * 0.5)} {f(my + md)} {f(mx - mw)} {f(my + md * 0.8)} {f(mx - mw)} {f(my)}Z')
+    mpts = [(mx - mw, my), (mx + mw, my), (mx, my + md)]
+    art.clip_begin(mouth, mpts, 'mouth')
+    art.path(mouth, mpts, EYE_INK, what='mouth')
+    art.ellipse(mx + 2, my + md + 1, mw * 0.6, md * 0.5, PINK, what='tongue')
+    art.clip_end()
+    assert inside_poly((mx, my + md + 10), body), 'mouth off the bubble'
+    return body + tail
+
+
+def logo():
+    art = Art('logo.svg', 64, 64)
+    S = 0.205
+    art.push(place(32, 32 - 31 * S, S))
     art.begin_track()
-
-    # the body: a slim, slightly pear-shaped trunk under the head, leaning
-    # a touch to the right as it goes down
-    body = [hull((224, 206), 46, (242, 282), 50), disc((246, 300), 38)]
-    # the tail: straight down from the hips, sweeping out to the lower right
-    tail, spine = tail_shape((244, 296), (232, 384), (356, 382), (384, 476), 25, 6)
-    fin, _ = tail_shape((236, 310), (220, 392), (344, 398), (374, 478), 27, 10)
-    shade(art, fin, AX_L, AX_LL, (0, 0), 'tail fin')
-    shade(art, tail, AX, AX_D, (-9, -9), 'tail')
-    assert inside_any((244, 300), body), 'tail not attached to the body'
-    # little back legs, splayed at the hips
-    legs = [((216, 304), 13, (180, 324), 11, 160), ((274, 300), 13, (310, 318), 11, 20)]
-    for p, r1, q, r2, toe in legs:
-        shade(art, [hull(p, r1, q, r2)] + hand(q, r2, toe, fingers=3, spread=90), AX, AX_D, (-4, -5), 'leg')
-        assert inside_any(p, body), 'leg not attached to the body'
-        assert not inside_any(q, body), 'foot inside the body'
-    # arms held out to the sides, small splayed hands
-    arms = [((204, 228), 18, (138, 250), 14, 190), ((252, 230), 18, (318, 258), 14, 10)]
-    for p, r1, q, r2, fan in arms:
-        shade(art, [hull(p, r1, q, r2)] + hand(q, r2, fan), AX, AX_D, (-4, -5), 'arm')
-        assert inside_any(p, body), 'arm not attached to the body'
-        assert not inside_any(q, body), 'hand inside the body'
-
-    def belly():
-        art.ellipse(236, 270, 30, 40, AX_L, rot=-8, what='belly')
-    shade(art, body, AX, AX_D, (-16, -8), 'body', belly)
-
-    # the head, tilted a little toward the tail
-    art.push(rotate(HEAD_TILT, 228, 206))
-    tips, roots = gills(art)
-    shapes = head(art)
-    for r in roots:
-        assert inside_any(r, shapes), 'gill not attached to the head'
-    Mh = mul(M, rotate(HEAD_TILT, 228, 206)[1])
-    keep = [apply(Mh, p) for _, sp in shapes for p in sp] + [apply(Mh, p) for p in tips]
-    # the chin sits down over the body
-    assert inside_any(apply(rotate(HEAD_TILT, 228, 206)[1], (HX, HY + HH - 4)), body), 'head not on the body'
+    profe(art)
+    box = art.end_track()
     art.pop()
+    assert box[2] - box[0] > 50, ('logo too small', box)
+    return art
+
+
+def say(art, x, y, w, h, s, tail_to, size=24, tilt=0, dark=False):
+    """A white speech bubble with a light grey edge and lip, blue lettering,
+    and a tail toward `tail_to`. All the hero's bubbles are this one colour.
+    The tail's edge is the same tail grown by the edge's width, with no lip
+    of its own, so it comes to one point."""
+    cx, cy = x + w / 2, y + h / 2
+    est = 0.62 * size * len(s.replace('¡', 'i'))
+    assert est + 28 <= w, (s, 'bubble too tight for its word', est, w)
+    if tilt:
+        art.push(rotate(tilt, cx, cy))
+    tx, ty = tail_to
+    e, lip, rx = 2.5, 4.5, h / 2.3
+    # the tail grows from the point inside the bubble nearest its target,
+    # so it leaves whichever edge faces the mascot
+    bx, by = min(max(tx, x + rx), x + w - rx), min(max(ty, y + 12), y + h - 12)
+    L = math.dist((bx, by), (tx, ty))
+    ux, uy = (tx - bx) / L, (ty - by) / L
+    px, py = -uy, ux
+    tail = [(bx + px * 14, by + py * 14), (bx - px * 14, by - py * 14), (tx, ty)]
+    # the fill's tail: the edge's, pulled in by e all round
+    k = 14 - e * 1.6
+    inner = [(bx + px * k, by + py * k), (bx - px * k, by - py * k), (tx - ux * e * 2.6, ty - uy * e * 2.6)]
+    fill, edge, ink = SAY_DARK if dark else (WHITE, GREY1, SAY_INK)
+    art.rect(x - e, y - e, w + 2 * e, h + 2 * e + lip, edge, rx=rx + e, what='bubble edge')
+    art.poly(tail, edge, r=[2, 2, 3.5], what='bubble tail edge')
+    art.poly(inner, fill, r=[2, 2, 2.5], what='bubble tail')
+    art.rect(x, y, w, h, fill, rx=rx, what='bubble')
+    art.text(cx, cy + size * 0.36, s, size, ink)
+    if tilt:
+        art.pop()
+    return (x - 8, y - 8, x + w + 8, y + h + 12)
+
+
+def hero(dark=False):
+    """The home page's mascot; dark=True is the same drawing with the
+    greeting bubbles in dark-theme colours, for the dark page."""
+    art = Art('mascot-dark.svg' if dark else 'mascot.svg', 560, 480)
+    S, TILT = 0.94, -4
+    CX, CY = 282, 200
+    art.push(place(CX, CY, S))
+    art.push(rotate(TILT))
+    M = mul(place(CX, CY, S)[1], rotate(TILT)[1])
+    art.begin_track()
+    outline = profe(art)
     m_box = art.end_track()
     art.pop()
-    keep += [apply(M, p) for p in spine]
-    keep += [apply(M, q) for _, _, q, _, _ in arms + legs]
+    art.pop()
+    keep = [apply(M, p) for p in outline]
     assert abs((m_box[0] + m_box[2]) / 2 - 280) <= 24, ('mascot not centred', m_box)
 
-    # three speech bubbles, saying hello in each language, all the same colour
+    # three greeting bubbles, one per language, all the same colour
     boxes = []
-    boxes.append(say(art, 10, 146, 126, 56, '¡Hola!', (166, 158), size=26, tilt=-4, dark=dark))
-    boxes.append(say(art, 410, 196, 142, 56, 'Bonjour', (394, 178), size=26, tilt=3, dark=dark))
-    boxes.append(say(art, 22, 360, 114, 56, 'Ciao', (150, 336), size=26, tilt=-4, dark=dark))
+    boxes.append(say(art, 10, 92, 122, 54, '¡Hola!', (150, 128), tilt=-4, dark=dark))
+    boxes.append(say(art, 416, 214, 136, 54, 'Bonjour', (404, 190), tilt=3, dark=dark))
+    boxes.append(say(art, 330, 374, 108, 54, 'Ciao', (322, 322), tilt=-3, dark=dark))
     for b in boxes:
         for x, y in keep:
             assert not (b[0] < x < b[2] and b[1] < y < b[3]), ('bubble on the mascot', b, round(x), round(y))
@@ -755,192 +657,124 @@ def hero(dark=False):
 
 
 # ------------------------------------------------------------------ Spain
-# The Sagrada Familia's Passion facade, front on, traced from the user's
-# reference drawing: four slender spires (the inner pair tallest), a pointed
-# gable between them, the big pediment porch with its leaning columns, two
-# lower wings with pinnacles, a stepped plinth. Drawn in the reference's own
-# pixels (its centre line at x = 450, the plinth's foot at y = 812) and
-# scaled onto the canvas.
-SG, SG_L, SG_D, SG_DD, SG_GOLD, SG_GOLD_D = '#D9B07A', '#E8C795', '#B98A55', '#8E6438', '#D9963A', '#B87A26'
+# The Sagrada Familia, Nativity side: four spindle bell towers with mosaic
+# finials (the inner pair taller), the tall central tower behind, the gable
+# with Gaudi's green cypress, and the facade with its three parabolic portals.
+def finial(art, cx, y, s, col, col_d):
+    """The mosaic pinnacle on a Sagrada Familia tower, standing on (cx, y):
+    a coloured knob, a gold cross, white balls at the cross's ends."""
+    art.rect(cx - 3 * s, y - 8 * s, 6 * s, 10 * s, SAND_D, rx=2 * s, what='finial stem')
+    ky = y - 16 * s
+    art.ellipse(cx, ky, 8 * s, 10 * s, col, what='finial knob')
+    art.path(f'M{f(cx + 2.5 * s)} {f(ky - 9.6 * s)}A{f(8 * s)} {f(10 * s)} 0 0 1 {f(cx + 2.5 * s)} {f(ky + 9.6 * s)}Z',
+             [(cx, ky - 10 * s), (cx + 8 * s, ky + 10 * s)], col_d, what='finial shade')
+    art.circle(cx - 3.2 * s, ky - 3 * s, 1.7 * s, WHITE, what='mosaic')
+    art.circle(cx + 1.2 * s, ky + 4 * s, 1.5 * s, GOLD, what='mosaic')
+    art.circle(cx - 2.6 * s, ky + 4.6 * s, 1.2 * s, WHITE, extra='opacity=".7"', what='mosaic')
+    art.rect(cx - 8 * s, ky + 5.8 * s, 16 * s, 3.2 * s, GOLD, rx=1.6 * s, what='finial band')
+    top = ky - 10 * s
+    art.rect(cx - 1.6 * s, top - 13 * s, 3.2 * s, 14 * s, GOLD, rx=1.6 * s, what='cross')
+    art.rect(cx - 6.4 * s, top - 9.6 * s, 12.8 * s, 3.2 * s, GOLD, rx=1.6 * s, what='cross')
+    for bx, by in ((cx, top - 13 * s), (cx - 6.4 * s, top - 8 * s), (cx + 6.4 * s, top - 8 * s)):
+        art.circle(bx, by, 2.4 * s, WHITE, what='cross ball')
+    return top - 15.4 * s
 
 
-def sg_shaded(art, pts, cx, lit=SG, dark=SG_D, r=0, what='stone'):
-    """A stone face, its part right of cx in shade."""
-    art.poly(pts, lit, r=r, what=what)
-    half = clip_x(pts, cx)
-    if len(half) > 2:
-        art.poly(half, dark, what=what + ' shade')
+def spindle(art, cx, base, top, hw, col, col_d, s=1.0, slots=7, phase=0.0, stone=(SAND, SAND_D)):
+    """One of the Sagrada Familia's bell towers: a tall spindle, straight
+    at the foot and closing to a rounded point, with a spiral of slots up
+    it and a mosaic finial on top. Returns its half width at height y."""
+    n = 16
+    H = base - top
 
-
-def sg_finial(art, cx, y, s=1.0):
-    """A gold cross-flower finial standing on (cx, y): a short stem and four
-    round petals round a round centre."""
-    art.rect(cx - 2.5 * s, y - 14 * s, 5 * s, 16 * s, SG_GOLD_D, rx=2.5 * s, what='finial stem')
-    c = y - 22 * s
-    for dx, dy in ((0, -7), (7, 0), (0, 7), (-7, 0)):
-        art.circle(cx + dx * s, c + dy * s, 5 * s, SG_GOLD if dx <= 0 else SG_GOLD_D, what='finial petal')
-    art.circle(cx, c, 4.5 * s, SG_GOLD, what='finial heart')
-    return c - 12 * s
-
-
-def sg_spire(art, cx, tip, band, base, hw):
-    """A spire: a slotted shaft up to a band, then a long cone to the
-    finial. Returns the finial's top."""
-    shaft = [(cx - hw, base), (cx - hw * 0.86, band), (cx + hw * 0.86, band), (cx + hw, base)]
-    sg_shaded(art, shaft, cx + hw * 0.3, what='spire')
-    cone = [(cx - hw * 0.66, band), (cx - 3, tip), (cx + 3, tip), (cx + hw * 0.66, band)]
-    sg_shaded(art, cone, cx + hw * 0.22, lit=SG_L, dark=SG, r=[0, 3, 3, 0], what='spire cone')
-    # bands round the spire
-    for y, k in ((band, 1.0), (band + (base - band) * 0.42, 1.04)):
-        w = hw * (0.86 + 0.14 * (y - band) / (base - band)) * k + 3
-        art.rect(cx - w, y - 5, 2 * w, 10, SG_L, rx=4, what='spire band')
-        art.rect(cx + hw * 0.3, y - 5, w - hw * 0.3, 10, SG, rx=4, what='spire band shade')
-    # rows of small dark slot windows down the shaft, and up the cone
-    y = band + 22
-    while y < base - 18:
-        if abs(y - (band + (base - band) * 0.42)) > 16:
-            for dx in (-0.5, 0, 0.5):
-                art.rect(cx + dx * hw - 2.6, y - 7, 5.2, 14, SG_DD, rx=2.6, what='spire slot')
-        y += 26
-    for i in range(3):
-        y = band - 24 - i * 30
-        w = hw * 0.66 * (y - tip) / (band - tip)
-        if w > 9:
-            for dx in (-0.36, 0.36):
-                art.rect(cx + dx * w - 2, y - 5, 4, 10, SG_D, rx=2, what='cone slot')
-    top = sg_finial(art, cx, tip + 4)
-    return top
+    def w(y):
+        t = min(1.0, max(0.0, (base - y) / H))
+        return hw * (1 - t ** 2.4) ** 0.55
+    neck = top + H * 0.035
+    left = [(cx - max(w(base - (base - neck) * i / n), 3.5 * s), base - (base - neck) * i / n) for i in range(n + 1)]
+    pts = left + [(2 * cx - x, y) for x, y in reversed(left)]
+    art.poly(pts, stone[0], what='tower')
+    art.poly(clip_x(pts, cx + hw * 0.28), stone[1], what='tower shade')
+    # the spiral of slots: two columns, staggered, smaller as the tower closes
+    for i in range(slots):
+        t = 0.1 + 0.62 * i / (slots - 1)
+        y = base - H * t
+        ww = w(y)
+        sw, sh = 4.6 * s * (1 - t * 0.35), 11 * s * (1 - t * 0.3)
+        for j in (0, 1):
+            off = math.sin(phase + i * 0.9 + j * math.pi) * ww * 0.42
+            if abs(off) + sw / 2 > ww - 5 * s:
+                continue
+            art.rect(cx + off - sw / 2, y - sh / 2, sw, sh, SAND_DD, rx=sw / 2, what='tower slot')
+    tip = finial(art, cx, neck + 2 * s, s, col, col_d)
+    return w, tip
 
 
 def spain():
     art = Art('es.svg', 560, 480)
-    sun(art, 478, 96, 38)
-    ground = (280, 436, 238, 24)
+    sun(art, 128, 132, 64)
+    ground = (280, 414, 240, 38)
     grass(art, ground)
-    cluster_tree(art, 64, 432, ground, 0.7)
-    bush(art, 104, 440, ground, 0.8)
-    conifer(art, 494, 430, ground, 0.8)
+    cluster_tree(art, 76, 418, ground, 0.9)
+    oval_tree(art, 490, 410, ground, 0.78)
 
-    s = 0.56
-    art.push(place(280 - 450 * s, 437 - 812 * s, s))
+    mid = 280
+    BODY_T, BODY_B = 318, 408
     art.begin_track()
-    C = 450
-    art.ellipse(C + 8, 812, 300, 16, GREEN_D, what='basilica shadow')
+    art.ellipse(mid + 6, BODY_B + 1, 140, 12, GREEN_D, what='basilica shadow')
+    # the tall central tower, behind
+    w_c, tip_c = spindle(art, mid, 330, 72, 25, GOLD, GOLD_D, s=1.15, slots=0, stone=('#F3DDB4', '#DDBF8C'))
+    # the four Nativity towers: the inner pair taller
+    towers = []
+    for x, top, hw, col, col_d, ph in ((180, 160, 19, RED, RED_D, 0.4), (380, 160, 19, RED, RED_D, 1.6),
+                                      (232, 118, 21.5, ORANGE, ORANGE_D, 2.2), (328, 118, 21.5, ORANGE, ORANGE_D, 0.9)):
+        tb = BODY_T + 6
+        w, tip = spindle(art, x, tb, top, hw, col, col_d, s=0.85 if hw < 20 else 0.95, slots=8, phase=ph)
+        towers.append((x, tb, hw))
+        assert BODY_T < tb, 'tower floats above the body'
+    # the central gable over the main portal, with Gaudi's green cypress on top
+    g = [(mid - 46, BODY_T + 4), (mid - 30, 282), (mid, 248), (mid + 30, 282), (mid + 46, BODY_T + 4)]
+    art.poly(g, SAND, r=[0, 10, 8, 10, 0], what='gable')
+    art.poly(clip_x(g, mid + 16), SAND_D, r=0, what='gable shade')
+    cyp = [(mid - 15, 256), (mid, 196), (mid + 15, 256)]
+    art.poly(cyp, GREEN, r=[5, 6, 5], what='cypress spire')
+    art.poly([(mid, 200), (mid + 15, 256), (mid + 2, 256)], GREEN_D, r=[3, 5, 0], what='cypress spire shade')
+    for dx, dy in ((-4, 232), (3, 218), (-1, 246)):
+        art.circle(mid + dx, dy, 2.4, WHITE, what='dove')
+    assert cyp[0][1] > 248 + 2, 'the cypress does not stand on the gable'
+    # the facade body, with three parabolic portals
+    art.rect(150, BODY_T, 260, BODY_B - BODY_T, SAND, rx=12, what='facade')
+    art.rect(352, BODY_T, 58, BODY_B - BODY_T, SAND_D, rx=12, what='facade shade')
+    art.rect(352, BODY_T, 14, BODY_B - BODY_T, SAND_D, what='facade shade')
+    # a crest of rounded knobs along the top, Gaudi's soft battlements
+    for x in (156, 206, 256, 304, 354, 404):
+        col = SAND_D if x > 352 else SAND
+        art.path(f'M{f(x - 7)} {f(BODY_T + 4)}A7 9 0 0 1 {f(x + 7)} {f(BODY_T + 4)}Z',
+                 [(x - 7, BODY_T - 5), (x + 7, BODY_T + 4)], col, what='crest')
+    art.rect(150, BODY_B - 14, 260, 14, SAND_D, rx=7, what='plinth')
+    art.rect(352, BODY_B - 14, 58, 14, SAND_DD, rx=7, what='plinth shade')
 
-    # the four spires, the inner pair tallest
-    tops = []
-    for dx, tip, band, hw in ((-107, 186, 330, 25), (107, 186, 330, 25), (-48, 150, 296, 24), (48, 150, 296, 24)):
-        tops.append(sg_spire(art, C + dx, tip, band, 560, hw))
-    assert tops[2] < tops[0] - 20, 'the inner spires should stand taller'
-
-    # the pointed gable rising between the inner spires, a round window and
-    # a small cross-topped gable in it
-    gable = [(C - 26, 560), (C - 26, 300), (C, 214), (C + 26, 300), (C + 26, 560)]
-    sg_shaded(art, gable, C + 8, r=[0, 6, 4, 6, 0], what='gable')
-    art.ellipse(C, 352, 10, 14, SG_DD, what='rose window')
-    for y in (392, 420):
-        for dx in (-10, 10):
-            art.rect(C + dx - 2.5, y - 8, 5, 16, SG_DD, rx=2.5, what='gable slot')
-    small = [(C - 22, 520), (C - 22, 470), (C, 440), (C + 22, 470), (C + 22, 520)]
-    sg_shaded(art, small, C + 6, lit=SG_L, dark=SG, r=[0, 4, 3, 4, 0], what='small gable')
-    art.rect(C - 2, 452, 4, 26, SG_DD, rx=2, what='cross')
-    art.rect(C - 9, 459, 18, 4, SG_DD, rx=2, what='cross')
-    assert 214 > tops[2], 'gable taller than the spires'
-
-    # the wings are not mirror images, as on the real basilica: the right
-    # one is a little wider, its roof a step higher, with one more pinnacle
-    # and one more column of windows
-    WINGS = {-1: dict(x0=C - 232, x1=C - 150, roof=600, pins=4, cols=4),
-             1: dict(x0=C + 150, x1=C + 244, roof=592, pins=5, cols=5)}
-    WALL_B = 788                            # wings run down behind the plinth (top 784)
-
-    # the ribbed mass behind the porch, between the spires and the wings
-    m0, m1 = WINGS[-1]['x0'], WINGS[1]['x1']
-    art.rect(m0, 512, m1 - m0, 94, SG_D, rx=6, what='upper mass')
-    art.rect(C + 60, 512, m1 - C - 60, 94, SG_DD, rx=6, extra='opacity=".45"', what='upper mass shade')
-    n_rib = int((m1 - m0 - 16) // 16)
-    pitch = (m1 - m0 - 16 - 6) / n_rib     # ribs evenly spread, 8 in from each end
-    for i in range(n_rib + 1):
-        x = m0 + 8 + i * pitch
-        art.rect(x, 518, 6, 82, SG_L if x + 3 < C else SG, rx=3, what='rib')
-    assert abs(m0 + 8 + n_rib * pitch + 6 - (m1 - 8)) < 0.01, 'ribs not evenly spread across the mass'
-
-    # the wings, with a row of small pointed pinnacles along each roof
-    for side in (-1, 1):
-        wg = WINGS[side]
-        x0, x1, roof = wg['x0'], wg['x1'], wg['roof']
-        n = wg['pins']
-        gap = (x1 - x0 - 20) / (n - 1)
-        for i in range(n):
-            px = x0 + 10 + i * gap
-            ph = 92 if i % 2 == 0 else 74
-            # the pinnacle's foot runs 6 into the cornice, so it sits on it
-            pin = [(px - 10, roof + 6), (px - 2, roof + 6 - ph), (px + 2, roof + 6 - ph), (px + 10, roof + 6)]
-            sg_shaded(art, pin, px + 2, lit=SG_L, dark=SG, what='pinnacle')
-        top = roof + 4
-        art.rect(x0, top, x1 - x0, WALL_B - top, SG if side < 0 else SG_D, what='wing')
-        if side > 0:
-            art.rect(x0, top, 10, WALL_B - top, SG, what='wing edge')
-        art.rect(x0 - 6, roof - 6, x1 - x0 + 12, 16, SG_L if side < 0 else SG, rx=5, what='cornice')
-        k_n = wg['cols']
-        for r in range(3):
-            for k in range(k_n):
-                wx = x0 + 12 + k * (x1 - x0 - 24) / (k_n - 1)
-                art.rect(wx - 4, roof + 26 + r * 50, 8, 34, SG_DD, rx=4, what='wing window')
-        assert roof + 26 + 2 * 50 + 34 < 784, 'wing windows run into the plinth'
-
-    # the porch: a dark recess, a row of leaning columns evenly spaced, the
-    # pointed central door, the chevron of the lower gable and the big
-    # pediment over it all
-    PW, LEAN, PITCH = 150, 6, 36
-    art.rect(C - PW, 600, 2 * PW, 176, SG_DD, what='porch recess')
-    for side in (-1, 1):
-        for k in range(3):
-            bx = 136 - k * PITCH
-            b, t = C + side * bx, C + side * (bx + LEAN)
-            col = [(b - 9, 776), (t - 7, 640), (t + 7, 640), (b + 9, 776)]
-            assert abs(t - C) + 7 <= PW, 'column pokes out of the porch'
-            sg_shaded(art, col, (b + t) / 2 + 3, what='column')
-    door = [(C - 40, 776), (C - 40, 652)] + bezier((C - 40, 652), (C - 40, 624), (C - 14, 606), (C, 598), 6) + \
-        bezier((C, 598), (C + 14, 606), (C + 40, 624), (C + 40, 652), 6) + [(C + 40, 776)]
-    art.poly(door, SG_D, what='doorway')
-    wall = [(p[0] * 0.78 + C * 0.22, p[1] + (8 if p[1] < 776 else 0)) for p in door]
-    art.poly(wall, SG, what='doorway wall')
-    for dx in (-9, 9):
-        art.rect(C + dx - 5, 650, 10, 28, SG_DD, rx=5, what='doorway window')
-    inner = [(C - 17, 776), (C - 17, 730), (C, 712), (C + 17, 730), (C + 17, 776)]
-    art.poly(inner, SG_DD, r=[0, 8, 6, 8, 0], what='door')
-    assert 136 - 2 * PITCH - 9 > 40, 'the inner columns run into the doorway'
-    chev = [(C - 160, 664), (C, 562), (C + 160, 664), (C + 140, 664), (C, 586), (C - 140, 664)]
-    sg_shaded(art, chev, C, lit=SG_L, dark=SG, what='lower gable')
-    ped = [(C - 168, 608), (C, 486), (C + 168, 608)]
-    sg_shaded(art, ped, C, lit=SG_L, dark=SG, r=[4, 8, 4], what='pediment')
-    for k in range(-7, 8):
-        x = C + k * 18                      # slots evenly spaced about the centre line
-        yt = 486 + abs(x - C) / 168 * 122 + 16
-        if 600 - yt > 14:
-            art.rect(x - 4, yt, 8, 600 - yt, SG_DD, rx=4, extra='opacity=".75"', what='pediment slot')
-    art.rect(C - 172, 600, 344, 12, SG_L, rx=5, what='pediment sill')
-    art.rect(C, 600, 172, 12, SG, rx=5, what='pediment sill shade')
-
-    # the stepped plinth and the stairs up to the porch
-    art.rect(C - 272, 784, 544, 28, SG, rx=4, what='plinth')
-    art.rect(C + 60, 784, 212, 28, SG_D, rx=4, what='plinth shade')
-    art.rect(C - 180, 772, 360, 40, SG_L, rx=3, what='stairs')
-    art.rect(C + 40, 772, 140, 40, SG, rx=3, what='stairs shade')
-    for y in (784, 796):
-        art.rect(C - 176, y, 352, 3, SG_D, rx=1.5, what='step')
+    def portal(x, w, top, col, inner=None):
+        pts = [(x - w / 2, BODY_B - 10)] + arc_pts(x, top + w * 0.62, w / 2, w * 0.62, 180, 360, 16)[1:-1] + [(x + w / 2, BODY_B - 10)]
+        art.poly(pts, col, what='portal')
+        if inner:
+            iw = w - 12
+            ip = [(x - iw / 2, BODY_B - 10)] + arc_pts(x, top + 8 + iw * 0.62, iw / 2, iw * 0.62, 180, 360, 16)[1:-1] + [(x + iw / 2, BODY_B - 10)]
+            art.poly(ip, inner, what='portal door')
+    portal(mid, 48, 334, SAND_D, SAND_DD)
+    portal(204, 30, 354, SAND_DD)
+    portal(356, 30, 354, SAND_DD)
+    # a frieze of small round windows over the side portals
+    for x in (190, 204, 218, 342, 356, 370):
+        art.circle(x, 336, 3.6, SAND_DD, what='frieze')
     box = art.end_track()
-    art.pop()
-    M = place(280 - 450 * s, 437 - 812 * s, s)[1]
-    x0, y0, x1, y1 = box                   # tracked on the canvas already
-    art.assert_centred((x0, y0, x1, y1), 'basilica')
-    for x in (C - 272, C + 272):
-        X, Y = apply(M, (x, 812))
-        on_grass(X, Y, ground, what='plinth')
-    assert 380 <= y1 - y0 <= 420, ('basilica height', round(y1 - y0))
+    art.assert_centred(box, 'basilica')
+    for x in (150 + 8, 410 - 8):
+        on_grass(x, BODY_B, ground, what='facade')
+    for x, tb, hw in towers:
+        assert 150 <= x - hw and x + hw <= 410, 'tower hangs off the facade'
 
-    confetti(art, 3, (16, 16, 544, 300), 5, [(x0 - 10, y0 - 10, x1 + 10, y1), (40, 50, 200, 210), (24, 300, 120, 430), (440, 50, 530, 150), (450, 300, 540, 430)], spacing=60)
+    confetti(art, 3, (16, 16, 544, 300), 5, [(130, 20, 430, 420), (40, 50, 200, 210), (40, 300, 130, 430), (440, 300, 540, 430)], spacing=60)
     return art
 
 
@@ -966,8 +800,8 @@ def france():
     P1 = 0.56 * BASE                        # deck half widths
     P2 = 0.58 * P1
     D1, D2 = 22, 15                         # deck thicknesses
-    EI, EI_L, EI_D, EI_DD = '#C8814A', '#DDA06A', '#9E5A2E', '#7E4522'
-    LATTICE = 'opacity=".55"'               # the bracing: deep brown, see-through
+    EI, EI_L, EI_D, EI_DD = '#D39A62', '#E9BC88', '#B47A45', '#9C6436'
+    LATTICE = ''                            # the bracing: one opaque deep bronze
 
     def profile(y_bot, y_top, w_bot, w_top, power):
         def w(y):
@@ -1052,7 +886,7 @@ def france():
         for i in range(n):
             x = mid - hw + gap * (i + 0.5)
             art.rect(x - gap * 0.26, y + top_h + 3, gap * 0.52, h - top_h - 7, EI_DD, rx=gap * 0.2,
-                     extra='opacity=".7"', what=what + ' railing')
+                     what=what + ' railing')
         art.rect(mid - hw - 4, y, 2 * hw + 8, top_h, EI_L, rx=top_h / 2, what=what + ' top')
         art.rect(mid, y, hw + 4, top_h, EI, rx=top_h / 2, what=what + ' top shade')
     for yc, h, hw, below_top, above_bot, below_w, above_w, what in (
