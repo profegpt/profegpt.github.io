@@ -370,7 +370,240 @@ const FR_IDIOMS = [
   },
 ];
 
-const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS };
+/**
+ * Italian. Like the other two, each pairing is an idiom an Italian speaker
+ * would actually reach for, not a gloss; where a well-known English idiom has
+ * no true counterpart (a frog in the throat is *avere la raucedine*, which is
+ * no idiom at all) it is left out rather than matched with a near miss.
+ */
+const IT_IDIOMS = [
+  {
+    en: ['cost an arm and a leg', 'costs an arm and a leg', 'cost me an arm and a leg'],
+    it: 'costare un occhio della testa',
+    say: { en: 'it cost an arm and a leg', it: 'è costato un occhio della testa' },
+    meaning: { en: 'to be extremely expensive', it: 'essere carissimo' },
+  },
+  {
+    // The reply is "crepi!" (or "crepi il lupo!"), never "grazie", which is
+    // supposed to bring bad luck — worth knowing before saying it to someone.
+    en: ['break a leg'],
+    it: 'in bocca al lupo!',
+    say: { en: 'break a leg', it: 'in bocca al lupo!' },
+    meaning: { en: 'good luck (answered with "crepi!")', it: 'buona fortuna (si risponde «crepi!»)' },
+  },
+  {
+    en: ['test me', 'put me to the test'],
+    it: 'mettere alla prova',
+    say: { en: 'test me', it: 'mettimi alla prova' },
+    meaning: { en: 'go on, try me', it: 'prova pure' },
+  },
+  {
+    en: ['raining cats and dogs', 'rain cats and dogs', 'rains cats and dogs'],
+    it: 'piovere a catinelle',
+    say: { en: "it's raining cats and dogs", it: 'piove a catinelle' },
+    // For "sta piovendo …", which is how Italian says it is raining right now.
+    progressive: { it: 'piovendo a catinelle' },
+    meaning: { en: 'to rain very heavily', it: 'piovere moltissimo' },
+  },
+  {
+    en: ['kick the bucket', 'kicked the bucket'],
+    it: 'tirare le cuoia',
+    say: { en: 'to kick the bucket', it: 'tirare le cuoia' },
+    meaning: { en: 'to die', it: 'morire' },
+  },
+  {
+    en: ['piece of cake', 'as easy as pie'],
+    it: 'un gioco da ragazzi',
+    say: { en: 'a piece of cake', it: 'un gioco da ragazzi' },
+    meaning: { en: 'very easy', it: 'facilissimo' },
+  },
+  {
+    en: ['pull your leg', 'pull my leg', 'pulling my leg', 'pulling your leg', "pull someone's leg"],
+    it: 'prendere in giro qualcuno',
+    say: { en: 'to pull someone’s leg', it: 'prendere in giro qualcuno' },
+    // "Mi stai prendendo in giro?" — the commonest way it is actually said.
+    progressive: { it: 'prendendo in giro' },
+    meaning: { en: 'to tease someone', it: 'scherzare alle spalle di qualcuno' },
+  },
+  {
+    en: ['once in a blue moon'],
+    it: 'ogni morte di papa',
+    say: { en: 'once in a blue moon', it: 'ogni morte di papa' },
+    meaning: { en: 'very rarely', it: 'rarissimamente' },
+  },
+  {
+    en: ['kill two birds with one stone'],
+    it: 'prendere due piccioni con una fava',
+    say: { en: 'kill two birds with one stone', it: 'prendere due piccioni con una fava' },
+    meaning: { en: 'to solve two problems at once', it: 'ottenere due risultati con un solo sforzo' },
+  },
+  {
+    en: ['when pigs fly'],
+    it: 'quando gli asini voleranno',
+    say: { en: 'when pigs fly', it: 'quando gli asini voleranno' },
+    meaning: { en: 'never', it: 'mai' },
+  },
+  {
+    en: ['speak of the devil'],
+    it: 'parli del diavolo e spuntano le corna',
+    say: { en: 'speak of the devil', it: 'parli del diavolo e spuntano le corna' },
+    meaning: { en: 'said when someone appears just as you mention them', it: 'si dice quando arriva la persona di cui si parlava' },
+  },
+  {
+    en: ['the last straw', 'the final straw'],
+    it: 'la goccia che fa traboccare il vaso',
+    say: { en: 'the last straw', it: 'la goccia che fa traboccare il vaso' },
+    meaning: { en: 'the small thing that finally makes it unbearable', it: 'il dettaglio che rende la situazione insopportabile' },
+  },
+  {
+    en: ['spill the beans', 'spilled the beans'],
+    it: 'vuotare il sacco',
+    say: { en: 'to spill the beans', it: 'vuotare il sacco' },
+    meaning: { en: 'to tell everything, to confess', it: 'confessare, dire tutto' },
+  },
+  {
+    en: ['lump in my throat', 'a lump in my throat', 'lump in his throat', 'lump in her throat'],
+    it: 'avere un nodo alla gola',
+    say: { en: 'to have a lump in one’s throat', it: 'avere un nodo alla gola' },
+    meaning: { en: 'to be choked with emotion', it: 'essere commosso al punto di non riuscire a parlare' },
+  },
+  {
+    en: ['throw in the towel', 'threw in the towel'],
+    it: 'gettare la spugna',
+    say: { en: 'to throw in the towel', it: 'gettare la spugna' },
+    meaning: { en: 'to give up', it: 'arrendersi' },
+  },
+  {
+    en: ['lend a hand', 'give me a hand', 'give a hand'],
+    it: 'dare una mano',
+    say: { en: 'to lend a hand', it: 'dare una mano' },
+    meaning: { en: 'to help', it: 'aiutare' },
+  },
+  {
+    en: ['in the same boat'],
+    it: 'essere sulla stessa barca',
+    say: { en: 'to be in the same boat', it: 'essere sulla stessa barca' },
+    meaning: { en: 'to be in the same difficult position', it: 'trovarsi nella stessa situazione' },
+  },
+  {
+    en: ['hit the nail on the head'],
+    it: 'cogliere nel segno',
+    say: { en: 'hit the nail on the head', it: 'cogliere nel segno' },
+    meaning: { en: 'to be exactly right', it: 'avere perfettamente ragione' },
+  },
+  {
+    en: ["it's all greek to me", 'all greek to me'],
+    it: 'per me è arabo',
+    say: { en: "it's all Greek to me", it: 'per me è arabo' },
+    meaning: { en: 'I cannot understand a word of it', it: 'non ci capisco niente' },
+  },
+  {
+    en: ['sleep like a log', 'slept like a log'],
+    it: 'dormire come un ghiro',
+    say: { en: 'to sleep like a log', it: 'dormire come un ghiro' },
+    meaning: { en: 'to sleep very deeply', it: 'dormire profondamente' },
+  },
+  {
+    en: ['walking on eggshells', 'walk on eggshells'],
+    it: 'camminare sulle uova',
+    say: { en: 'to walk on eggshells', it: 'camminare sulle uova' },
+    meaning: { en: 'to proceed very cautiously', it: 'procedere con molta cautela' },
+  },
+  {
+    en: ['better late than never'],
+    it: 'meglio tardi che mai',
+    say: { en: 'better late than never', it: 'meglio tardi che mai' },
+    meaning: { en: 'late is preferable to not at all', it: 'è meglio arrivare tardi che non arrivare' },
+  },
+  {
+    en: ['easier said than done'],
+    it: 'tra il dire e il fare c’è di mezzo il mare',
+    say: { en: 'easier said than done', it: 'tra il dire e il fare c’è di mezzo il mare' },
+    meaning: { en: 'harder to do than to describe', it: 'è più difficile farlo che dirlo' },
+  },
+  {
+    en: ['head in the clouds'],
+    it: 'avere la testa tra le nuvole',
+    say: { en: 'to have your head in the clouds', it: 'avere la testa tra le nuvole' },
+    meaning: { en: 'to be daydreaming', it: 'essere distratto' },
+  },
+  {
+    en: ['a blessing in disguise'],
+    it: 'non tutto il male vien per nuocere',
+    say: { en: 'a blessing in disguise', it: 'non tutto il male vien per nuocere' },
+    meaning: { en: 'a misfortune that turns out well', it: 'una sfortuna che porta qualcosa di buono' },
+  },
+  {
+    en: ['out of the frying pan into the fire'],
+    it: 'cadere dalla padella nella brace',
+    say: { en: 'out of the frying pan into the fire', it: 'cadere dalla padella nella brace' },
+    meaning: { en: 'to escape one trouble into a worse one', it: 'uscire da un guaio per finire in uno peggiore' },
+  },
+  {
+    en: ['fed up', 'sick of it', 'had enough'],
+    it: 'averne fin sopra i capelli',
+    say: { en: 'to be fed up', it: 'averne fin sopra i capelli' },
+    meaning: { en: 'to have had enough', it: 'non poterne più' },
+  },
+  {
+    en: ['turn a blind eye'],
+    it: 'chiudere un occhio',
+    say: { en: 'to turn a blind eye', it: 'chiudere un occhio' },
+    meaning: { en: 'to pretend not to notice', it: 'fingere di non vedere, essere indulgente' },
+  },
+  {
+    en: ['be all ears', 'i am all ears', "i'm all ears"],
+    it: 'essere tutt’orecchi',
+    say: { en: 'to be all ears', it: 'essere tutt’orecchi' },
+    meaning: { en: 'to be listening eagerly', it: 'ascoltare con grande attenzione' },
+  },
+  {
+    en: ['not mince words', "doesn't mince words", 'mince words'],
+    it: 'non avere peli sulla lingua',
+    say: { en: 'to not mince words', it: 'non avere peli sulla lingua' },
+    meaning: { en: 'to speak bluntly', it: 'parlare in modo schietto' },
+  },
+  {
+    en: ['bite off more than you can chew', 'bit off more than'],
+    it: 'fare il passo più lungo della gamba',
+    say: { en: 'to bite off more than you can chew', it: 'fare il passo più lungo della gamba' },
+    meaning: { en: 'to take on more than you can manage', it: 'impegnarsi oltre le proprie possibilità' },
+  },
+  {
+    en: ['green thumb', 'green fingers'],
+    it: 'avere il pollice verde',
+    say: { en: 'to have a green thumb', it: 'avere il pollice verde' },
+    meaning: { en: 'to be good with plants', it: 'saper curare le piante' },
+  },
+  {
+    en: ['cry over spilt milk', 'crying over spilt milk', 'cry over spilled milk'],
+    it: 'piangere sul latte versato',
+    say: { en: 'to cry over spilt milk', it: 'piangere sul latte versato' },
+    meaning: { en: 'to regret what cannot be undone', it: 'rammaricarsi di ciò che non si può più cambiare' },
+  },
+  {
+    en: ['make a mountain out of a molehill'],
+    it: 'fare di una mosca un elefante',
+    say: { en: 'to make a mountain out of a molehill', it: 'fare di una mosca un elefante' },
+    meaning: { en: 'to make far too much of something small', it: 'ingigantire una cosa da nulla' },
+  },
+  {
+    en: ['long time no see'],
+    it: 'chi non muore si rivede',
+    say: { en: 'long time no see', it: 'chi non muore si rivede' },
+    meaning: { en: "it's been a long time (said jokingly)", it: 'quanto tempo che non ci si vede (detto scherzosamente)' },
+  },
+  {
+    // Not "crazy" or "nuts" alone, as in the other tables: the matcher looks
+    // for substrings, and "nuts" is inside "donuts".
+    en: ['mad as a hatter', 'stark raving mad'],
+    it: 'essere matto da legare',
+    say: { en: 'to be mad as a hatter', it: 'essere matto da legare' },
+    meaning: { en: 'to be quite mad', it: 'essere completamente pazzo' },
+  },
+];
+
+const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS };
 
 const fold = (text) => String(text).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/['’]/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -470,11 +703,16 @@ export function alreadyIdiomatic(text, say) {
  * idiom has a progressive form, that is what belongs in this slot.
  */
 const AUXILIARY = {
-  // Spanish only. French does not build its present this way — its equivalent
+  // Not French, which does not build its present this way — its equivalent
   // is the periphrastic "être en train de", and an idiom dropped in after one
   // gives "il est en train de en train de pleuvoir". Where a language has no
   // clean progressive slot it has no entry here, and the finite form stands.
   es: /\b(est[áa]|est[áa]n|estaba|estaban|estoy|est[áa]s|estamos|va a|iba a)\s*$/i,
+  // Italian builds it the Spanish way, stare + gerund: "sta piovendo a
+  // catinelle". Only the forms of *stare*, and the word boundary in front
+  // keeps "questa" from reading as "sta". "State" is left out because it is
+  // just as often the participle of *essere* ("siete state brave").
+  it: /\b(sto|stai|sta|stiamo|stanno|stavo|stavi|stava|stavamo|stavate|stavano)\s*$/i,
 };
 
 /** Whether `before` ends in an auxiliary that the idiom must agree with. */
@@ -483,7 +721,7 @@ export function wantsProgressive(before, to) {
   return Boolean(pattern && pattern.test(String(before ?? '').trimEnd()));
 }
 
-export const IDIOM_COUNT = ES_IDIOMS.length + FR_IDIOMS.length;
+export const IDIOM_COUNT = ES_IDIOMS.length + FR_IDIOMS.length + IT_IDIOMS.length;
 
 /** Per language, for the tests and the README. */
-export const IDIOM_COUNTS = { es: ES_IDIOMS.length, fr: FR_IDIOMS.length };
+export const IDIOM_COUNTS = { es: ES_IDIOMS.length, fr: FR_IDIOMS.length, it: IT_IDIOMS.length };

@@ -17,13 +17,6 @@
  *   - and when the month runs out the button says so plainly rather than
  *     failing silently, because a study aid that quietly stops working is
  *     worse than one that admits it.
- *
- * **On Latin.** No text-to-speech model has Latin, so this is Italian-ish
- * approximation by a multilingual model — closer to ecclesiastical than to the
- * classical pronunciation a Cambridge Latin Course class is taught. The page
- * says so next to the button. It is a guide to the shape of a word, not an
- * authority on how to say it, and pretending otherwise would teach the wrong
- * thing.
  */
 
 const API = 'https://api.elevenlabs.io/v1/text-to-speech';
@@ -47,20 +40,13 @@ const DEFAULT_VOICE = 'Xb7hH8MSUJpSbSDYk0k2';
  */
 const MODEL = 'eleven_turbo_v2_5';
 
-/**
- * What to tell the engine each side of the site is in.
- *
- * Latin has no code of its own — no model has Latin — and Italian is the
- * nearest phonology to the ecclesiastical pronunciation. It is an
- * approximation, and the page says so beside the button rather than leaving a
- * reader to assume otherwise.
- */
-const SPEECH_LANGUAGE = { es: 'es', fr: 'fr', la: 'it', en: 'en' };
+/** What to tell the engine each side of the site is in. */
+const SPEECH_LANGUAGE = { es: 'es', fr: 'fr', it: 'it', en: 'en' };
 
 /** 64 kbps mono is ample for one spoken word and a quarter the bytes. */
 const FORMAT = 'mp3_44100_64';
 
-/** One word. Long enough for `res publica`, far short of a sentence. */
+/** One word. Long enough for `pan comido`, far short of a sentence. */
 export const MAX_SPOKEN = 40;
 
 /**
@@ -68,7 +54,7 @@ export const MAX_SPOKEN = 40;
  *
  * The length cap alone is not enough: "the quick brown fox jumps over it" is
  * comfortably under forty characters. Letters and the punctuation inside real
- * headwords, and at most two words — enough for *res publica*, not enough for
+ * headwords, and at most two words — enough for *pan comido*, not enough for
  * a sentence. The guard belongs next to the spending, so no caller can skip
  * it.
  */

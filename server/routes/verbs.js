@@ -127,11 +127,11 @@ const LOOKS_LIKE_A_VERB = /^[\p{L}][\p{L}\p{M}'’-]*$/u;
  * Spanish only, and now it says so.
  *
  * This asks the RAE, which is the authority for Spanish and knows nothing of
- * the others — French and Latin are conjugated by their own rules engines in
- * the browser, and the page only calls this where its engine is marked
+ * the others — French and Italian are conjugated by their own rules engines
+ * in the browser, and the page only calls this where its engine is marked
  * authoritative. Nothing reaches it with another subject today, but silence
- * here is dangerous rather than merely untidy: Latin *moneo* came back 200
- * with a Spanish table, because *monear* is a Spanish verb. A wrong answer
+ * here is dangerous rather than merely untidy: a foreign verb that happens to
+ * spell a Spanish one would come back 200 with a Spanish table. A wrong answer
  * that looks right is worse than an error.
  */
 router.get('/conjugations', async (req, res) => {

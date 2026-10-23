@@ -9,8 +9,8 @@
  *
  * The routing here is language-neutral. Everything specific to a language —
  * which engine to call, which words signal an intent, what the tutor says in
- * its own voice — comes from a pack: lib/tutor-es.js or lib/tutor-fr.js. The
- * two sides therefore share one set of decisions rather than drifting apart,
+ * its own voice — comes from a pack: lib/tutor-es.js, lib/tutor-fr.js or
+ * lib/tutor-it.js. The sides therefore share one set of decisions rather than drifting apart,
  * which matters because the interesting behaviour is all in the routing.
  *
  * Every answer is a list of blocks the chat view knows how to render:
@@ -21,11 +21,11 @@
 
 import { PACK as ES } from './tutor-es.js';
 import { PACK as FR } from './tutor-fr.js';
-import { PACK as LA } from './tutor-la.js';
-import { studyLang } from './study.js';
+import { PACK as IT } from './tutor-it.js';
+import { page, studyLang } from './study.js';
 import { fold, getJson, postJson } from './dom.js';
 
-const PACKS = { es: ES, fr: FR, la: LA };
+const PACKS = { es: ES, fr: FR, it: IT };
 
 /** The pack for the language the site is currently about. */
 function activePack(override = null) {
@@ -216,7 +216,7 @@ function withVerbLink(pack, blocks, verb, language) {
   blocks.push({
     type: 'links',
     label: pack.labels.fullTable[language],
-    items: [{ label: verb, href: `/conjugacion?v=${encodeURIComponent(verb)}` }],
+    items: [{ label: verb, href: `${page('/conjugacion', pack.code)}?v=${encodeURIComponent(verb)}` }],
   });
   return blocks;
 }
@@ -251,20 +251,39 @@ async function dictionaryAnswer(pack, word, language) {
   blocks.push({
     type: 'links',
     label: pack.labels.fullEntry[language],
-    items: [{ label: data.word, href: `/diccionario?q=${encodeURIComponent(data.word)}` }],
+    items: [{ label: data.word, href: `${page('/diccionario', pack.code)}?q=${encodeURIComponent(data.word)}` }],
   });
   return blocks;
 }
 
+/**
+ * What the tutor says when DeepL cannot translate. Said in the tutor's own
+ * voice and counted as an answer, on purpose: a translation question it could
+ * not serve would otherwise be passed on to the language model, which is
+ * exactly the guessing the translator refuses to do.
+ */
+const TRANSLATOR_DOWN = {
+  es: 'El traductor no está disponible en este momento, así que prefiero no adivinar. Inténtalo de nuevo dentro de un rato.',
+  fr: 'Le traducteur n’est pas disponible pour le moment, alors je préfère ne pas deviner. Réessaie dans un moment.',
+  it: 'Il traduttore non è disponibile in questo momento, quindi preferisco non tirare a indovinare. Riprova tra poco.',
+  en: 'The translator is unavailable right now, so I’d rather not guess. Try again in a little while.',
+};
+
 async function translationAnswer(pack, text, from, language) {
-  const data = await postJson('/api/translate', { text, from, study: pack.code });
+  let data;
+  try {
+    data = await postJson('/api/translate', { text, from, study: pack.code });
+  } catch (error) {
+    if (error.data?.unavailable) return [{ type: 'md', text: TRANSLATOR_DOWN[language] ?? TRANSLATOR_DOWN.en }];
+    throw error;
+  }
   if (!data.translation) return null;
 
   const blocks = [
     { type: 'md', text: `**${data.translation}**` },
     {
       type: 'md',
-      text: `_«${text}» — ${pack.labels.translatedWith[language]} ${data.engine || 'MyMemory'}._`,
+      text: `_«${text}» — ${pack.labels.translatedWith[language]} ${data.engine}._`,
     },
   ];
   // The array is what every caller wants; the translation rides along for the
@@ -282,15 +301,15 @@ async function translationAnswer(pack, text, from, language) {
  * rendered into Spanish. The language marker is cut wherever it appears, and so
  * is a tacked-on request for a definition.
  */
-const LANGUAGE_TAIL = /\s+(?:in|into|en|al|au)\s+(?:spanish|espa[nñ]ol|english|ingl[eé]s|french|fran[cç]ais|latin|lat[ií]n)\b.*$/i;
-const EXTRA_REQUEST = /\s*(?:[,;]|\band\b|\by\b|\bet\b)\s*(?:also\s+)?(?:give|show|tell|with|include|add)?\s*(?:me\s+)?(?:the\s+|a\s+|its\s+|it's\s+)?(?:definition|meaning|significado|definici[oó]n|d[eé]finition|sens)\b.*$/i;
+const LANGUAGE_TAIL = /\s+(?:in|into|en|al|au)\s+(?:spanish|espa[nñ]ol|english|ingl[eé]s|french|fran[cç]ais|italian|italiano|inglese)\b.*$/i;
+const EXTRA_REQUEST = /\s*(?:[,;]|\band\b|\by\b|\bet\b|\be\b)\s*(?:also\s+)?(?:give|show|tell|with|include|add)?\s*(?:me\s+)?(?:the\s+|a\s+|its\s+|it's\s+)?(?:definition|meaning|significado|definici[oó]n|d[eé]finition|sens|definizione|significato)\b.*$/i;
 
 function translationPhrase(raw) {
   return String(raw ?? '').replace(LANGUAGE_TAIL, '').replace(EXTRA_REQUEST, '').trim();
 }
 
 /** Whether the question also asked what the word means. */
-const WANTS_DEFINITION = /\b(definition|define|meaning|significado|definici[oó]n|significa|d[eé]finition|sens)\b/i;
+const WANTS_DEFINITION = /\b(definition|define|meaning|significado|definici[oó]n|significa|d[eé]finition|sens|definizione|significato)\b/i;
 
 function formLookupAnswer(pack, word, language) {
   const matches = getFormIndex(pack.code).get(fold(word));
@@ -307,15 +326,14 @@ function formLookupAnswer(pack, word, language) {
       type: 'links',
       label: pack.labels.conjugation[language],
       items: [...new Set(matches.slice(0, 4).map((m) => m.verb))]
-        .map((verb) => ({ label: verb, href: `/conjugacion?v=${encodeURIComponent(verb)}` })),
+        .map((verb) => ({ label: verb, href: `${page('/conjugacion', pack.code)}?v=${encodeURIComponent(verb)}` })),
     },
   ];
 }
 
 function topicAnswer(topic, language) {
-  // A pack may hold one body for every language it answers in — the Latin notes
-  // are written in English whatever the interface says, because a tutor
-  // replying in Latin would be a joke at the reader's expense.
+  // A pack may hold one body for every language it answers in, so English is
+  // the fallback for a topic written once.
   const title = topic.title[language] ?? topic.title.en;
   const body = topic.body[language] ?? topic.body.en;
   return [{ type: 'md', text: `### ${title}\n\n${body}` }];
@@ -365,10 +383,7 @@ export async function answer(question, { language = null, force = false, study =
   const { INTENTS } = pack;
 
   const text = String(question || '').trim();
-  // A pack may pin the language it answers in whatever it was asked in, which
-  // is how the Latin side stays English.
-  const lang = pack.ANSWER_LANGUAGE
-    ?? (force && language ? language : detectLanguage(text, language, pack.code));
+  const lang = force && language ? language : detectLanguage(text, language, pack.code);
   const folded = fold(text).replace(/[¿?¡!.,;:«»"“”]/g, ' ').replace(/\s+/g, ' ').trim();
   const accented = text.toLowerCase().replace(/[¿?¡!.,;:«»"]/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -396,17 +411,6 @@ export async function answer(question, { language = null, force = false, study =
     if (blocks) return respond(blocks);
   }
 
-  // 3b. intents only one language has — declining a noun, or looking up a
-  //     vocabulary stage. Tried before the general ones so "decline puella"
-  //     is not read as a request to define it.
-  for (const intent of pack.EXTRA_INTENTS ?? []) {
-    const match = intent.pattern.exec(text);
-    if (!match) continue;
-    // eslint-disable-next-line no-await-in-loop
-    const blocks = await Promise.resolve(intent.build(match, lang, pack)).catch(() => null);
-    if (blocks) return respond(blocks);
-  }
-
   // Tracked so a failed lookup cannot quietly answer a different question: a
   // translation request that could not be served should not fall through to a
   // grammar topic that happens to share a word with it.
@@ -416,9 +420,8 @@ export async function answer(question, { language = null, force = false, study =
    * "How do you say X" — with or without naming the language.
    *
    * It used to insist the question ended "in Spanish", and refused otherwise.
-   * Nobody types that on a Spanish site: "how to say I'm gay" was handed to a
-   * model, which answered it well and charged a slot of the off-topic
-   * allowance for a question the site's own translator could have answered.
+   * Nobody types that on a Spanish site, and "how to say I'm tired" was turned
+   * away for a question the site's own translator could have answered.
    * The whole site is a translator between English and one other language, so
    * an unnamed direction is not ambiguous — it is the obvious one.
    *
@@ -427,7 +430,7 @@ export async function answer(question, { language = null, force = false, study =
   const translateMatch = INTENTS.translateInto.exec(text);
   if (translateMatch) {
     const phrase = translationPhrase(translateMatch[1]);
-    if (!phrase) return respond(pack.CAPABILITIES[lang]);
+    if (!phrase) return respond([{ type: 'md', text: pack.capabilities(lang) }]);
 
     /**
      * A grammar term asked about this way is still a translation request.
@@ -600,10 +603,69 @@ export async function answer(question, { language = null, force = false, study =
   if (!askedSomethingSpecific && ranked[0]?.score >= 3) return respond(topicAnswer(ranked[0].topic, lang));
 
   return {
-    blocks: [{ type: 'md', text: pack.outOfScope(lang, exclaim(pack, 'bad')) }],
+    blocks: [
+      { type: 'md', text: pack.outOfScope(lang, exclaim(pack, 'bad')) },
+      { type: 'suggestions', items: suggestRephrasings(pack, text, folded, lang) },
+    ],
     confident: false,
     language: lang,
   };
+}
+
+/** Words that carry no content of their own: the question's scaffolding. */
+const FILLER = new Set([
+  // English
+  'what', 'how', 'why', 'when', 'where', 'who', 'which', 'is', 'are', 'was', 'the', 'a', 'an', 'of',
+  'to', 'in', 'on', 'for', 'and', 'or', 'do', 'does', 'did', 'you', 'i', 'me', 'my', 'it', 'can',
+  'could', 'would', 'please', 'tell', 'about', 'say', 'mean', 'means', 'word', 'this', 'that',
+  'with', 'there', 'some', 'any', 'give', 'explain', 'know', 'like', 'your', 'have', 'has',
+  // Spanish
+  'que', 'qué', 'como', 'cómo', 'por', 'para', 'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del',
+  'en', 'es', 'son', 'y', 'o', 'se', 'me', 'te', 'lo', 'le', 'dice', 'significa', 'puedes', 'cual',
+  // French
+  'quoi', 'comment', 'pourquoi', 'le', 'les', 'une', 'des', 'du', 'est', 'et', 'ou', 'je', 'tu',
+  'ce', 'veut', 'dire', 'peux', 'quel', 'quelle',
+  // Italian
+  'cosa', 'che', 'perché', 'perche', 'il', 'lo', 'gli', 'uno', 'di', 'è', 'e', 'non', 'vuol',
+  'vuole', 'puoi', 'quale', 'mi', 'ti', 'si',
+]);
+
+/**
+ * When a question cannot be answered, the ways it could be asked instead.
+ *
+ * Built from the reader's own words where they leave something to work with —
+ * "is magari a nice word" becomes *what does magari mean* and *how do you say
+ * "is magari a nice word" in Italian* — because a list of the tutor's own
+ * favourite examples tells the reader what the tutor can do, but not how to
+ * get *their* answer. The generic examples fill in whatever is left, so the
+ * list is never empty. Each item is a question the chat asks as it stands
+ * when clicked.
+ */
+function suggestRephrasings(pack, text, folded, lang) {
+  const shapes = pack.REPHRASE?.[lang] ?? pack.REPHRASE?.en;
+  if (!shapes) return [];
+
+  const words = (text.match(/[\p{L}'’-]+/gu) ?? [])
+    .filter((word) => word.length > 2 && !FILLER.has(word.toLowerCase()));
+  const items = [];
+
+  // A verb the conjugator knows is worth its table, and leads.
+  const verb = words.find((word) => pack.KNOWN_VERBS.has(fold(word)));
+  if (verb) items.push(shapes.conjugate(verb.toLowerCase()));
+
+  // The longest word left is the likeliest one being asked about.
+  const word = [...words].sort((a, b) => b.length - a.length)[0];
+  if (word && word.toLowerCase() !== verb?.toLowerCase()) items.push(shapes.define(word.toLowerCase()));
+
+  // A short question may simply have been a phrase to translate.
+  const phrase = text.replace(/[¿?¡!.]+/g, '').trim();
+  if (phrase && phrase.split(/\s+/).length <= 6) items.push(shapes.translate(phrase));
+
+  for (const example of shapes.examples) {
+    if (items.length >= 4) break;
+    if (!items.includes(example)) items.push(example);
+  }
+  return items;
 }
 
 /** Exposed for the tests. */

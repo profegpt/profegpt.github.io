@@ -12,7 +12,7 @@
  * What changes in meaning, rather than just in plumbing:
  *
  *   - Every request is a fresh process. Nothing at module level survives from
- *     one call to the next, so the caches, the allowance and the teacher's
+ *     one call to the next, so the caches and the teacher's
  *     lock are rebuilt on CacheService (see persistentMap below). CacheService
  *     forgets after six hours at most, which keeps the lock's old failsafe: a
  *     forgotten lock still lifts itself.
@@ -52,7 +52,7 @@ function utf8Decode(bytes) {
   return Utilities.newBlob(toSigned(bytes)).getDataAsString('UTF-8');
 }
 
-/** Just enough of Node's Buffer for identity.js and speech.js. */
+/** Just enough of Node's Buffer for speech.js. */
 class Buffer extends Uint8Array {
   static from(value, encoding) {
     if (value instanceof ArrayBuffer) return new Buffer(value.slice(0));
@@ -105,19 +105,10 @@ let envCache = null;
 /**
  * Script properties stand in for the .env file. Project Settings → Script
  * properties in the editor, one row per variable.
- *
- * SESSION_SECRET is minted on first use and written back. Without a stable one
- * every request would sign identities with a new key, nobody's cookie would
- * ever verify, and the allowance would reset on every question.
  */
 function loadEnv() {
   if (envCache) return envCache;
-  const store = PropertiesService.getScriptProperties();
-  envCache = store.getProperties();
-  if (!envCache.SESSION_SECRET) {
-    envCache.SESSION_SECRET = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
-    store.setProperty('SESSION_SECRET', envCache.SESSION_SECRET);
-  }
+  envCache = PropertiesService.getScriptProperties().getProperties();
   return envCache;
 }
 
@@ -377,8 +368,8 @@ function revive(_key, value) {
 /**
  * A Map that outlives the request, on CacheService.
  *
- * Swapped in by the build for the module-level Maps that hold caches and the
- * allowance. Reads are remembered for the rest of the request, so the
+ * Swapped in by the build for the module-level Maps that hold caches. Reads
+ * are remembered for the rest of the request, so the
  * read-modify-write the modules already do works unchanged; size and
  * iteration only see what this request touched, which is all the eviction
  * code that uses them needs (CacheService evicts on its own).
@@ -448,7 +439,7 @@ function persistentMap(name) {
   return new PersistentMap(name);
 }
 
-/** A small object whose properties are kept on CacheService, for the lock. */
+/** A small object whose properties are kept on CacheService. Unused since the teacher's lock was removed; kept for restoring it — see docs/teacher-lock.md. */
 function persistentObject(name, defaults) {
   const store = CacheService.getScriptCache();
   const slot = `o:${name}`;
@@ -476,8 +467,8 @@ function persistentObject(name, defaults) {
 // ------------------------------------------------------- language gaps ----
 
 /**
- * A web API rather than a language feature, so Apps Script lacks it. The Latin
- * decliner, shared with the browser, clones its ending tables with it.
+ * A web API rather than a language feature, so Apps Script lacks it. Code
+ * shared with the browser uses it — the conjugator page clones its tables.
  */
 function structuredClone(value, seen = new Map()) {
   if (value === null || typeof value !== 'object') return value;

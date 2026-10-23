@@ -4,3 +4,4 @@ node_modules/
 npm-debug.log*
 appscript/dist/
 appscript/.clasp.json
+_site/

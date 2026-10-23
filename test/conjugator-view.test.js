@@ -17,9 +17,7 @@ function ok(name, condition, detail = '') {
 for (const [study, engine] of Object.entries(ENGINES)) {
   const { conjugate, MODEL_VERBS, PERSONS, PERSON_LABELS, moods } = engine;
 
-  // Latin's tabs carry principal parts rather than a bare lemma, because a
-  // Latin verb cannot be conjugated without them.
-  const valueOf = (model) => (engine.modelInput ? engine.modelInput(model) : model.verb);
+  const valueOf = (model) => model.verb;
 
   // Every model verb on the tabs has to conjugate, or the page opens empty.
   for (const [mode, model] of Object.entries(MODEL_VERBS)) {
@@ -30,7 +28,7 @@ for (const [study, engine] of Object.entries(ENGINES)) {
   }
 
   const sample = conjugate(valueOf(Object.values(MODEL_VERBS)[0]));
-  const irregular = conjugate({ fr: 'être', la: 'sum', es: 'ser' }[study]);
+  const irregular = conjugate({ fr: 'être', it: 'essere', es: 'ser' }[study]);
 
   const lists = [
     [moods.indicative, engine.indicativeSimple, 'indicative simple'],

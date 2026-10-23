@@ -180,10 +180,30 @@ export const PACK = {
     return language === 'es'
       ? `${exclaim}Eso se me escapa. Respondo a partir de los datos del sitio —el conjugador, la RAE y un puñado de explicaciones de gramática—, así que no invento respuestas sobre lo que no conozco.
 
-Prueba con *conjuga salir*, *qué significa madrugar*, *qué es «tuve»* o *ser y estar*. Escribe **ayuda** para ver la lista completa.`
+Preguntado de otra manera, quizá sí pueda. Prueba una de estas —o escribe **ayuda** para ver la lista completa:`
       : `${exclaim}That one's outside what I cover. I answer from the site's own data — the conjugator, the RAE dictionary and a set of grammar explanations — so I'd rather say nothing than invent an answer.
 
-Try *conjugate salir*, *what does madrugar mean*, *what is "tuve"*, or *ser vs estar*. Type **help** for the full list.`;
+Asked another way, I might be able to. Try one of these — or type **help** for the full list:`;
+  },
+
+  /**
+   * The shapes a question can be put in so the tutor can answer it, filled in
+   * with the reader's own words when it gave up. See suggestRephrasings in
+   * tutor.js.
+   */
+  REPHRASE: {
+    es: {
+      define: (word) => `qué significa ${word}`,
+      conjugate: (verb) => `conjuga ${verb}`,
+      translate: (phrase) => `cómo se dice "${phrase}" en español`,
+      examples: ['conjuga salir', 'qué significa madrugar', 'qué es «tuve»', 'ser y estar'],
+    },
+    en: {
+      define: (word) => `what does ${word} mean`,
+      conjugate: (verb) => `conjugate ${verb}`,
+      translate: (phrase) => `how do you say "${phrase}" in Spanish`,
+      examples: ['conjugate salir', 'what does madrugar mean', 'what is "tuve"', 'ser vs estar'],
+    },
   },
 
   /** Wording that names the dictionary behind an answer. */

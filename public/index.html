@@ -4,39 +4,47 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProfeGPT</title>
-  <meta name="description" content="Traductor español ↔ inglés, tablas de conjugación completas, diccionario de la RAE y un tutor con IA." />
+  <meta name="description" content="Spanish, French and Italian: a translator, full conjugation tables, a dictionary and a tutor for each." />
+  <meta name="theme-color" content="#ffffff" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!--
+    Duolingo sets its headings in Feather Bold and everything else in DIN
+    Round; neither is free. Fredoka is the nearest open match to Feather's
+    chunky rounded letters, and Nunito to DIN Round.
+  -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
   <script>
     // Runs before the first paint so the page never flashes the wrong palette.
     (function () {
       // The chrome is either English or whichever language the site is about.
-      // The subject also goes on the root element, because the wallpaper is
-      // chosen in CSS and has to be right before the first paint.
-      // French and Latin are behind the padlock's passcode, and the server
-      // says so a moment after this runs. What it said last time is kept in
-      // localStorage purely so this line can paint the right wallpaper — a
-      // returning Latin reader should not get a beat of the Colosseum before
-      // being put back to Spanish. The server remains the authority.
-      var study = 'es';
-      try {
-        var subject = localStorage.getItem('profegpt:study');
-        var open = localStorage.getItem('profegpt:restricted') === 'false';
-        study = open && (subject === 'fr' || subject === 'la') ? subject : 'es';
-      } catch (e) {}
+      // The subject is the first part of the address — /es, /fr, /it — and the
+      // bare / is the home page, which opens on Spanish. It goes on the root
+      // element here because language-specific styling is chosen in CSS and has to be
+      // right before the first paint.
+      // On GitHub Pages the site sits under a prefix (see js/lib/site.js),
+      // which comes off before the language is read.
+      var meta = document.querySelector('meta[name="profegpt-base"]');
+      var base = meta ? meta.content.replace(/\/+$/, '') : '';
+      var path = window.location.pathname;
+      if (base && path.indexOf(base) === 0) path = path.slice(base.length) || '/';
+      var first = path.split('/')[1];
+      var study = first === 'fr' || first === 'it' ? first : 'es';
       document.documentElement.dataset.study = study;
+      if (path === '/' || path === '') {
+        document.documentElement.classList.add('is-home');
+      }
       try {
-        var l = localStorage.getItem('profegpt:lang');
-        document.documentElement.lang = l === 'en' ? 'en' : study;
+        document.documentElement.lang = localStorage.getItem('profegpt:lang') === 'en' ? 'en' : study;
       } catch (e) { document.documentElement.lang = study; }
       var stored = null;
       try { stored = localStorage.getItem('profegpt:theme'); } catch (e) {}
-      var system = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      document.documentElement.dataset.theme = stored === 'light' || stored === 'dark' ? stored : system;
+      // Light unless the reader has chosen dark in the settings menu: the
+      // site is Duolingo's white page first.
+      document.documentElement.dataset.theme = stored === 'dark' ? 'dark' : 'light';
     })();
   </script>
 </head>
@@ -44,29 +52,33 @@
   <a class="skip-link" href="#main">Saltar al contenido</a>
 
   <header class="nav" id="nav">
-    <button class="nav__lock" type="button" aria-label="Bloquear la web"></button>
-    <a class="nav__brand" href="/" data-link>
-      <span class="nav__wordmark">ProfeGPT</span>
-    </a>
-    <nav class="nav__links" aria-label="Principal">
-      <a href="/#traductor" data-link data-nav="traductor">Traductor</a>
-      <a href="/conjugacion" data-link data-nav="conjugacion">Conjugación</a>
-      <a href="/declinationes" data-link data-nav="declinationes" data-only="la" hidden>Declinatio</a>
-      <a href="/stadia" data-link data-nav="stadia" data-only="la" hidden>Stadia</a>
-      <a href="/diccionario" data-link data-nav="diccionario">Diccionario</a>
-      <a href="/chat" data-link data-nav="chat">Chat</a>
-    </nav>
-    <div class="langswitch" role="group"></div>
-    <button class="nav__theme" type="button" aria-label="Cambiar de tema"></button>
-    <button class="nav__toggle" type="button" aria-label="Abrir menú" aria-expanded="false">
-      <span></span><span></span>
-    </button>
+    <div class="nav__inner shell">
+      <a class="nav__brand" href="/" data-link>
+        <img class="nav__logo" src="/assets/art/logo.svg" alt="" width="40" height="40" />
+        <span class="nav__wordmark">profegpt</span>
+      </a>
+
+      <!-- Duolingo's header: plain uppercase links on the right, light grey,
+           the page you are on a shade darker. No menu button at any width. -->
+      <div class="nav__right">
+        <nav class="nav__links" aria-label="Principal">
+          <a href="/es#traductor" data-link data-nav="traductor">Traductor</a>
+          <a href="/es/conjugacion" data-link data-nav="conjugacion">Conjugación</a>
+          <a href="/es/diccionario" data-link data-nav="diccionario">Diccionario</a>
+          <a href="/es/chat" data-link data-nav="chat">Chat</a>
+        </nav>
+        <div class="nav__end"></div>
+      </div>
+    </div>
   </header>
 
   <main id="main"></main>
 
   <footer class="footer">
-    <p>ProfeGPT · definiciones del <a href="https://dle.rae.es" target="_blank" rel="noopener">Diccionario de la lengua española</a> (RAE)</p>
+    <div class="footer__inner shell">
+      <span class="footer__brand">profegpt</span>
+      <p class="footer__text">ProfeGPT</p>
+    </div>
   </footer>
 
   <script type="module" src="/js/app.js"></script>
