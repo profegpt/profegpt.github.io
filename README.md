@@ -702,7 +702,7 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 | | |
 | --- | --- |
 | `logo.svg` | the mascot, small — a blue speech bubble with a face. Also the favicon (the script copies it). |
-| `mascot.svg` `mascot-dark.svg` | the home page: the mascot, Profe: a speech bubble with a face — the *Pregúntale a Profe* card's bubble in the site's blue, with eyes shaped like Duo's and an open smile, and no arms, legs or hat — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
+| `mascot.svg` `mascot-dark.svg` | the home page: the mascot, Profe: a speech bubble with a face — the *Pregúntale a Profe* card's bubble in the site's blue, with big oval eyes and an open smile, and no arms, legs or hat — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
 | `es.svg` `fr.svg` `it.svg` | each language's landmark: the Sagrada Família, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
