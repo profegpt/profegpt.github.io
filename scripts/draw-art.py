@@ -18,7 +18,6 @@ no external references.
 """
 import math
 import os
-import random
 import shutil
 import sys
 
@@ -272,56 +271,33 @@ class Art:
 
 
 # ------------------------------------------------------------------ shared bits
-def confetti(art, seed, box, n, avoid, size=1.0, spacing=30):
-    """Duolingo confetti: small rotated rounded bars, kept out of `avoid`."""
-    rnd = random.Random(seed)
-    cols = [BLUE, PURPLE, RED, GOLD, BLUE_L, ORANGE]
-    placed, tries = [], 0
-    x0, y0, x1, y1 = box
-    w, h = 14 * size, 8 * size
-    while len(placed) < n and tries < 20000:
-        tries += 1
-        x, y = rnd.uniform(x0, x1), rnd.uniform(y0, y1)
-        if any(ax0 - w < x < ax1 + w and ay0 - w < y < ay1 + w for ax0, ay0, ax1, ay1 in avoid):
-            continue
-        if any(math.dist((x, y), p) < spacing for p in placed):
-            continue
-        placed.append((x, y))
-        c = cols[len(placed) % len(cols)]
-        art.rect(x - w / 2, y - h / 2, w, h, c, rx=3 * size, rot=(rnd.uniform(0, 180), x, y), what='confetti')
-    assert len(placed) == n, (art.name, 'could not place all the confetti', len(placed))
-
-
-def sun(art, cx, cy, r):
-    art.circle(cx, cy, r, GOLD, what='sun')
-    art.path(f'M{f(cx)} {f(cy - r)}A{f(r)} {f(r)} 0 0 1 {f(cx)} {f(cy + r)}Z',
-             arc_pts(cx, cy, r, r, -90, 90), GOLD_D, extra='opacity=".45"', what='sun shade')
-
-
 # ------------------------------------------------------------------ the globe
-# The home page's picture is an object, not a character: a desk globe in
-# Duolingo's style. A blue sphere with flat green continents, its darker
-# crescent down the lower right; a gold half-ring holding it on a tilted
-# axis; a short stem and a gold foot with a pressed-button lip. No faces,
-# no outlines, no gradients, no white highlight spots.
+# The home page's picture is an object, not a character: a desk globe. Its
+# sphere is Duolingo's own earth, as on investors.duolingo.com: a pale
+# sky-blue sea, lime land built from chunky rounded blocks that run off the
+# edge, pale cloud pills over it, and no shading at all. A gold half-ring
+# holds it on a tilted axis, over a short stem and a gold foot.
 #
 # It is drawn in its own units, the sphere centred on (0, 0), and placed by
 # the caller: large on the home page; the logo is the sphere alone.
-AX, AX_L = '#4B9AF3', '#A4CEFF'                     # the site's blue, and a pale tint for the confetti
+AX, AX_L = '#4B9AF3', '#A4CEFF'                     # the site's blue, and a pale tint
 AX_D = '#3C81DB'                                    # its shade
-PINK = '#FF8FB5'
 SAY_INK = '#3C81DB'                                  # the greeting bubbles' lettering
 # the same bubbles for the dark page (mascot-dark.svg): fill, edge, lettering
 SAY_DARK = ('#202F36', '#37464F', '#78B0FC')
 SQK = 0.74
 GLOBE_R, TILT = 128, 22                              # the sphere's radius; the axis leans this far right
-CONTINENTS = (                                       # flat blobs, in the sphere's units
-    [(-100, -84), (-44, -100), (-24, -66), (-54, -38), (-66, -10), (-98, -28)],      # North America
-    [(-62, 12), (-24, 20), (-30, 62), (-54, 104), (-70, 56)],                        # South America
-    [(8, -100), (54, -108), (78, -72), (42, -54), (14, -62)],                        # Europe
-    [(10, -38), (62, -42), (80, -6), (58, 42), (38, 90), (20, 34), (2, -4)],         # Africa
-    [(86, -86), (150, -60), (150, 14), (104, -8), (90, -50)],                        # Asia, round the edge
+# traced in Duolingo's picture's pixels (its sphere centred on (196, 196), radius 148)
+SEA, LAND, CLOUD = '#92E4FF', '#78C800', '#CCEFFF'
+REF_C, REF_R = 196, 148
+LAND_BLOCKS = (                                      # x0, y0, x1, y1, corner radius
+    (88, 40, 182, 132, 46), (40, 96, 132, 196, 48),           # the top left
+    (234, 96, 304, 154, 29), (262, 50, 360, 130, 40),         # the top right
+    (188, 164, 326, 258, 47), (238, 214, 318, 300, 40),       # the right
+    (36, 216, 144, 312, 48),                                  # the bottom left
 )
+CLOUDS = ((160, 73, 222, 112), (62, 99, 144, 138), (107, 125, 170, 164),
+          (288, 229, 352, 268), (212, 282, 300, 320))
 
 
 def squircle_pts(hw, hh, k=SQK, cx=0, cy=0, n=16):
@@ -387,30 +363,6 @@ def shade(art, shapes, base, dark, shift, what, extra=None):
     art.clip_end()
 
 
-def dots(art, seed, box, n, avoid, spacing=60):
-    """The reference's confetti: round dots of a few sizes, and the odd
-    small rounded square."""
-    rnd = random.Random(seed)
-    cols = [AX, GOLD, PINK, PURPLE, ORANGE, AX_L]
-    placed, tries = [], 0
-    x0, y0, x1, y1 = box
-    while len(placed) < n and tries < 20000:
-        tries += 1
-        x, y = rnd.uniform(x0, x1), rnd.uniform(y0, y1)
-        r = rnd.choice((6, 8, 11, 15))
-        if any(ax0 - r - 8 < x < ax1 + r + 8 and ay0 - r - 8 < y < ay1 + r + 8 for ax0, ay0, ax1, ay1 in avoid):
-            continue
-        if any(math.dist((x, y), p) < spacing for p in placed):
-            continue
-        placed.append((x, y))
-        c = cols[len(placed) % len(cols)]
-        if len(placed) % 4 == 0:
-            art.rect(x - r * 0.8, y - r * 0.8, r * 1.6, r * 1.6, c, rx=r * 0.4, rot=(rnd.uniform(0, 90), x, y), what='confetti')
-        else:
-            art.circle(x, y, r, c, what='confetti')
-    assert len(placed) == n, (art.name, 'could not place all the confetti', len(placed))
-
-
 def say(art, x, y, w, h, s, tail_to, size=24, tilt=0, dark=False):
     """A white speech bubble with a light grey edge and lip, blue lettering,
     and a tail toward `tail_to`. All the hero's bubbles are this one colour.
@@ -447,23 +399,16 @@ def say(art, x, y, w, h, s, tail_to, size=24, tilt=0, dark=False):
 def globe(art, stand=True):
     """The globe, in its own units. Returns its outline points."""
     R = GLOBE_R
+    k = R / REF_R
     d, sphere = disc((0, 0), R, n=48)
-    lit = (-16, -14)                       # the lit sphere, shifted up and left
-    ld, _ = disc(lit, R, n=48)
     art.clip_begin(d, sphere, 'globe')
-    art.rect(-R - 2, -R - 2, 2 * R + 4, 2 * R + 4, AX_D, what='sea shade')
-    art.circle(lit[0], lit[1], R, AX, what='sea')
-    # the continents: dark everywhere, then lit inside the lit sphere, so
-    # the crescent of shade runs across land and sea alike
-    for c in CONTINENTS:
-        art.poly(c, GREEN_D, r=16, what='land shade')
-    art.clip_begin(ld, [], 'globe light')
-    for c in CONTINENTS:
-        art.poly(c, GREEN, r=16, what='land')
+    art.rect(-R - 2, -R - 2, 2 * R + 4, 2 * R + 4, SEA, what='sea')
+    for x0, y0, x1, y1, r in LAND_BLOCKS:
+        art.rect((x0 - REF_C) * k, (y0 - REF_C) * k, (x1 - x0) * k, (y1 - y0) * k, LAND, rx=r * k, what='land')
+    for x0, y0, x1, y1 in CLOUDS:
+        h = (y1 - y0) * k
+        art.rect((x0 - REF_C) * k, (y0 - REF_C) * k, (x1 - x0) * k, h, CLOUD, rx=h / 2, what='cloud')
     art.clip_end()
-    art.clip_end()
-    for c in CONTINENTS:
-        assert sum(math.hypot(*p) < R for p in c) >= 3, 'a continent fell off the globe'
     out = list(sphere)
     if not stand:
         return out
@@ -529,12 +474,12 @@ def hero(dark=False):
         for x, y in keep:
             assert not (b[0] < x < b[2] and b[1] < y < b[3]), ('bubble on the globe', b, round(x), round(y))
 
-    dots(art, 7, (14, 14, 546, 466), 7, [m_box, *boxes], spacing=70)
     return art
 
 
 # ------------------------------------------------------------------ the country pictures
-# Small Duolingo vocabulary pictures that stand in front of each landmark:
+# Small Duolingo vocabulary pictures set against each landmark, overlapping it
+# at the lower right the way Duolingo's own pictures overlap:
 # a croissant for France, a wine bottle and glass for Spain, a bowl of
 # pasta for Italy. Each is drawn in its own units, centred on (0, 0) at its
 # foot, and placed by the caller.
@@ -672,7 +617,6 @@ def spindle(art, cx, base, top, hw, col, col_d, s=1.0, slots=7, phase=0.0, stone
 
 def spain():
     art = Art('es.svg', 560, 480)
-    sun(art, 128, 132, 64)
 
     mid = 280
     BODY_T, BODY_B = 318, 408
@@ -720,11 +664,9 @@ def spain():
         assert 150 <= x - hw and x + hw <= 410, 'tower hangs off the facade'
 
     # Spanish wine, in front at the lower right
-    art.push(place(470, 412, 0.7))
+    art.push(place(424, 414, 0.86))
     wine(art)
     art.pop()
-
-    confetti(art, 3, (16, 16, 544, 300), 5, [(130, 20, 430, 420), (40, 50, 200, 210), (40, 300, 130, 430), (410, 230, 540, 430)], spacing=60)
     return art
 
 
@@ -856,20 +798,15 @@ def france():
     assert 370 <= height <= 395, ('Eiffel Tower should stand about 380 tall', round(height))
 
     # a croissant, in front at the lower right
-    art.push(place(446, 446, 0.84))
+    art.push(place(408, 446, 1.0))
     croissant(art)
     art.pop()
-
-    confetti(art, 5, (16, 16, 544, 330), 8, [(160, 40, 400, 470), (30, 320, 150, 470), (370, 340, 540, 470)], spacing=60)
     return art
 
 
 # ------------------------------------------------------------------ Italy
 def italy():
     art = Art('it.svg', 560, 480)
-    # an afternoon sun behind the tower's lit side, so its cream wall has
-    # something to stand against on a white page
-    sun(art, 226, 186, 92)
 
     # the tower stands upright, centred
     cx, base = 280, 404
@@ -929,11 +866,9 @@ def italy():
     art.assert_centred(box, 'Tower of Pisa')
 
     # a bowl of pasta, in front at the lower right
-    art.push(place(446, 414, 0.92))
+    art.push(place(392, 416, 1.08))
     pasta(art)
     art.pop()
-
-    confetti(art, 9, (16, 16, 544, 330), 9, [(140, 90, 420, 430), (60, 150, 200, 430), (360, 300, 540, 430)], spacing=54)
     return art
 
 

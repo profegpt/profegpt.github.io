@@ -701,18 +701,18 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 
 | | |
 | --- | --- |
-| `logo.svg` | the globe's sphere alone — blue sea, green continents. Also the favicon (the script copies it). |
-| `mascot.svg` `mascot-dark.svg` | the home page: an object rather than a mascot — a desk globe, its sphere in the site's blue with flat green continents, on a gold half-ring and foot — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
-| `es.svg` `fr.svg` `it.svg` | each language's landmark, floating free with no ground or trees, and a small Duolingo-style picture of the country in front of it: the Sagrada Família with a bottle and glass of wine, the Eiffel Tower with a croissant, the Tower of Pisa (drawn upright) with a bowl of pasta. On its card on the home page and in its front page's hero. |
+| `logo.svg` | the globe's sphere alone, drawn like Duolingo's own earth — pale blue sea, lime land, pale clouds. Also the favicon (the script copies it). |
+| `mascot.svg` `mascot-dark.svg` | the home page: an object rather than a mascot — a desk globe, its sphere drawn like Duolingo's own earth on investors.duolingo.com (a pale sky-blue sea, chunky lime land running off the edge, pale cloud pills, no shading), on a gold half-ring and foot — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
+| `es.svg` `fr.svg` `it.svg` | each language's landmark, floating free with no ground or trees, and a small Duolingo-style picture of the country overlapping it at the lower right: the Sagrada Família with a bottle and glass of wine, the Eiffel Tower with a croissant, the Tower of Pisa (drawn upright) with a bowl of pasta. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
 The globe is original, in the site's blue (`#4B9AF3`), and nothing is copied from Duolingo's artwork. The Eiffel Tower
 follows a reference drawing for its proportions, in a clean bronze, plain, with no bracing or bands. The style is theirs: flat shapes with no outlines, a
 darker shade down one side, rounded everything, no white
-highlight spots, and confetti around the big scenes. The script asserts that every shape stays inside
-its canvas and that everything that should touch does — the globe's continents on
-its sphere, its ring passing under it to the stem, the greeting bubbles clear of it, the Sagrada Família's towers on its façade, the
+highlight spots, and no sun or confetti. The script asserts that every shape stays inside
+its canvas and that everything that should touch does — the globe's ring passing under
+its sphere to the stem, the greeting bubbles clear of it, the Sagrada Família's towers on its façade, the
 Pisa drums stacked without a gap — that each landmark is centred
 in its picture, and that the Eiffel Tower keeps the real one's proportions
 (1.85 times as tall as its base is wide, decks at about 22%, 42% and 87% of its
