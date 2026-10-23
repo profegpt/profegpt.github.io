@@ -9,6 +9,7 @@
 
 import { el } from './dom.js';
 import { withBase } from './site.js';
+import { currentTheme } from './theme.js';
 
 const ART = {
   logo: '/assets/art/logo.svg',
@@ -23,14 +24,42 @@ const ART = {
   soon: '/assets/art/soon.svg',
 };
 
+/**
+ * Versions drawn for the dark theme. An <img> cannot take the page's colours,
+ * so a picture with page-coloured parts in it — the mascot's speech bubbles,
+ * white on the light page — has a second drawing, and the image swaps between
+ * the two as the theme changes.
+ */
+const DARK = {
+  mascot: '/assets/art/mascot-dark.svg',
+};
+
+const resolve = (path) => (path.startsWith('/') ? withBase(path) : path);
+
 /** A decorative picture. They say nothing the text beside them does not. */
 export function art(name, { className = '' } = {}) {
-  return el('img', {
+  const pick = () => resolve(DARK[name] && currentTheme() === 'dark' ? DARK[name] : ART[name]);
+  const image = el('img', {
     class: className,
-    // On GitHub Pages the site is under /profegpt; on Apps Script the path is
-    // already a data URI, and the base there is empty.
-    src: ART[name].startsWith('/') ? withBase(ART[name]) : ART[name],
+    // On GitHub Pages under a prefix the path needs it; on Apps Script the
+    // path is already a data URI, and the base there is empty.
+    src: pick(),
     alt: '',
     decoding: 'async',
   });
+
+  if (DARK[name]) {
+    // Follow the theme while the picture is on the page, and stop listening
+    // once it has gone — views are rebuilt often.
+    const follow = () => {
+      if (!image.isConnected && image.dataset.mounted) {
+        window.removeEventListener('themechange', follow);
+        return;
+      }
+      image.src = pick();
+    };
+    requestAnimationFrame(() => { image.dataset.mounted = '1'; });
+    window.addEventListener('themechange', follow);
+  }
+  return image;
 }
