@@ -19,6 +19,7 @@ no external references.
 import math
 import os
 import random
+import shutil
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,8 +27,9 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'public', 'assets
 MARGIN = 4
 
 # Duolingo's palette
-GREEN, GREEN_D, GREEN_L = '#58CC02', '#58A700', '#89E219'
-BLUE, BLUE_D = '#1CB0F6', '#1899D6'
+GREEN, GREEN_D, GREEN_L = '#58CC02', '#58A700', '#89E219'   # grass and trees only
+BLUE, BLUE_D, BLUE_L, BLUE_W = '#1CB0F6', '#1899D6', '#84D8FF', '#DDF4FF'
+BLUE_DD = '#0F7FB8'           # deep accent, for small details
 GOLD, GOLD_D = '#FFC800', '#E5A400'
 RED, RED_D = '#FF4B4B', '#EA2B2B'
 ORANGE, ORANGE_D = '#FF9600', '#CD7900'
@@ -41,6 +43,7 @@ BRONZE, BRONZE_D = '#E0853F', '#B8652B'
 CREAM_ARCH, CREAM_ARCH_D = '#D8C38A', '#C2AB6C'
 BRONZE_DD = '#94501F'
 WOOD, WOOD_D = '#B8652B', '#94501F'
+SAND, SAND_D, SAND_DD = '#E8C48A', '#C9A066', '#A8824E'
 HI = 'opacity=".35"'          # the highlight pill: white at 35%
 
 
@@ -165,6 +168,7 @@ class Art:
         self.name, self.w, self.h = name, w, h
         self.out = []
         self.stack = [ID]
+        self.track = None
 
     # every shape goes through here, with the points that bound it
     def add(self, svg, pts, what=''):
@@ -173,7 +177,23 @@ class Art:
             x, y = apply(m, p)
             assert MARGIN - 1e-6 <= x <= self.w - MARGIN + 1e-6 and MARGIN - 1e-6 <= y <= self.h - MARGIN + 1e-6, \
                 (self.name, what or svg[:60], 'outside the canvas margin', round(x, 1), round(y, 1))
+            if self.track is not None:
+                self.track.append((x, y))
         self.out.append(svg)
+
+    # the canvas box of everything drawn between begin_track() and end_track()
+    def begin_track(self):
+        self.track = []
+
+    def end_track(self):
+        xs, ys = [p[0] for p in self.track], [p[1] for p in self.track]
+        self.track = None
+        return min(xs), min(ys), max(xs), max(ys)
+
+    def assert_centred(self, box, what, tol=12):
+        mid = (box[0] + box[2]) / 2
+        assert abs(mid - self.w / 2) <= tol, (self.name, what, 'not centred', round(mid, 1))
+        return mid
 
     def world(self, p):
         return apply(self.stack[-1], p)
@@ -252,7 +272,7 @@ class Art:
 def confetti(art, seed, box, n, avoid, size=1.0, spacing=30):
     """Duolingo confetti: small rotated rounded bars, kept out of `avoid`."""
     rnd = random.Random(seed)
-    cols = [BLUE, PURPLE, RED, GOLD, GREEN, ORANGE]
+    cols = [BLUE, PURPLE, RED, GOLD, BLUE_L, ORANGE]
     placed, tries = [], 0
     x0, y0, x1, y1 = box
     w, h = 14 * size, 8 * size
@@ -321,277 +341,377 @@ def sun(art, cx, cy, r):
 
 # ------------------------------------------------------------------ the mascot
 # The mascot is drawn in a 64-unit box (the logo's own coordinates) and
-# scaled up for the hero. It is a chunky green speech bubble with a face,
-# wearing a mortarboard: no beak, no feathers, no owl.
-BODY = (7.5, 22, 47, 14)            # x, y, w, corner radius
-LIP = (2.2, 2.6)                    # the darker copy behind, down and right
+# scaled up for the hero. It is a chunky blue speech bubble with a face and a
+# bubble's tail at its lower left, wearing a mortarboard: no beak, no
+# feathers, no owl. The body is a squircle, so it reads as soft but solid.
+HEAD = (32, 38.5, 24, 19.5)          # centre x, centre y, half width, half height
+SQ = 0.66                            # squircle handle length (0.55 is a circle)
+SHADE = (1.3, 1.7)                   # how far the lit body sits in from the right and bottom
+EYE_DX, EYE_Y, EYE_RX, EYE_RY = 8.8, 40.2, 6.3, 7.3
+MOUTH_Y, MOUTH_W, MOUTH_D = 48.4, 5.0, 4.9
+CAP_CUT, CAP_SAG = 25.6, 1.8         # where the cap ends on the brow, and how much it dips in front
+BOARD_Y, BOARD_W, BOARD_H, BOARD_T = 12.6, 26, 7.2, 2.6
+TASSEL_DX = 21
 
 
-def mascot_head(art, bh=32, face_dy=0.0, eyes_dx=1.2):
-    """The head, which is also the whole body: bh is its height (the hero
-    is a little taller than the logo, to make room for the book)."""
-    bx, by, bw, br = BODY
-    lx, ly = LIP
-    bot = by + bh
-    tail = [(13, bot - 5), (10.5, bot + 3.2), (25, bot - 2)]
-    tail_d = [(x + lx, y + ly) for x, y in tail]
-    # the darker body behind, then the lit one
-    art.poly(tail_d, GREEN_D, r=[3, 2.2, 3], what='tail shade')
-    art.rect(bx + lx, by + ly, bw, bh, GREEN_D, rx=br, what='body shade')
-    art.poly(tail, GREEN, r=[3, 2.2, 3], what='tail')
-    art.rect(bx, by, bw, bh, GREEN, rx=br, what='body')
-    # highlight pill on the lit upper left
-    art.rect(bx + 3.6, by + 9, 3.6, 9, WHITE, rx=1.8, extra=HI, what='body pill')
+def blob(cx, cy, hw, hh, k=SQ, n=16):
+    """A squircle: four cubic arcs through the top, right, bottom and left
+    points. Returns the path and points along it (top, clockwise)."""
+    T, R, B, L = (cx, cy - hh), (cx + hw, cy), (cx, cy + hh), (cx - hw, cy)
+    segs = [(T, (cx + k * hw, cy - hh), (cx + hw, cy - k * hh), R),
+            (R, (cx + hw, cy + k * hh), (cx + k * hw, cy + hh), B),
+            (B, (cx - k * hw, cy + hh), (cx - hw, cy + k * hh), L),
+            (L, (cx - hw, cy - k * hh), (cx - k * hw, cy - hh), T)]
+    d = f'M{f(T[0])} {f(T[1])}' + ''.join(
+        f'C{f(a[0])} {f(a[1])} {f(b[0])} {f(b[1])} {f(c[0])} {f(c[1])}' for _, a, b, c in segs) + 'Z'
+    pts = [T] + [p for s in segs for p in bezier(*s, n=n)]
+    return d, pts
 
-    cx = bx + bw / 2
-    ey = 38 + face_dy
-    for ex in (cx - 8.4, cx + 8.4):
-        art.circle(ex, ey, 7.8, WHITE, what='eye')
-        art.circle(ex + eyes_dx, ey + 0.8, 4.6, INK_D, what='pupil')
-        art.circle(ex + eyes_dx - 1.5, ey - 1.0, 1.7, WHITE, what='glint')
-        assert bx < ex - 7.8 and ex + 7.8 < bx + bw and by < ey - 7.8, 'eye off the face'
-    # a small open smile with a tongue
-    my = ey + 9.6
-    mw = 3.6
-    art.path(f'M{f(cx - mw)} {f(my)}H{f(cx + mw)}A{f(mw)} {f(mw)} 0 0 1 {f(cx - mw)} {f(my)}Z',
-             [(cx - mw, my), (cx + mw, my + mw)], INK_D, what='mouth')
-    art.path(f'M{f(cx - 2.2)} {f(my + 2.9)}A{f(2.6)} {f(1.6)} 0 0 1 {f(cx + 2.2)} {f(my + 2.9)}A{f(mw)} {f(mw)} 0 0 1 {f(cx - 2.2)} {f(my + 2.9)}Z',
-             [(cx - 2.2, my + 1.3), (cx + 2.2, my + mw)], RED, what='tongue')
-    assert my + mw < bot - 1.5, 'mouth falls off the body'
 
-    # the mortarboard: a skull cap sitting on the head, the board on top
-    cap = [(cx - 13, 15.5), (cx + 13, 15.5), (cx + 11.5, by + 4.2), (cx - 11.5, by + 4.2)]
-    assert cap[2][1] > by + 2, 'cap does not sit on the head'
-    art.poly(cap, INK, r=2.5, what='cap')
-    art.poly([(cx + 1, 15.5), (cx + 13, 15.5), (cx + 11.5, by + 4.2), (cx + 1, by + 4.2)], INK_D, r=[0, 2.5, 2.5, 0], what='cap shade')
-    bc = (cx + 1, 13)
-    board = [(bc[0], 4.6), (bc[0] + 27, bc[1]), (bc[0], 21.4), (bc[0] - 27, bc[1])]
-    art.poly([(x, y + 2.4) for x, y in board], INK_D, r=3, what='board edge')
+def blob_x(cx, cy, hw, hh, y, k=SQ, side=1):
+    """Where the squircle's side crosses height y (side -1 left, 1 right)."""
+    _, pts = blob(cx, cy, hw, hh, k, n=60)
+    best = None
+    for p, q in zip(pts, pts[1:]):
+        if (p[1] - y) * (q[1] - y) <= 0 and p[1] != q[1] and (p[0] - cx) * side >= 0:
+            t = (y - p[1]) / (q[1] - p[1])
+            x = p[0] + t * (q[0] - p[0])
+            best = x if best is None or (x - cx) * side > (best - cx) * side else best
+    return best
+
+
+def cap_shape(cx, cy, hw, hh):
+    """The mortarboard's skull cap: the crown of the head above a cut that
+    dips a little at the front, so the cap's edge wraps round the head."""
+    n = 40
+    _, pts = blob(cx, cy, hw, hh, n=n)
+    crown = [pts[3 * n]] + pts[3 * n + 1:4 * n + 1] + pts[1:n + 1]     # left, over the top, to the right
+
+    def cut(x):
+        return CAP_CUT + CAP_SAG * max(0.0, 1 - ((x - cx) / hw) ** 2)
+    out = []
+    for p, q in zip(crown, crown[1:]):
+        ip, iq = p[1] < cut(p[0]), q[1] < cut(q[0])
+        if ip:
+            out.append(p)
+        if ip != iq:
+            fp, fq = p[1] - cut(p[0]), q[1] - cut(q[0])
+            t = fp / (fp - fq)
+            out.append((p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])))
+    xr, xl = out[-1][0], out[0][0]
+    edge = [(xr + (xl - xr) * i / 20, cut(xr + (xl - xr) * i / 20)) for i in range(1, 20)]
+    return out + edge, cut
+
+
+def tail_shape(root_a, root_b, tip, bend=0.15):
+    """A speech bubble's tail: two concave sides from the body to the tip."""
+    (ax, ay), (bx, by), (tx, ty) = root_a, root_b, tip
+    # control points pulled in toward the root's midpoint, so the sides curve inward
+    mx, my = (ax + bx) / 2, (ay + by) / 2
+    c1 = (ax + (tx - ax) * 0.55 + (mx - ax) * bend * 0.5, ay + (ty - ay) * 0.55 + (my - ay) * bend * 0.5)
+    c2 = (bx + (tx - bx) * 0.55 + (mx - bx) * bend * 0.5, by + (ty - by) * 0.55 + (my - by) * bend * 0.5)
+    d = (f'M{f(ax)} {f(ay)}Q{f(c1[0])} {f(c1[1])} {f(tx)} {f(ty)}'
+         f'Q{f(c2[0])} {f(c2[1])} {f(bx)} {f(by)}Z')
+    pts = [root_a, root_b, tip]
+    for t in (0.25, 0.5, 0.75):
+        for c, e0 in ((c1, root_a), (c2, root_b)):
+            u = 1 - t
+            pts.append((u * u * e0[0] + 2 * u * t * c[0] + t * t * tx, u * u * e0[1] + 2 * u * t * c[1] + t * t * ty))
+    return d, pts
+
+
+def mascot(art, full=False):
+    """The head, which is also the whole body. full adds the waving arm and
+    the feet for the hero; the logo is the head alone."""
+    cx, cy, hw, hh = HEAD
+    sx, sy = SHADE
+    bot = cy + hh
+
+    # the tail of the speech bubble, lower left
+    tail = ((cx - hw + 3.2, cy + 7.5), (cx - hw + 14, bot - 1.6), (cx - hw - 3.2, bot + 0.6))
+    assert tail[2][1] + sy * 0.8 <= 60, 'the tail runs off the logo'
+
+    if full:
+        # feet, behind the body: little dark pads with a lit top
+        for fx in (cx - 9.5, cx + 9.5):
+            art.ellipse(fx, bot + 0.4, 5.6, 4.4, BLUE_D, what='foot')
+            art.ellipse(fx - 0.7, bot - 0.3, 4.6, 3.5, BLUE, what='foot')
+            assert bot + 0.4 - 4.4 < bot - 2, 'foot does not meet the body'
+        # the waving arm, raised on the right, from behind the body
+        sh, hand = (cx + hw - 3, cy + 6), (cx + hw + 7.2, cy - 6.5)
+        art.capsule(sh, hand, 2.7, BLUE_D, what='arm')
+        art.capsule(sh, (hand[0] - 0.5, hand[1] - 0.4), 2.0, BLUE, what='arm')
+        art.circle(hand[0], hand[1], 4.4, BLUE_D, what='hand')
+        art.circle(hand[0] - 0.6, hand[1] - 0.7, 3.6, BLUE, what='hand')
+        # a thumb, up and in
+        art.ellipse(hand[0] - 3.6, hand[1] - 1.6, 1.7, 2.3, BLUE, rot=-30, what='thumb')
+        art.rect(hand[0] - 2.1, hand[1] - 3.4, 1.5, 2.8, WHITE, rx=0.75, rot=(-20, hand[0] - 1.35, hand[1] - 2), extra=HI, what='hand pill')
+        sx_in = blob_x(cx, cy, hw, hh, sh[1], side=1)
+        assert sh[0] < sx_in - 1, 'arm does not meet the body'
+        # two little motion strokes beside the hand
+        for i, r in enumerate((7.2, 10.0)):
+            pts = arc_pts(hand[0], hand[1], r, r, -62 + i * 4, -18 - i * 4, 6)
+            art.line(pts, BLUE_L, 1.3, what='wave')
+
+    # dark body and tail first, then the lit ones over them: a crescent of
+    # shade is left down the right and along the bottom
+    d_dark, pts_dark = blob(cx, cy, hw, hh)
+    t_dark, tpts_dark = tail_shape(*[(x + sx * 0.6, y + sy * 0.8) for x, y in tail])
+    art.path(t_dark, tpts_dark, BLUE_D, what='tail shade')
+    art.path(d_dark, pts_dark, BLUE_D, what='body shade')
+    t_lit, tpts_lit = tail_shape(*tail)
+    art.path(t_lit, tpts_lit, BLUE, what='tail')
+    d_lit, pts_lit = blob(cx - sx, cy - sy, hw - sx, hh - sy)
+    art.path(d_lit, pts_lit, BLUE, what='body')
+    for p in tail[:2]:
+        assert blob_x(cx, cy, hw, hh, p[1], side=-1) < p[0], 'tail root is not in the body'
+    # highlight pill on the lit upper left, leaning with the curve
+    px, py = cx - hw + 4.6, cy - 4.2
+    art.rect(px - 1.7, py - 4.6, 3.4, 9.2, WHITE, rx=1.7, rot=(14, px, py), extra=HI, what='body pill')
+    assert blob_x(cx - sx, cy - sy, hw - sx, hh - sy, py - 4.6, side=-1) < px - 2.6, 'pill off the body'
+
+    # eyes: big whites, dark pupils looking at you, two catchlights each
+    for side in (-1, 1):
+        ex = cx + side * EYE_DX
+        art.ellipse(ex, EYE_Y, EYE_RX, EYE_RY, WHITE, what='eye')
+        px, py = ex - side * 0.5, EYE_Y + 0.9
+        art.ellipse(px, py, 4.3, 4.7, INK_D, what='pupil')
+        art.circle(px - 1.5, py - 1.7, 1.65, WHITE, what='catchlight')
+        art.circle(px + 1.6, py + 1.6, 0.75, WHITE, what='catchlight')
+        # brows: short arched bars, the outer end a touch lower
+        by = EYE_Y - EYE_RY - 2.5
+        art.line([(ex - 3.6 + side * 0.4, by + 0.7 * (1 if side < 0 else 0.2)), (ex + side * 0.3, by - 0.5),
+                  (ex + 3.6 + side * 0.4, by + 0.7 * (0.2 if side < 0 else 1))], INK_D, 1.7, what='brow')
+        assert cx - hw + 3 < ex - EYE_RX and ex + EYE_RX < cx + hw - 3, 'eye off the face'
+        assert by - 1.5 > CAP_CUT + CAP_SAG - 0.5, 'brow under the cap'
+        assert abs(ex - cx) > EYE_RX, 'eyes overlap'
+
+    # cheeks
+    for side in (-1, 1):
+        art.ellipse(cx + side * 16.2, MOUTH_Y + 0.6, 2.7, 1.6, '#FF8FB5', extra='opacity=".75"', what='cheek')
+
+    # an open smile, flat on top and round below, with a tongue
+    mx, my, mw, md = cx, MOUTH_Y, MOUTH_W, MOUTH_D
+    art.path(f'M{f(mx - mw + 1)} {f(my)}H{f(mx + mw - 1)}Q{f(mx + mw)} {f(my)} {f(mx + mw)} {f(my + 1)}'
+             f'A{f(mw)} {f(md - 1)} 0 0 1 {f(mx - mw)} {f(my + 1)}Q{f(mx - mw)} {f(my)} {f(mx - mw + 1)} {f(my)}Z',
+             [(mx - mw, my), (mx + mw, my + md)], INK_D, what='mouth')
+    ty = my + md * 0.58
+    a = mw * math.sqrt(max(0.0, 1 - ((ty - my - 1) / (md - 1)) ** 2)) - 0.2
+    art.path(f'M{f(mx - a)} {f(ty)}Q{f(mx)} {f(ty - 2)} {f(mx + a)} {f(ty)}A{f(mw)} {f(md - 1)} 0 0 1 {f(mx - a)} {f(ty)}Z',
+             [(mx - a, ty - 1), (mx + a, my + md)], RED, what='tongue')
+    assert my + md < bot - sy - 1.5, 'mouth falls off the body'
+    assert my > EYE_Y + EYE_RY - 0.5, 'mouth runs into the eyes'
+
+    # the mortarboard: the skull cap wraps the crown, the board sits on it
+    cap, cut = cap_shape(cx, cy, hw + 0.4, hh + 0.4)
+    art.poly(cap, INK, what='cap')
+    art.poly(clip_x(cap, cx + 5), INK_D, what='cap shade')
+    by_, bw, bh, bt = BOARD_Y, BOARD_W, BOARD_H, BOARD_T
+    board = [(cx - bw, by_), (cx, by_ - bh), (cx + bw, by_), (cx, by_ + bh)]
+    art.poly([(x, y + bt) for x, y in board], INK_D, r=3, what='board edge')
     art.poly(board, INK, r=3, what='board')
-    art.rect(bc[0] - 16, bc[1] - 2.2, 9, 2.6, WHITE, rx=1.3, rot=(-17, bc[0] - 11.5, bc[1] - 1), extra='opacity=".22"', what='board pill')
-    assert board[2][1] + 2.4 > cap[0][1], 'board does not meet the cap'
-    # tassel: a button, a cord to the right corner and down, a gold tuft
-    cord = [bc, (bc[0] + 21, bc[1] + 2), (bc[0] + 21, bc[1] + 14)]
-    art.line(cord, GOLD_D, 2.0, what='cord')
+    art.rect(cx - 15, by_ - 2.6, 9, 2.4, WHITE, rx=1.2, rot=(-15.5, cx - 10.5, by_ - 1.4), extra='opacity=".22"', what='board pill')
+    # the board must hide the top of the cap, and the cap must reach the board
+    assert by_ + bh + bt > cy - hh + 1.5, 'board does not cover the crown'
+    for x, y in cap:
+        dx = abs(x - cx)
+        if dx < bw - 3:
+            assert y > by_ - bh * (1 - dx / bw) + 1, 'cap pokes out above the board'
+    assert cut(cx) > by_ + bh + bt + 3, 'no cap shows under the board'
+    # the tassel: a button, a cord over the board to the front-right edge,
+    # hanging down beside the face
+    edge_y = by_ + bh * (TASSEL_DX / bw)
+    cord = [(cx, by_), (cx + TASSEL_DX, edge_y + 0.4), (cx + TASSEL_DX + 0.3, cut(cx + TASSEL_DX) - 1)]
+    art.line(cord, GOLD_D, 1.7, what='cord')
     tx, ty = cord[-1]
-    art.rect(tx - 2.6, ty - 1, 5.2, 9, GOLD, rx=2.2, what='tassel')
-    art.rect(tx, ty - 1, 2.6, 9, GOLD_D, rx=1.3, what='tassel shade')
-    art.circle(bc[0], bc[1], 2.3, GOLD, what='button')
-    return cx
+    art.rect(tx - 2.4, ty - 1.4, 4.8, 8.4, GOLD, rx=2.2, what='tassel')
+    art.rect(tx + 0.2, ty - 1.4, 2.2, 8.4, GOLD_D, rx=1.1, what='tassel shade')
+    art.rect(tx - 2.8, ty - 1.8, 5.6, 2.4, GOLD_D, rx=1.2, what='tassel knot')
+    art.circle(cx, by_, 2.3, GOLD, what='button')
+    assert tx - 2.4 > cx + EYE_DX + EYE_RX + 0.8, 'tassel over the eye'
+    assert tx + 2.4 < cx + hw, 'tassel hangs off the head'
+    # the outline, for keeping other things clear of the mascot
+    keep = pts_dark + board + list(tail)
+    if full:
+        keep += arc_pts(hand[0], hand[1], 10, 10, 0, 360, 16)
+    return keep
 
 
 def logo():
     art = Art('logo.svg', 64, 64)
-    mascot_head(art)
+    mascot(art)
     return art
 
 
-def say(art, x, y, w, h, s, fill, dark, ink, tail_to, size=28, tilt=0):
-    """A speech bubble with a lip and a tail toward `tail_to`."""
+def say(art, x, y, w, h, s, tail_to, size=28, tilt=0):
+    """A white speech bubble with a light grey edge and lip, blue lettering,
+    and a tail toward `tail_to`. All the hero's bubbles are this one colour."""
     cx, cy = x + w / 2, y + h / 2
+    est = 0.62 * size * len(s.replace('¡', 'i'))
+    assert est + 28 <= w, (s, 'bubble too tight for its word', est, w)
     if tilt:
         art.push(rotate(tilt, cx, cy))
     tx, ty = tail_to
+    e, lip, rx = 2.5, 4.5, h / 2.3
     # the tail leaves the bubble's bottom edge, nearer the side it points to
-    bx = cx + (w * 0.22 if tx > cx else -w * 0.22)
-    tail = [(bx - 10, y + h - 6), (bx + 10, y + h - 6), (tx, ty)]
-    art.poly([(px, py + 5) for px, py in tail], dark, r=[2, 2, 3], what='bubble tail lip')
-    art.rect(x, y + 5, w, h, dark, rx=h / 2.4, what='bubble lip')
-    art.poly(tail, fill, r=[2, 2, 3], what='bubble tail')
-    art.rect(x, y, w, h, fill, rx=h / 2.4, what='bubble')
-    art.rect(x + 9, y + 7, 14, 6, WHITE, rx=3, extra=HI, what='bubble pill')
-    art.text(cx, cy + size * 0.36, s, size, ink)
+    bx = cx + (w * 0.2 if tx > cx else -w * 0.2)
+    tail = [(bx - 11, y + h - 10), (bx + 11, y + h - 10), (tx, ty)]
+    inner = [(bx - 11 + e * 1.4, y + h - 10), (bx + 11 - e * 1.4, y + h - 10), (tx + (bx - tx) * 0.09, ty - e * 1.6)]
+    art.poly([(px, py + lip) for px, py in tail], GREY1, r=[2, 2, 3], what='bubble tail lip')
+    art.rect(x - e, y - e, w + 2 * e, h + 2 * e + lip, GREY1, rx=rx + e, what='bubble edge')
+    art.poly(inner, WHITE, r=[2, 2, 2.5], what='bubble tail')
+    art.rect(x, y, w, h, WHITE, rx=rx, what='bubble')
+    art.text(cx, cy + size * 0.36, s, size, BLUE_D)
     if tilt:
         art.pop()
-    return (x - 4, y - 4, x + w + 4, y + h + 9)
+    return (x - 8, y - 8, x + w + 8, y + h + 12)
 
 
 def hero():
     art = Art('mascot.svg', 560, 480)
-    S = 4.6
-    BH = 37
-    ox, oy = 280 - 32 * S, 92
-    ground = (280, 404, 196, 30)
-    grass(art, ground, pill=(130, 410, 46), light=True)
-    art.ellipse(286, 400, 96, 11, GREEN, what='mascot shadow')
-
+    S = 5.0
+    ox, oy = 280 - 32 * S - 14, 100
     art.push(place(ox, oy, S))
-    bx, by, bw, br = BODY
-    bot = by + BH
-    # feet, behind the body, standing in the grass
-    for fx in (23, 39):
-        art.ellipse(fx + 1, bot + 4.6, 6.6, 4.0, GREEN_D, what='foot')
-        art.ellipse(fx, bot + 3.9, 5.8, 3.3, GREEN, what='foot')
-        assert bot + 4.6 - 4 < bot + LIP[1], 'foot does not meet the body'
-        for dx in (-4, 5):
-            wx, wy = art.world((fx + 1 + dx, bot + 4.6 + 3))
-            on_grass(wx, wy, ground, what='foot')
-    # the waving arm, behind the body, raised on the right
-    sh = (51.5, 37)
-    hand = (62.5, 25)
-    art.capsule(sh, hand, 2.9, GREEN_D, what='arm')
-    art.capsule(sh, (hand[0] - 0.6, hand[1] - 0.6), 2.3, GREEN, what='arm')
-    art.circle(hand[0], hand[1], 4.1, GREEN_D, what='hand')
-    art.circle(hand[0] - 0.7, hand[1] - 0.7, 3.4, GREEN, what='hand')
-    art.rect(hand[0] - 2.8, hand[1] - 2.8, 1.6, 3.2, WHITE, rx=0.8, extra=HI, what='hand pill')
-    assert bx + bw - 6 < sh[0], 'arm does not meet the body'
-
-    cx = mascot_head(art, bh=BH, face_dy=-0.4, eyes_dx=0.4)
-
-    # an open book held in front of the tummy, a hand on each side
-    bt, bb = 52.6, 62.6            # top and bottom of the cover at its middle
-    bl, br = cx - 14.5, cx + 14.5
-    sag = 1.6
-    cover = [(bl, bt - sag + 0.4), (cx, bt + 0.6), (br, bt - sag + 0.4), (br, bb - sag), (cx, bb), (bl, bb - sag)]
-    art.poly([(x + 0.8, y + 1.4) for x, y in cover], '#1482B8', r=1.4, what='book cover shade')
-    art.poly(cover, BLUE_D, r=1.4, what='book cover')
-    lpage = [(bl + 1.2, bt - sag - 0.6), (cx - 0.3, bt), (cx - 0.3, bb - 1.6), (bl + 1.2, bb - sag - 1.8)]
-    rpage = [(cx + 0.3, bt), (br - 1.2, bt - sag - 0.6), (br - 1.2, bb - sag - 1.8), (cx + 0.3, bb - 1.6)]
-    art.poly(lpage, WHITE, r=1.0, what='left page')
-    art.poly(rpage, GREY1, r=1.0, what='right page')
-    for i in range(3):
-        y0 = bt + 1.6 + i * 2.2
-        art.line([(bl + 3.6, y0 - sag * 0.75), (cx - 3, y0 + 0.2)], GREY1, 0.9, what='text line')
-        art.line([(cx + 3, y0 + 0.2), (br - 3.6 - (3 if i == 2 else 0), y0 - sag * 0.75)], GREY2, 0.9, what='text line')
-    art.line([(cx, bt + 0.4), (cx, bb - 1.2)], GREY2, 0.8, what='spine crease')
-    for hx in (bl + 0.6, br - 0.6):
-        art.circle(hx + 0.6, bb - 5.2, 3.6, GREEN_D, what='book hand')
-        art.circle(hx, bb - 5.8, 3.0, GREEN, what='book hand')
-    my = 38 - 0.4 + 9.6 + 3.6
-    assert my < bt - sag, 'the book hides the smile'
-    assert bt - sag < bot and bb > bot, 'book is not held in front of the body'
+    art.begin_track()
+    keep = [art.world(p) for p in mascot(art, full=True)]
+    m_box = art.end_track()
     art.pop()
+    # the body (not the waving hand) is what the eye centres on
+    body_mid = ox + HEAD[0] * S
+    assert abs(body_mid - 280) <= 14 and abs((m_box[0] + m_box[2]) / 2 - 280) <= 24, ('mascot not centred', body_mid, m_box)
 
-    # three speech bubbles, saying hello in each language
+    # three speech bubbles, saying hello in each language, all the same colour
     boxes = []
-    boxes.append(say(art, 24, 36, 128, 54, '¡Hola!', GOLD, GOLD_D, RED_D, (128, 118), size=28, tilt=-6))
-    boxes.append(say(art, 392, 34, 148, 54, 'Bonjour', BLUE, BLUE_D, WHITE, (430, 124), size=27, tilt=5))
-    boxes.append(say(art, 22, 214, 108, 52, 'Ciao', GREEN, GREEN_D, WHITE, (128, 296), size=28, tilt=4))
-    # keep the bubbles clear of the mascot
-    m_box = (ox + 2 * S, oy + 2 * S, ox + 67 * S, oy + 67 * S)
+    boxes.append(say(art, 24, 66, 150, 62, '¡Hola!', (146, 160), size=30, tilt=-5))
+    boxes.append(say(art, 380, 34, 166, 62, 'Bonjour', (414, 126), size=30, tilt=4))
+    boxes.append(say(art, 420, 318, 122, 60, 'Ciao', (404, 300), size=30, tilt=5))
     for b in boxes:
-        assert b[2] < m_box[0] or b[0] > m_box[2] or b[3] < m_box[1], ('bubble on the mascot', b)
+        for x, y in keep:
+            assert not (b[0] < x < b[2] and b[1] < y < b[3]), ('bubble on the mascot', b, round(x), round(y))
 
-    confetti(art, 11, (14, 14, 546, 380), 16, [m_box, *boxes], size=1.0, spacing=44)
+    confetti(art, 11, (14, 14, 546, 440), 9, [m_box, *boxes], size=0.9, spacing=70)
     return art
 
 
 # ------------------------------------------------------------------ Spain
-def windmill(art, cx, base, s, ground_fn, sail_rot=18, far=False):
-    """
-    A La Mancha windmill, its foot at (cx, base): a whitewashed round tower
-    with blue trim, a dark conical cap, four lattice sails on a hub at the
-    front of the cap. ground_fn(x) gives the hill's surface, so the tower's
-    foot can be checked against it.
-    """
-    wb, wt, ht = 46 * s, 36 * s, 150 * s             # half widths, height
-    top = base - ht
-    for x in (cx - wb, cx + wb):
-        g = ground_fn(x)
-        assert g is not None and g <= base + 0.5, ('windmill foot floats', x, base, g)
+def finial(art, cx, y, s, col, col_d):
+    """The mosaic pinnacle on a Sagrada Familia tower, standing on (cx, y):
+    a coloured knob, a gold cross, white balls at the cross's ends."""
+    art.rect(cx - 3 * s, y - 8 * s, 6 * s, 10 * s, SAND_D, rx=2 * s, what='finial stem')
+    ky = y - 16 * s
+    art.ellipse(cx, ky, 8 * s, 10 * s, col, what='finial knob')
+    art.path(f'M{f(cx + 2.5 * s)} {f(ky - 9.6 * s)}A{f(8 * s)} {f(10 * s)} 0 0 1 {f(cx + 2.5 * s)} {f(ky + 9.6 * s)}Z',
+             [(cx, ky - 10 * s), (cx + 8 * s, ky + 10 * s)], col_d, what='finial shade')
+    art.circle(cx - 3.2 * s, ky - 3 * s, 1.7 * s, WHITE, what='mosaic')
+    art.circle(cx + 1.2 * s, ky + 4 * s, 1.5 * s, GOLD, what='mosaic')
+    art.circle(cx - 2.6 * s, ky + 4.6 * s, 1.2 * s, WHITE, extra='opacity=".7"', what='mosaic')
+    art.rect(cx - 8 * s, ky + 5.8 * s, 16 * s, 3.2 * s, GOLD, rx=1.6 * s, what='finial band')
+    top = ky - 10 * s
+    art.rect(cx - 1.6 * s, top - 13 * s, 3.2 * s, 14 * s, GOLD, rx=1.6 * s, what='cross')
+    art.rect(cx - 6.4 * s, top - 9.6 * s, 12.8 * s, 3.2 * s, GOLD, rx=1.6 * s, what='cross')
+    for bx, by in ((cx, top - 13 * s), (cx - 6.4 * s, top - 8 * s), (cx + 6.4 * s, top - 8 * s)):
+        art.circle(bx, by, 2.4 * s, WHITE, what='cross ball')
+    return top - 15.4 * s
 
-    # contact shadow on the grass
-    art.ellipse(cx + 4 * s, base + 2 * s, wb + 10 * s, 8 * s, GREEN_D, what='windmill shadow')
-    # tower: lit, then its shaded right side, following the taper
-    tower = [(cx - wb, base), (cx - wt, top), (cx + wt, top), (cx + wb, base)]
-    # the far mill is a shade greyer, as distance would make it, which also
-    # keeps its lit side from vanishing into a white page
-    wall, wall_d, foot, foot_d = (GREY1, '#CDCDCD', '#CDCDCD', GREY2) if far else (WHITE, GREY1, GREY1, GREY2)
-    art.poly(tower, wall, r=[6 * s, 3 * s, 3 * s, 6 * s], what='tower')
-    k = 0.36
-    shade = [(cx + wb * k, base), (cx + wt * k, top), (cx + wt, top), (cx + wb, base)]
-    art.poly(shade, wall_d, r=[0, 0, 3 * s, 6 * s], what='tower shade')
-    # a soft band at the foot, so the white doesn't vanish into a white page
-    art.poly([(cx - wb, base), (cx - wb * 0.97 - 0.3, base - 10 * s), (cx + wb * 0.97 + 0.3, base - 10 * s), (cx + wb, base)],
-             foot, r=[6 * s, 0, 0, 6 * s], what='tower foot')
-    art.poly([(cx + wb * k, base), (cx + wb * k, base - 10 * s), (cx + wb * 0.97 + 0.3, base - 10 * s), (cx + wb, base)],
-             foot_d, r=[0, 0, 0, 6 * s], what='tower foot shade')
-    # door and a window, in La Mancha blue
-    dw, dh = 22 * s, 38 * s
-    art.path(f'M{f(cx - dw / 2)} {f(base - 10 * s)}V{f(base - 10 * s - dh + dw / 2)}A{f(dw / 2)} {f(dw / 2)} 0 0 1 {f(cx + dw / 2)} {f(base - 10 * s - dh + dw / 2)}V{f(base - 10 * s)}Z',
-             [(cx - dw / 2, base - 10 * s - dh), (cx + dw / 2, base - 10 * s)], BLUE_D, what='door')
-    art.rect(cx - 2 * s, base - 10 * s - dh + 4 * s, 4 * s, dh - 8 * s, BLUE, rx=2 * s, extra='opacity=".6"', what='door line')
-    art.rect(cx - 7 * s, top + 52 * s, 14 * s, 18 * s, BLUE_D, rx=7 * s, what='window')
-    # cap: a dark cone with a rounded tip, its right half darker
-    cb, ch = top + 6 * s, 58 * s
-    cone = [(cx - wt - 8 * s, cb), (cx, cb - ch), (cx + wt + 8 * s, cb)]
-    art.poly(cone, INK, r=[5 * s, 9 * s, 5 * s], what='cap')
-    art.poly([(cx, cb - ch + 6 * s), (cx + wt + 8 * s, cb), (cx, cb)], INK_D, r=[0, 5 * s, 0], what='cap shade')
-    art.rect(cx - wt - 10 * s, cb - 3 * s, 2 * (wt + 10 * s), 9 * s, INK, rx=4.5 * s, what='cap rim')
-    art.rect(cx, cb - 3 * s, wt + 10 * s, 9 * s, INK_D, rx=4.5 * s, what='cap rim shade')
-    art.rect(cx - 16 * s, cb - 30 * s, 12 * s, 6 * s, WHITE, rx=3 * s, rot=(-52, cx - 10 * s, cb - 27 * s), extra='opacity=".22"', what='cap pill')
-    assert cb + 6 * s > top, 'cap does not sit on the tower'
 
-    # sails, on a hub at the front of the cap
-    hub = (cx + 2 * s, cb - 14 * s)
-    L, w0 = 128 * s, 26 * s
-    for k in range(4):
-        a = sail_rot + 90 * k
-        art.push(rotate(a, hub[0], hub[1]))
-        # the spar runs out from the hub; the lattice hangs to one side of it
-        art.rect(hub[0] - 3.2 * s, hub[1] - L, 6.4 * s, L, WOOD, rx=3.2 * s, what='spar')
-        px, py, pw, ph = hub[0] + 2 * s, hub[1] - L + 2 * s, w0, L - 34 * s
-        art.rect(px, py, pw, ph, WOOD, rx=3 * s, what='sail frame')
-        cols, rows = 2, 5
-        gap = 3.2 * s
-        cw = (pw - gap * (cols + 1)) / cols
-        chh = (ph - gap * (rows + 1)) / rows
-        for i in range(cols):
-            for j in range(rows):
-                art.rect(px + gap + i * (cw + gap), py + gap + j * (chh + gap), cw, chh,
-                         CREAM if i == 0 else CREAM_D, rx=1.6 * s, what='sail cell')
-        assert py + ph > hub[1] - L and px <= hub[0] + 3.2 * s, 'sail does not meet its spar'
-        assert 9 * s > 3.2 * s, 'hub does not cover the spar root'
-        art.pop()
-    art.circle(hub[0] + 1.2 * s, hub[1] + 1.2 * s, 10 * s, WOOD_D, what='hub shade')
-    art.circle(hub[0], hub[1], 9 * s, WOOD, what='hub')
-    art.circle(hub[0], hub[1], 3.6 * s, GOLD, what='hub pin')
-    return hub
+def spindle(art, cx, base, top, hw, col, col_d, s=1.0, slots=7, phase=0.0, stone=(SAND, SAND_D)):
+    """One of the Sagrada Familia's bell towers: a tall spindle, straight
+    at the foot and closing to a rounded point, with a spiral of slots up
+    it and a mosaic finial on top. Returns its half width at height y."""
+    n = 16
+    H = base - top
+
+    def w(y):
+        t = min(1.0, max(0.0, (base - y) / H))
+        return hw * (1 - t ** 2.4) ** 0.55
+    neck = top + H * 0.035
+    left = [(cx - max(w(base - (base - neck) * i / n), 3.5 * s), base - (base - neck) * i / n) for i in range(n + 1)]
+    pts = left + [(2 * cx - x, y) for x, y in reversed(left)]
+    art.poly(pts, stone[0], what='tower')
+    art.poly(clip_x(pts, cx + hw * 0.28), stone[1], what='tower shade')
+    # the spiral of slots: two columns, staggered, smaller as the tower closes
+    for i in range(slots):
+        t = 0.1 + 0.62 * i / (slots - 1)
+        y = base - H * t
+        ww = w(y)
+        sw, sh = 4.6 * s * (1 - t * 0.35), 11 * s * (1 - t * 0.3)
+        for j in (0, 1):
+            off = math.sin(phase + i * 0.9 + j * math.pi) * ww * 0.42
+            if abs(off) + sw / 2 > ww - 5 * s:
+                continue
+            art.rect(cx + off - sw / 2, y - sh / 2, sw, sh, SAND_DD, rx=sw / 2, what='tower slot')
+    # a highlight pill on the lit side
+    art.rect(cx - hw * 0.62, base - H * 0.42, 4.5 * s, H * 0.24, WHITE, rx=2.25 * s, extra=HI, what='tower pill')
+    tip = finial(art, cx, neck + 2 * s, s, col, col_d)
+    return w, tip
 
 
 def spain():
     art = Art('es.svg', 560, 480)
-    # the sun sits low behind the big mill, so its white wall has something
-    # to stand against on a white page
-    sun(art, 208, 216, 104)
-    ground = (280, 414, 250, 40)
+    sun(art, 128, 132, 64)
+    ground = (280, 414, 240, 38)
+    grass(art, ground, pill=(380, 430, 40))
+    round_tree(art, 74, 418, ground, 0.95)
+    round_tree(art, 488, 410, ground, 0.8)
 
-    def hump(x0, x1, top, base, n=40):
-        """The upper half of an ellipse standing on y = base."""
-        cxh, rx = (x0 + x1) / 2, (x1 - x0) / 2
-        pts = arc_pts(cxh, base, rx, base - top, 180, 360, n)
+    mid = 280
+    BODY_T, BODY_B = 318, 408
+    art.begin_track()
+    art.ellipse(mid + 6, BODY_B + 1, 140, 12, GREEN_D, what='basilica shadow')
+    # the tall central tower, behind
+    w_c, tip_c = spindle(art, mid, 330, 72, 25, GOLD, GOLD_D, s=1.15, slots=0, stone=('#F3DDB4', '#DDBF8C'))
+    # the four Nativity towers: the inner pair taller
+    towers = []
+    for x, top, hw, col, col_d, ph in ((180, 160, 19, RED, RED_D, 0.4), (380, 160, 19, RED, RED_D, 1.6),
+                                      (232, 118, 21.5, ORANGE, ORANGE_D, 2.2), (328, 118, 21.5, ORANGE, ORANGE_D, 0.9)):
+        tb = BODY_T + 6
+        w, tip = spindle(art, x, tb, top, hw, col, col_d, s=0.85 if hw < 20 else 0.95, slots=8, phase=ph)
+        towers.append((x, tb, hw))
+        assert BODY_T < tb, 'tower floats above the body'
+    # the central gable over the main portal, with Gaudi's green cypress on top
+    g = [(mid - 46, BODY_T + 4), (mid - 30, 282), (mid, 248), (mid + 30, 282), (mid + 46, BODY_T + 4)]
+    art.poly(g, SAND, r=[0, 10, 8, 10, 0], what='gable')
+    art.poly(clip_x(g, mid + 16), SAND_D, r=0, what='gable shade')
+    cyp = [(mid - 15, 256), (mid, 196), (mid + 15, 256)]
+    art.poly(cyp, GREEN, r=[5, 6, 5], what='cypress spire')
+    art.poly([(mid, 200), (mid + 15, 256), (mid + 2, 256)], GREEN_D, r=[3, 5, 0], what='cypress spire shade')
+    for dx, dy in ((-4, 232), (3, 218), (-1, 246)):
+        art.circle(mid + dx, dy, 2.4, WHITE, what='dove')
+    assert cyp[0][1] > 248 + 2, 'the cypress does not stand on the gable'
+    # the facade body, with three parabolic portals
+    art.rect(150, BODY_T, 260, BODY_B - BODY_T, SAND, rx=12, what='facade')
+    art.rect(352, BODY_T, 58, BODY_B - BODY_T, SAND_D, rx=12, what='facade shade')
+    art.rect(352, BODY_T, 14, BODY_B - BODY_T, SAND_D, what='facade shade')
+    # a crest of rounded knobs along the top, Gaudi's soft battlements
+    for x in (156, 206, 256, 304, 354, 404):
+        col = SAND_D if x > 352 else SAND
+        art.path(f'M{f(x - 7)} {f(BODY_T + 4)}A7 9 0 0 1 {f(x + 7)} {f(BODY_T + 4)}Z',
+                 [(x - 7, BODY_T - 5), (x + 7, BODY_T + 4)], col, what='crest')
+    art.rect(150, BODY_B - 14, 260, 14, SAND_D, rx=7, what='plinth')
+    art.rect(352, BODY_B - 14, 58, 14, SAND_DD, rx=7, what='plinth shade')
 
-        def surface(x):
-            dx = (x - cxh) / rx
-            return None if abs(dx) >= 1 else base - (base - top) * math.sqrt(1 - dx * dx)
-        return pts, surface
+    def portal(x, w, top, col, inner=None):
+        pts = [(x - w / 2, BODY_B - 10)] + arc_pts(x, top + w * 0.62, w / 2, w * 0.62, 180, 360, 16)[1:-1] + [(x + w / 2, BODY_B - 10)]
+        art.poly(pts, col, what='portal')
+        if inner:
+            iw = w - 12
+            ip = [(x - iw / 2, BODY_B - 10)] + arc_pts(x, top + 8 + iw * 0.62, iw / 2, iw * 0.62, 180, 360, 16)[1:-1] + [(x + iw / 2, BODY_B - 10)]
+            art.poly(ip, inner, what='portal door')
+    portal(mid, 48, 334, SAND_D, SAND_DD)
+    portal(204, 30, 354, SAND_DD)
+    portal(356, 30, 354, SAND_DD)
+    # a frieze of small round windows over the side portals
+    for x in (190, 204, 218, 342, 356, 370):
+        art.circle(x, 336, 3.6, SAND_DD, what='frieze')
+    art.rect(162, 328, 5, 50, WHITE, rx=2.5, extra=HI, what='facade pill')
+    box = art.end_track()
+    art.assert_centred(box, 'basilica')
+    for x in (150 + 8, 410 - 8):
+        on_grass(x, BODY_B, ground, what='facade')
+    for x, tb, hw in towers:
+        assert 150 <= x - hw and x + hw <= 410, 'tower hangs off the facade'
 
-    def hill(x0, x1, top, base, lit, dark, what):
-        """A hump with a crescent of shade down its right side: the dark hump,
-        then a narrower lit one over it, sharing the left foot."""
-        pts, surface = hump(x0, x1, top, base)
-        art.poly(pts, dark, what=what + ' shade')
-        lit_pts, _ = hump(x0, x1 - (x1 - x0) * 0.16, top + 3, base)
-        art.poly(lit_pts, lit, what=what)
-        for x in (x0, x1):
-            assert ell_y(x, ground) < base - 3, (what, 'foot not on the grass', x)
-        return surface
-
-    back_surf = hill(334, 516, 292, 410, GREEN_L, '#6FC014', 'back hill')
-    grass(art, ground, pill=(400, 428, 40))
-    main_surf = hill(60, 430, 318, 414, GREEN, GREEN_D, 'hill')
-    art.rect(104, 368, 36, 7, WHITE, rx=3.5, rot=(-30, 122, 371), extra=HI, what='hill pill')
-
-    # the little mill first, on the back hill
-    bx = 470
-    sb = max(back_surf(bx - 46 * 0.5), back_surf(bx + 46 * 0.5)) + 3
-    windmill(art, bx, sb, 0.5, back_surf, sail_rot=40, far=True)
-    # the big mill, on the main hill's crown
-    mx = 236
-    mb = max(main_surf(mx - 46), main_surf(mx + 46)) + 4
-    windmill(art, mx, mb, 1.0, main_surf, sail_rot=16)
-
-    confetti(art, 3, (16, 16, 544, 300), 7, [(70, 30, 400, 360), (400, 180, 544, 420), (90, 80, 320, 310)], spacing=50)
+    confetti(art, 3, (16, 16, 544, 300), 5, [(130, 20, 430, 420), (40, 50, 200, 210), (40, 300, 130, 430), (440, 300, 540, 430)], spacing=60)
     return art
 
 
@@ -601,92 +721,130 @@ def france():
     mid = 280
     ground = (280, 410, 236, 40)
     grass(art, ground, pill=(110, 424, 40))
-    round_tree(art, 84, 414, ground, 1.0)
-    round_tree(art, 482, 404, ground, 0.82)
+    round_tree(art, 82, 414, ground, 1.0)
+    round_tree(art, 478, 412, ground, 0.86)
 
-    def section(y_bot, y_top, w_bot, w_top, arch=None, power=2.0, n=24):
-        """A tapering section of the tower, as a polygon. `arch` = (half
-        width at the foot, apex height) cuts an arch up from its foot."""
+    # the real tower's proportions: height from the ground to the tip of the
+    # mast, platforms at 19%, 38% and ~87% of it
+    FOOT, TIP = 404, 24
+    H = FOOT - TIP
+    BASE = 112                              # half width at the foot
+    Y1, Y2, Y3 = FOOT - 0.19 * H, FOOT - 0.38 * H, FOOT - 0.87 * H
+    P1, P2, P3 = 70, 28, 11                 # platform half widths
+
+    def profile(y_bot, y_top, w_bot, w_top, power):
         def w(y):
             t = (y_bot - y) / (y_bot - y_top)
             return w_top + (w_bot - w_top) * (1 - t) ** power
+        return w
+
+    def edges(w, y_bot, y_top, n=24):
         left = [(mid - w(y_bot - (y_bot - y_top) * i / n), y_bot - (y_bot - y_top) * i / n) for i in range(n + 1)]
-        right = [(mid + x - mid + 2 * (mid - x) + 0, y) for x, y in reversed(left)]
         right = [(2 * mid - x, y) for x, y in reversed(left)]
-        pts = left + right
-        if arch:
-            aw, apex = arch
-            pts += arc_pts(mid, y_bot, aw, y_bot - apex, 0, -180, 30)
-        return pts, w
+        return left, right
 
-    def shaded(pts, lit, dark, what):
-        art.poly(pts, lit, what=what)
-        art.poly(clip_x(pts, mid), dark, what=what + ' shade')
+    def shaded(pts, what):
+        art.poly(pts, BRONZE, what=what)
+        art.poly(clip_x(pts, mid), BRONZE_D, what=what + ' shade')
 
-    def slab(y, h, hw, what):
-        art.rect(mid - hw, y, 2 * hw, h, BRONZE, rx=h / 2.2, what=what)
-        art.poly([(mid, y), (mid + hw, y), (mid + hw, y + h), (mid, y + h)], BRONZE_D, r=[0, h / 2.2, h / 2.2, 0], what=what + ' shade')
-        # a row of little windows along the gallery
-        n = max(2, int(hw / 13))
-        n -= n % 2                  # an even number, so none straddles the shade line
-        for i in range(n):
-            x = mid - hw + 10 + i * (2 * hw - 20) / (n - 1)
-            art.rect(x - 3, y + h * 0.3, 6, h * 0.4, BRONZE_DD if x > mid else BRONZE_D, rx=2, what=what + ' window')
+    art.begin_track()
+    art.ellipse(mid + 6, FOOT + 2, 136, 13, GREEN_D, what='tower shadow')
+    # legs: four splayed trusses (two seen) curving in to the first platform,
+    # the great arch between them
+    l_top = Y1 + 2
+    w_leg = profile(FOOT, l_top, BASE, 58, 2.1)
+    TH = 30                                 # leg thickness at the foot
+    SPRING, APEX = FOOT - 34, Y1 + 13       # where the arch leaves the legs, and its crown
 
-    FOOT = 404
-    # contact shadow under the legs
-    art.ellipse(mid + 6, FOOT + 2, 132, 13, GREEN_D, what='tower shadow')
-    legs, w_leg = section(FOOT, 300, 120, 74, arch=(58, 338), power=2.2)
-    shaded(legs, BRONZE, BRONZE_D, 'legs')
-    mid_s, w_mid = section(296, 192, 66, 36, arch=(25, 254), power=1.6)
-    shaded(mid_s, BRONZE, BRONZE_D, 'middle')
-    up, w_up = section(196, 84, 31, 11, power=1.7)
-    shaded(up, BRONZE, BRONZE_D, 'upper')
-    # lattice: a zig-zag up the spire, thin, darker again on the shaded half
-    zig = []
-    for i in range(8):
-        y = 182 - i * 12
-        zig.append((mid + (-1 if i % 2 == 0 else 1) * w_up(y) * 0.6, y))
-    for p, q in zip(zig, zig[1:]):
-        t = (mid - p[0]) / (q[0] - p[0])
-        m = (mid, p[1] + t * (q[1] - p[1]))
-        for u, v in ((p, m), (m, q)):
-            right = u[0] + v[0] > 2 * mid
-            art.line([u, v], BRONZE_DD if right else BRONZE_D, 3, what='spire lattice')
-    # the middle storey gets a cross-brace either side of its arch
+    def inner(y):
+        t = (FOOT - y) / (FOOT - SPRING)
+        return w_leg(y) - (TH + 6 * t)
+    left, right = edges(w_leg, FOOT, l_top)
+    a_s = inner(SPRING)
+    inner_r = [(mid + inner(FOOT - (FOOT - SPRING) * i / 10), FOOT - (FOOT - SPRING) * i / 10) for i in range(11)]
+    arch = arc_pts(mid, SPRING, a_s, SPRING - APEX, 0, -180, 24)[1:-1]
+    inner_l = [(2 * mid - x, y) for x, y in reversed(inner_r)]
+    # outline: up the left outside, down the right outside, up the right
+    # inside to the arch, over it, down the left inside
+    legs = left + right + list(inner_r) + arch + list(inner_l)
+    shaded(legs, 'legs')
+    assert inner(FOOT) < BASE - 24 and a_s > 30, 'legs too thin or arch too small'
+    assert 2 * inner(FOOT) > 1.2 * BASE, 'the arch does not span most of the base'
+
+    # the middle storey, narrowing to the second platform, a smaller arch in it
+    m_bot, m_top = Y1 + 2, Y2 + 2
+    w_mid = profile(m_bot, m_top, 54, 22, 1.5)
+    left, right = edges(w_mid, m_bot, m_top)
+    marc = arc_pts(mid, m_bot, 24, m_bot - (Y2 + 34), 0, -180, 20)
+    shaded(left + right + marc, 'middle')
+
+    # the long slender shaft to the top platform
+    s_bot, s_top = Y2 + 2, Y3 + 2
+    w_up = profile(s_bot, s_top, 20, 6.5, 1.7)
+    left, right = edges(w_up, s_bot, s_top)
+    shaded(left + right, 'shaft')
+
+    # lattice: a few cut-out diamonds up the shaft and the middle storey
+    def diamond(y, r, what='lattice'):
+        art.poly([(mid - r, y), (mid, y - r * 1.5), (mid, y + r * 1.5)], BRONZE_D, r=r * 0.25, what=what)
+        art.poly([(mid, y - r * 1.5), (mid + r, y), (mid, y + r * 1.5)], BRONZE_DD, r=r * 0.25, what=what)
+    for y in (232, 194, 158, 124):
+        r = w_up(y) * 0.5
+        diamond(y, r)
+        assert r * 1.5 < 40 and r < w_up(y) - 3, 'lattice off the shaft'
+    # an X on each leg
     for sgn in (-1, 1):
         col = BRONZE_DD if sgn > 0 else BRONZE_D
-        art.line([(mid + sgn * (w_mid(280) - 9), 280), (mid + sgn * 30, 214)], col, 3, what='middle brace')
-    # platforms, overlapping the sections above and below them
-    # each floor must cover the top of the section under it and the foot of
+        ya, yb = Y1 + 24, SPRING + 4
+        xa = lambda y: mid + sgn * (w_leg(y) + inner(y)) / 2
+        span = lambda y: (w_leg(y) - inner(y)) / 2 - 7
+        art.line([(xa(ya) - span(ya), ya), (xa(yb) + span(yb), yb)], col, 3.2, what='leg brace')
+        art.line([(xa(ya) + span(ya), ya), (xa(yb) - span(yb), yb)], col, 3.2, what='leg brace')
+
+    def slab(yc, h, hw, what):
+        y = yc - h / 2
+        art.rect(mid - hw, y, 2 * hw, h, BRONZE, rx=h / 2.2, what=what)
+        art.poly([(mid, y), (mid + hw, y), (mid + hw, y + h), (mid, y + h)], BRONZE_D, r=[0, h / 2.2, h / 2.2, 0], what=what + ' shade')
+        n = max(2, int(hw / 12))
+        n -= n % 2
+        if hw > 20:
+            for i in range(n):
+                x = mid - hw + 9 + i * (2 * hw - 18) / (n - 1)
+                art.rect(x - 2.6, y + h * 0.3, 5.2, h * 0.4, BRONZE_DD if x > mid else BRONZE_D, rx=2, what=what + ' window')
+    # each platform covers the top of the section under it and the foot of
     # the one above, so no seam shows
-    for (y, h, hw, what), below_top, above_bot in (((290, 20, 96, 'first floor'), 300, 296),
-                                                   ((186, 16, 52, 'second floor'), 192, 196),
-                                                   ((78, 12, 21, 'top floor'), 84, 84)):
-        assert y < below_top < y + h and y < above_bot < y + h, (what, 'leaves a gap')
-        slab(y, h, hw, what)
-    assert w_leg(300) < 96 and w_mid(296) < 96 and w_mid(192) < 52 and w_up(196) < 52 and w_up(84) < 21, 'floor narrower than its section'
+    for yc, h, hw, below_top, above_bot, below_w, above_w, what in (
+            (Y1, 18, P1, l_top, m_bot, w_leg(l_top), w_mid(m_bot), 'first platform'),
+            (Y2, 13, P2, m_top, s_bot, w_mid(m_top), w_up(s_bot), 'second platform'),
+            (Y3, 10, P3, s_top, None, w_up(s_top), 0, 'top platform')):
+        assert yc - h / 2 < below_top < yc + h / 2, (what, 'leaves a gap below')
+        assert above_bot is None or yc - h / 2 < above_bot < yc + h / 2, (what, 'leaves a gap above')
+        assert below_w < hw and above_w < hw, (what, 'narrower than its section')
+        slab(yc, h, hw, what)
+    assert abs(P2 / P1 - 0.4) < 0.03, 'second platform should be ~40% of the first'
     # the lantern and the mast
-    art.rect(mid - 10, 56, 20, 24, BRONZE, rx=5, what='lantern')
-    art.rect(mid, 56, 10, 24, BRONZE_D, rx=5, what='lantern shade')
-    art.rect(mid - 3, 26, 6, 32, BRONZE_D, rx=3, what='mast')
-    art.circle(mid, 26, 5, GOLD, what='mast ball')
+    lt = Y3 - 5 - 18
+    art.rect(mid - 6.5, lt, 13, 20, BRONZE, rx=4, what='lantern')
+    art.rect(mid, lt, 6.5, 20, BRONZE_D, rx=3, what='lantern shade')
+    art.rect(mid - 2.5, TIP + 4, 5, lt - TIP - 2, BRONZE_D, rx=2.5, what='mast')
+    art.circle(mid, TIP + 4, 4, GOLD, what='mast ball')
     # feet: pads where the legs meet the ground
     for sgn in (-1, 1):
-        x0 = mid + sgn * w_leg(FOOT)
-        x1 = mid + sgn * 60
+        x0, x1 = mid + sgn * w_leg(FOOT), mid + sgn * inner(FOOT)
         lo, hi = min(x0, x1) - 4, max(x0, x1) + 4
         art.rect(lo, FOOT - 10, hi - lo, 14, BRONZE_D if sgn > 0 else BRONZE, rx=6, what='foot pad')
         for x in (lo, hi):
             on_grass(x, FOOT + 4, ground, what='tower foot')
-    lx = mid - w_leg(350) + 15
-    art.rect(lx - 4, 332, 8, 36, WHITE, rx=4, rot=(24, lx, 350), extra=HI, what='leg pill')
-    sx = mid - w_up(150) + 5
-    art.rect(sx - 2.5, 134, 5, 32, WHITE, rx=2.5, rot=(8, sx, 150), extra=HI, what='spire pill')
-    for x, y in ((lx, 350), (sx, 150)):
-        assert mid - (w_leg if y > 300 else w_up)(y) < x - 4, 'highlight pill off the tower'
+    lx = mid - w_leg(372) + 9
+    art.rect(lx - 3.5, 352, 7, 34, WHITE, rx=3.5, rot=(26, lx, 369), extra=HI, what='leg pill')
+    sx = mid - w_up(190) + 4
+    art.rect(sx - 2, 172, 4, 34, WHITE, rx=2, rot=(5, sx, 189), extra=HI, what='shaft pill')
+    box = art.end_track()
+    art.assert_centred(box, 'Eiffel Tower')
+    height, width = FOOT + 4 - box[1], 2 * (w_leg(FOOT) + 4)
+    assert 1.6 <= height / width <= 1.8, ('Eiffel Tower proportions off', round(height / width, 2))
 
-    confetti(art, 5, (16, 16, 544, 300), 9, [(150, 20, 410, 420), (30, 290, 140, 420), (420, 300, 540, 420)], spacing=54)
+    confetti(art, 5, (16, 16, 544, 300), 7, [(150, 14, 410, 420), (30, 290, 140, 420), (420, 300, 540, 420)], spacing=60)
     return art
 
 
@@ -695,15 +853,19 @@ def italy():
     art = Art('it.svg', 560, 480)
     # an afternoon sun behind the tower's lit side, so its cream wall has
     # something to stand against on a white page
-    sun(art, 236, 196, 92)
-    ground = (280, 414, 236, 38)
-    grass(art, ground, pill=(360, 428, 40))
-    cypress(art, 108, 418, ground, 1.0)
-    cypress(art, 152, 408, ground, 0.72)
-    round_tree(art, 470, 412, ground, 0.78)
+    sun(art, 226, 186, 92)
+    ground = (280, 414, 240, 38)
+    grass(art, ground, pill=(370, 430, 40))
+    cypress(art, 92, 418, ground, 1.0)
+    cypress(art, 138, 410, ground, 0.72)
+    cypress(art, 420, 410, ground, 0.68)
+    round_tree(art, 476, 416, ground, 0.84)
 
-    cx, base = 286, 404
+    # the tower leans right about its foot, so its foot sits left of centre
+    # by about half the lean
+    cx, base = 266, 404
     LEAN = 5
+    art.begin_track()
     art.ellipse(cx + 12, base + 2, 92, 13, GREEN_D, what='tower shadow')
     art.push(rotate(LEAN, cx, base))
 
@@ -765,6 +927,10 @@ def italy():
         wx, wy = art.world((x, drums[0][0]))
         on_grass(wx, wy, ground, what='tower base')
     art.pop()
+    box = art.end_track()
+    # centre the tower itself, not its shadow
+    tower_box = box
+    art.assert_centred(tower_box, 'Leaning Tower')
 
     confetti(art, 9, (16, 16, 544, 330), 9, [(140, 90, 420, 430), (60, 150, 200, 430)], spacing=54)
     return art
@@ -784,25 +950,25 @@ def bubble_shape(x, y, w, h, tail_left=True):
 
 def translator():
     art = Art('translator.svg', 96, 96)
-    # green bubble, behind, up and left
+    # blue bubble, behind, up and left
     art.push(rotate(-8, 36, 34))
     x, y, w, h = 8, 10, 52, 38
     tail = bubble_shape(x, y, w, h, True)
-    art.poly([(a, b + 4) for a, b in tail], GREEN_D, r=[2, 2, 2.5])
-    card_lip(art, x, y, w, h, 13, GREEN, GREEN_D)
-    art.poly(tail, GREEN, r=[2, 2, 2.5])
+    art.poly([(a, b + 4) for a, b in tail], BLUE_D, r=[2, 2, 2.5])
+    card_lip(art, x, y, w, h, 13, BLUE, BLUE_D)
+    art.poly(tail, BLUE, r=[2, 2, 2.5])
     art.rect(x + 7, y + 6, 10, 5, WHITE, rx=2.5, extra=HI)
     # an "A" built from bars
     art.line([(26.5, 39), (34, 19), (41.5, 39)], WHITE, 5)
     art.line([(29.5, 32), (38.5, 32)], WHITE, 4.5)
     art.pop()
-    # blue bubble, in front, down and right
+    # green bubble, in front, down and right
     art.push(rotate(7, 62, 56))
     x, y, w, h = 36, 36, 52, 36
     tail = bubble_shape(x, y, w, h, False)
-    art.poly([(a, b + 4) for a, b in tail], BLUE_D, r=[2, 2, 2.5])
-    card_lip(art, x, y, w, h, 13, BLUE, BLUE_D)
-    art.poly(tail, BLUE, r=[2, 2, 2.5])
+    art.poly([(a, b + 4) for a, b in tail], GREEN_D, r=[2, 2, 2.5])
+    card_lip(art, x, y, w, h, 13, GREEN, GREEN_D)
+    art.poly(tail, GREEN, r=[2, 2, 2.5])
     art.rect(x + 7, y + 6, 10, 5, WHITE, rx=2.5, extra=HI)
     # swap arrows: right along the top, left along the bottom
     art.line([(49, 49), (73, 49)], WHITE, 4.5)
@@ -899,6 +1065,10 @@ def main():
         print(f'{art.name:18s} {n:6d} bytes')
         if art.w >= 400:
             assert n < 25000, (art.name, 'too big')
+    # the favicon is the logo, byte for byte
+    if OUT == os.path.join(ROOT, 'public', 'assets', 'art'):
+        shutil.copyfile(os.path.join(OUT, 'logo.svg'), os.path.join(ROOT, 'public', 'favicon.svg'))
+        print('favicon.svg        copied from logo.svg')
 
 
 if __name__ == '__main__':
