@@ -10,7 +10,9 @@
  * characters a month** for the whole site — about a thousand headwords — and
  * there is no per-user metering to hide behind. So:
  *
- *   - only single words are spoken, never sentences;
+ *   - the dictionary speaks single words, and the translator speaks its
+ *     translation only up to MAX_SENTENCE characters — a sentence a student
+ *     wrote, not a pasted page;
  *   - every clip is cached by word and voice, so a class of twenty-five all
  *     looking up *chaleureux* spends ten characters once, not two hundred and
  *     fifty;
@@ -50,6 +52,17 @@ const FORMAT = 'mp3_44100_64';
 export const MAX_SPOKEN = 40;
 
 /**
+ * One translated sentence, for the translator's speaker button. Two hundred
+ * characters is a long sentence and fifty of them a month's budget — which is
+ * why every one is cached, so a class hearing the same translation spends it
+ * once.
+ */
+export const MAX_SENTENCE = 200;
+
+/** Letters, digits, spaces and sentence punctuation — nothing that is markup or an address. */
+const LOOKS_LIKE_A_SENTENCE = /^(?=.*\p{L})[\p{L}\p{M}\p{N}\s'’.,;:!?¡¿«»"“”()\-–—]+$/u;
+
+/**
  * Word-shaped, checked here rather than only at the route.
  *
  * The length cap alone is not enough: "the quick brown fox jumps over it" is
@@ -75,7 +88,14 @@ function voice() {
  * @returns {Promise<{audio: Buffer, cached: boolean}>}
  * @throws {Error & {status?: number, spent?: boolean}}
  */
-export async function speak(word, study = 'es') {
+/**
+ * @param {string} word        what to say
+ * @param {string} study       the side of the site, which sets the language
+ * @param {object} [options]
+ * @param {boolean} [options.sentence]  a translated sentence rather than a word
+ * @param {boolean} [options.english]   say it in English (a translation into English)
+ */
+export async function speak(word, study = 'es', { sentence = false, english = false } = {}) {
   const key = process.env.ELEVENLABS_API_KEY?.trim();
   if (!key) {
     const error = new Error('No speech key configured');
@@ -84,13 +104,16 @@ export async function speak(word, study = 'es') {
   }
 
   const text = String(word ?? '').trim().replace(/\s+/g, ' ');
-  if (!text || text.length > MAX_SPOKEN || !LOOKS_LIKE_A_WORD.test(text)) {
-    const error = new Error('Not a word to pronounce');
+  const fits = sentence
+    ? text.length <= MAX_SENTENCE && LOOKS_LIKE_A_SENTENCE.test(text)
+    : text.length <= MAX_SPOKEN && LOOKS_LIKE_A_WORD.test(text);
+  if (!text || !fits) {
+    const error = new Error(sentence ? 'Not a sentence to read' : 'Not a word to pronounce');
     error.status = 400;
     throw error;
   }
 
-  const language = SPEECH_LANGUAGE[study] ?? 'en';
+  const language = english ? 'en' : (SPEECH_LANGUAGE[study] ?? 'en');
   const id = `${voice()}:${language}:${text.toLowerCase()}`;
   const hit = cache.get(id);
   if (hit) return { audio: hit, cached: true };
