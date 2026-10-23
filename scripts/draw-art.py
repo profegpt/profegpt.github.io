@@ -805,8 +805,8 @@ def france():
         return left, right
 
     def section(pts, what, w, y_bot, y_top, rows, extra=None):
-        """A storey: base tone, its right half in shade, then chunky X
-        bracing in bands, all clipped to the outline."""
+        """A storey: base tone, its right half in shade, then horizontal
+        bands (no X bracing), all clipped to the outline."""
         art.clip_begin(poly_d(pts), pts, what)
         x0, x1 = min(p[0] for p in pts), max(p[0] for p in pts)
         art.rect(x0 - 2, y_top - 2, x1 - x0 + 4, y_bot - y_top + 4, EI, what=what)
@@ -818,10 +818,6 @@ def france():
         for ya, yb in zip(ys, ys[1:]):
             wa, wb = w(ya), w(yb)
             art.line([(mid - wa, ya), (mid + wa, ya)], EI_DD, lw * 1.2, extra=LATTICE, what='brace')
-            # an X across each half, so the bracing follows the splay
-            for s in (-1, 1):
-                art.line([(mid + s * wa, ya), (mid, yb)], EI_DD, lw, extra=LATTICE, what='brace')
-                art.line([(mid, ya), (mid + s * wb, yb)], EI_DD, lw, extra=LATTICE, what='brace')
         art.clip_end()
 
     art.begin_track()
