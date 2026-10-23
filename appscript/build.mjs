@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 /**
  * Builds the Apps Script project in appscript/dist from the same sources the
- * Render site runs. Nothing under server/ or public/ is copied by hand or
+ * Node server runs. Nothing under server/ or public/ is copied by hand or
  * edited for Apps Script; this script turns them into what Apps Script can
  * load, and appscript/src supplies the parts Apps Script lacks.
  *
  *   dist/server.js      every server module, inside one function (profegpt_)
  *   dist/Code.js        the four entry points the browser may call
  *   dist/index.html     the page: markup, styles and every client module
- *   dist/assets/*.html  one wallpaper each, as base64, fetched on demand
  *
  * Apps Script has no modules, so each ES module becomes a function in a small
  * registry. Only the import and export forms this codebase uses are
@@ -20,7 +19,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -34,8 +32,6 @@ const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
 /** Imports the Apps Script build answers with its own module. */
 const SERVER_ALIASES = {
   express: 'appscript/src/modules/express.js',
-  'node:crypto': 'appscript/src/modules/crypto.js',
-  'server/providers/gemini.js': 'appscript/src/modules/gemini.js',
   'server/throttle.js': 'appscript/src/modules/throttle.js',
 };
 
@@ -50,22 +46,11 @@ const cacheMap = (file, name = 'cache') => [
  * turning a persistent cache back into a per-request one.
  */
 const SERVER_PATCHES = {
-  'server/quota.js': [cacheMap('server/quota.js', 'hits')],
-  'server/routes/lock.js': [[
-    'const lock = { locked: false, since: null };',
-    "const lock = persistentObject('lock', { locked: false, since: null });",
-  ]],
   'server/corpus.js': [cacheMap('server/corpus.js')],
-  'server/latin.js': [cacheMap('server/latin.js')],
   'server/speech.js': [cacheMap('server/speech.js')],
   'server/routes/dictionary.js': [cacheMap('server/routes/dictionary.js')],
   'server/routes/verbs.js': [cacheMap('server/routes/verbs.js')],
   'server/routes/translate.js': [cacheMap('server/routes/translate.js')],
-  'server/translators.js': [cacheMap('server/translators.js', 'restingUntil')],
-  'server/latin-lexicon.js': [
-    cacheMap('server/latin-lexicon.js', 'wiktionaryCache'),
-    cacheMap('server/latin-lexicon.js', 'definitionCache'),
-  ],
 };
 
 /** The routers are loaded lazily by app.js, so they are named here rather than imported. */
@@ -74,8 +59,6 @@ const SERVER_ENTRIES = [
   'server/routes/translate.js',
   'server/routes/dictionary.js',
   'server/routes/verbs.js',
-  'server/routes/chat.js',
-  'server/routes/lock.js',
   'server/routes/speak.js',
 ];
 
@@ -256,16 +239,26 @@ const inlineSafe = (code) => code.replace(/<\/script/gi, '<\\/script').replace(/
 
 // ---------------------------------------------------------------- page ----
 
-const WALLPAPER = /background-image: url\("\/assets\/([\w-]+)\.jpg"\);\s*background-image: image-set\([^;]*\);/g;
+/**
+ * The drawings, inlined. Apps Script serves no files of its own, so every
+ * `/assets/art/name.svg` the page, the stylesheet or the scripts mention is
+ * replaced by the picture itself as a data URI. They are small flat SVGs, so
+ * this costs a few kilobytes each rather than a round trip each.
+ */
+const ART = /\/assets\/art\/([\w-]+)\.svg/g;
+
+function inlineArt(text, label) {
+  const out = text.replace(ART, (_all, name) => {
+    const file = path.join(ROOT, 'public/assets/art', `${name}.svg`);
+    if (!fs.existsSync(file)) throw new Error(`${label}: no drawing called ${name}`);
+    return `data:image/svg+xml;base64,${fs.readFileSync(file).toString('base64')}`;
+  });
+  if (out.includes('/assets/')) throw new Error(`${label}: an asset was not inlined for Apps Script`);
+  return out;
+}
 
 function styles() {
-  let count = 0;
-  const css = read('public/styles.css').replace(WALLPAPER, (_all, name) => {
-    count += 1;
-    return `background-image: var(--asset-${name}, none);`;
-  });
-  if (!count || css.includes('/assets/')) throw new Error('styles.css: a wallpaper was not rewritten for Apps Script');
-  return css;
+  return inlineArt(read('public/styles.css'), 'styles.css');
 }
 
 function replaceOnce(text, from, to, label) {
@@ -273,13 +266,13 @@ function replaceOnce(text, from, to, label) {
   return text.replace(from, () => to);
 }
 
-function page(clientBundle, assetVersion) {
+function page(clientBundle) {
   let html = read('public/index.html');
   html = replaceOnce(html, '<link rel="stylesheet" href="/styles.css" />', `<style>\n${styles()}\n</style>`, 'the stylesheet');
   html = replaceOnce(html, '<link rel="icon" href="/favicon.svg" type="image/svg+xml" />\n', '', 'the favicon');
   html = replaceOnce(html, '  <link rel="apple-touch-icon" href="/favicon.svg" />\n', '', 'the touch icon');
 
-  const client = read('appscript/src/client.js').replace('__ASSET_VERSION__', assetVersion);
+  const client = read('appscript/src/client.js');
   html = replaceOnce(
     html,
     '<script type="module" src="/js/app.js"></script>',
@@ -305,7 +298,7 @@ function check(label, code) {
 
 export function build({ quiet = false } = {}) {
   fs.rmSync(DIST, { recursive: true, force: true });
-  fs.mkdirSync(path.join(DIST, 'assets'), { recursive: true });
+  fs.mkdirSync(DIST, { recursive: true });
 
   const server = bundle(SERVER_ENTRIES, { aliases: SERVER_ALIASES, patches: SERVER_PATCHES });
   const serverJs = `/**
@@ -336,15 +329,7 @@ return profegpt_.instance;
   const client = bundle(['public/js/app.js']);
   check('client bundle', client.code);
 
-  const wallpapers = fs.readdirSync(path.join(ROOT, 'public/assets')).filter((file) => file.endsWith('.webp')).sort();
-  const hash = crypto.createHash('sha1');
-  for (const file of wallpapers) {
-    const bytes = fs.readFileSync(path.join(ROOT, 'public/assets', file));
-    hash.update(bytes);
-    fs.writeFileSync(path.join(DIST, 'assets', file.replace(/\.webp$/, '.html')), bytes.toString('base64'));
-  }
-
-  const html = page(client.code, hash.digest('hex').slice(0, 10));
+  const html = inlineArt(page(client.code), 'index.html');
   for (const [index, script] of [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].entries()) {
     check(`index.html script ${index + 1}`, script[1]);
   }
@@ -359,7 +344,6 @@ return profegpt_.instance;
     console.log(`appscript/dist ← ${server.ids.length} server modules, ${client.ids.length} client modules`);
     console.log(`  server.js   ${size('server.js')}`);
     console.log(`  index.html  ${size('index.html')}`);
-    console.log(`  assets/     ${wallpapers.length} wallpapers`);
   }
   return { dist: DIST, server: server.ids, client: client.ids };
 }

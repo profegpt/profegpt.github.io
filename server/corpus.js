@@ -21,7 +21,7 @@ import { throttle, USER_AGENT } from './throttle.js';
 const CORPUS_LANGUAGES = {
   es: { tatoeba: 'spa', wiktionary: 'es' },
   fr: { tatoeba: 'fra', wiktionary: 'fr' },
-  la: { tatoeba: 'lat', wiktionary: 'la' },
+  it: { tatoeba: 'ita', wiktionary: 'it' },
 };
 
 const TATOEBA = 'https://tatoeba.org/en/api_v0/search';

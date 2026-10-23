@@ -103,6 +103,13 @@ export const ICONS = {
   ],
   // One filled crescent, cut by a second circle rather than stroked.
   moon: [{ d: 'M20.5 14.6A8.9 8.9 0 0 1 9.4 3.5a8.9 8.9 0 1 0 11.1 11.1z', fill: true }],
+
+  // The settings gear: eight square teeth round a ring, stroked rather than
+  // filled so the hole in the middle survives at header size.
+  gear: [{
+    d: 'M10.3 2.5h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6-2.6-.5v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+    width: 1.8,
+  }],
 };
 
 export function debounce(fn, wait) {

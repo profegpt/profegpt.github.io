@@ -2,18 +2,26 @@
  * ProfeGPT on Google Apps Script — the entry points.
  *
  * Every top-level function in this project without a trailing underscore can
- * be called by any visitor's browser through google.script.run, so there are
- * exactly four: the page, the API, the API's fallback, and the wallpapers.
+ * be called by any visitor's browser, so there are exactly four: the page
+ * (doGet), the API over google.script.run and its fallback (api, apiResult),
+ * and the same API over plain HTTP for the site on GitHub Pages (doPost, with
+ * doGet collecting its answers).
  * Everything else lives inside profegpt_(), in the generated server.js.
  *
  * This folder is generated: edit appscript/src/ and run `npm run appscript:build`.
  */
 
-/* global profegpt_, HtmlService, CacheService, ScriptApp */
+/* global profegpt_, HtmlService, CacheService, ScriptApp, ContentService, Utilities */
 
-/** The page. Any path or query the visitor arrived with becomes the first route. */
+/**
+ * The page. Any path or query the visitor arrived with becomes the first route.
+ *
+ * `?result=<id>` is not a page: it is the second half of doPost, below.
+ */
 function doGet(e) {
   const parameters = Object.assign({}, (e && e.parameter) || {});
+  if (parameters.result !== undefined) return json_(apiResult(parameters.result) || { pending: true });
+
   const page = String((e && e.pathInfo) || parameters.page || '').replace(/^\/+|\/+$/g, '');
   delete parameters.page;
 
@@ -70,10 +78,54 @@ function apiResult(id) {
   return JSON.parse(keys.map((key) => parts[key]).join(''));
 }
 
-/** One wallpaper, as base64. They are fetched on demand rather than all inlined into the page. */
-function asset(name) {
-  if (!/^(madrid|paris|rome)-(day|night)$/.test(String(name))) return null;
-  return HtmlService.createHtmlOutputFromFile(`assets/${name}`).getContent();
+/**
+ * The API over plain HTTP, for the copy of the site on GitHub Pages.
+ *
+ * GitHub Pages serves files and nothing else, so the Pages site sends its
+ * /api/… requests here instead — which is also where the DeepL and ElevenLabs
+ * keys live, in script properties, never in the browser.
+ *
+ * It takes two requests, because Apps Script will not wait for a promise: a
+ * doPost that returned the handler's promise would hand back nothing. So this
+ * starts the request and answers at once with an id; the handler settles a
+ * moment later — everything it awaits is already synchronous here — and
+ * leaves its response in the cache, where `doGet(?result=id)` collects it.
+ * The same stash api() falls back on.
+ *
+ * The body is JSON sent as text/plain, which keeps the browser's request
+ * "simple": no preflight, which Apps Script cannot answer. Its responses are
+ * served from googleusercontent.com with CORS open to every origin.
+ */
+function doPost(e) {
+  let request = null;
+  try {
+    request = JSON.parse((e && e.postData && e.postData.contents) || 'null');
+  } catch (error) {
+    request = null;
+  }
+  if (!request || typeof request.url !== 'string' || request.url.indexOf('/api/') !== 0) {
+    return json_({ error: 'Expected { method, url: "/api/…", headers, body }.' });
+  }
+
+  const id = Utilities.getUuid().replace(/-/g, '');
+  const failed = (error) => ({
+    status: 500,
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ error: String((error && error.message) || error) }),
+  });
+
+  profegpt_().handle({
+    method: String(request.method || 'GET').toUpperCase(),
+    url: request.url,
+    headers: request.headers || {},
+    body: typeof request.body === 'string' ? request.body : undefined,
+  }).then((response) => stashResponse_(id, response), (error) => stashResponse_(id, failed(error)));
+
+  return json_({ id });
+}
+
+function json_(value) {
+  return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
 }
 
 // ---------------------------------------------------------------------------

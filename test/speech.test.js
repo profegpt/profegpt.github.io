@@ -64,10 +64,10 @@ ok('a sentence is not a word', await refuses('the quick brown fox jumps over it'
 ok('over the length cap is refused', await refuses('a'.repeat(MAX_SPOKEN + 1)));
 ok('null is refused', await refuses(null));
 
-// A two-word Latin headword is still a headword.
+// A two-word headword is still a headword.
 calls = 0;
-result = await speak('res publica');
-ok('res publica is spoken', result.audio.length > 0 && calls === 1, `calls=${calls}`);
+result = await speak('pan comido');
+ok('pan comido is spoken', result.audio.length > 0 && calls === 1, `calls=${calls}`);
 
 // --- with no key at all, it declines rather than throwing oddly -----------
 delete process.env.ELEVENLABS_API_KEY;

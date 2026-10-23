@@ -182,10 +182,26 @@ export const PACK = {
     return language === 'fr'
       ? `${exclaim}Cela m'échappe. Je réponds à partir des données du site — le conjugueur, le dictionnaire et une série de fiches de grammaire —, donc je préfère ne rien dire plutôt qu'inventer.
 
-Essayez *conjugue partir*, *que veut dire flâner*, *c'est quoi « vinrent »* ou *le subjonctif*. Écrivez **aide** pour voir la liste complète.`
+Posée autrement, je pourrai peut-être y répondre. Essayez l'une de ces formulations — ou écrivez **aide** pour voir la liste complète :`
       : `${exclaim}That one's outside what I cover. I answer from the site's own data — the conjugator, the dictionary and a set of grammar explanations — so I'd rather say nothing than invent an answer.
 
-Try *conjugate partir*, *what does flâner mean*, *what is "vinrent"*, or *the subjunctive*. Type **help** for the full list.`;
+Asked another way, I might be able to. Try one of these — or type **help** for the full list:`;
+  },
+
+  /** The shapes a question can be put in so the tutor can answer it. See tutor.js. */
+  REPHRASE: {
+    fr: {
+      define: (word) => `que veut dire ${word}`,
+      conjugate: (verb) => `conjugue ${verb}`,
+      translate: (phrase) => `comment dit-on "${phrase}" en français`,
+      examples: ['conjugue partir', 'que veut dire flâner', 'c\'est quoi « vinrent »', 'le subjonctif'],
+    },
+    en: {
+      define: (word) => `what does ${word} mean`,
+      conjugate: (verb) => `conjugate ${verb}`,
+      translate: (phrase) => `how do you say "${phrase}" in French`,
+      examples: ['conjugate partir', 'what does flâner mean', 'what is "vinrent"', 'the subjunctive'],
+    },
   },
 
   labels: {
