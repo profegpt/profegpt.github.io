@@ -690,29 +690,31 @@ a.chip:hover { color: var(--brand-dark); }
   border-radius: var(--radius);
   background: var(--panel);
 }
-table.conj { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 940px; font-size: 16px; }
-table.conj th, table.conj td { padding: 11px 14px; text-align: left; border-bottom: 2px solid var(--line); }
+/* The conjugation tables never scroll sideways. On a wide page the columns
+   share the width evenly and a long form wraps inside its cell; on a narrow
+   one each tense becomes a card that lists its persons one under another. */
+.conjwrap {
+  border: 2px solid var(--line);
+  border-bottom-width: 4px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+table.conj { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; font-size: 16px; }
+table.conj th, table.conj td { padding: 11px 12px; text-align: left; border-bottom: 2px solid var(--line); overflow-wrap: break-word; }
 table.conj tr:last-child th, table.conj tr:last-child td { border-bottom: 0; }
 table.conj thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   background: var(--panel-soft);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--text-dim);
-  white-space: nowrap;
 }
 table.conj tbody th {
-  position: sticky;
-  left: 0;
-  z-index: 1;
   background: var(--panel);
   border-right: 2px solid var(--line);
   font-weight: 800;
-  white-space: nowrap;
 }
 table.conj tbody th small { display: block; margin-top: 2px; font-weight: 600; font-size: 13px; color: var(--text-faint); }
 table.conj tbody tr:hover td { background: var(--panel-soft); }
@@ -720,6 +722,27 @@ table.conj tbody tr:hover td { background: var(--panel-soft); }
    rather than push the table past the edge of the page. */
 table.conj td { font-weight: 700; }
 table.conj td.is-empty { color: var(--text-faint); }
+@media (max-width: 1000px) and (min-width: 861px) {
+  table.conj { font-size: 15px; }
+  table.conj th, table.conj td { padding: 10px 8px; }
+}
+@media (max-width: 860px) {
+  table.conj, table.conj tbody, table.conj tr, table.conj th, table.conj td { display: block; width: auto; }
+  table.conj thead { display: none; }
+  table.conj tbody tr { border-bottom: 2px solid var(--line); }
+  table.conj tbody tr:last-child { border-bottom: 0; }
+  table.conj tbody th { border-right: 0; border-bottom: 2px solid var(--line); background: var(--panel-soft); }
+  /* the person on the left, the form on the right; either wraps rather
+     than overflow, the form breaking inside a word only if it must */
+  table.conj td { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 12px; border-bottom: 0; padding: 8px 14px; text-align: right; overflow-wrap: anywhere; }
+  table.conj td::before { content: attr(data-label); color: var(--text-faint); font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
+  table.conj tbody tr:hover td { background: none; }
+}
+@media (max-width: 420px) {
+  table.conj { font-size: 15px; }
+  table.conj td { padding: 8px 10px; gap: 8px; }
+  table.conj td::before { font-size: 12px; letter-spacing: 0.3px; }
+}
 .mark-irregular td.is-irregular { color: var(--red); font-weight: 900; }
 
 /* Tables inside a grammar note or a chat reply: lighter, no sticky column. */

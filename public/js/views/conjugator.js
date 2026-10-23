@@ -477,12 +477,13 @@ function tenseTable(tenses, rows, moodKey, marks, caption, { PERSONS, PERSON_LAB
       const value = forms[person];
       tr.appendChild(el('td', {
         class: [value ? '' : 'is-empty', marks.has(`${moodKey}.${key}.${person}`) ? 'is-irregular' : ''].filter(Boolean).join(' '),
+        'data-label': PERSON_LABELS[person],
       }, value || '—'));
     }
     body.appendChild(tr);
   }
 
-  return el('div', { class: 'tablewrap', style: { marginBottom: '14px' } },
+  return el('div', { class: 'conjwrap', style: { marginBottom: '14px' } },
     el('table', { class: 'conj' }, el('thead', {}, head), body));
 }
 
@@ -491,6 +492,7 @@ function imperativeTable(imperative, marks) {
 
   const head = el('tr', {}, el('th', { scope: 'col' }, t('conjugator.imperative')));
   for (const [, label] of imperativePersons) head.appendChild(el('th', { scope: 'col' }, label));
+  const labels = Object.fromEntries(imperativePersons);
 
   const body = el('tbody', {});
   for (const [kind, label, hint] of imperativeKinds) {
@@ -500,11 +502,12 @@ function imperativeTable(imperative, marks) {
       const value = imperative[kind]?.[person];
       tr.appendChild(el('td', {
         class: [value ? '' : 'is-empty', marks.has(`${moods.imperative}.${kind}.${person}`) ? 'is-irregular' : ''].filter(Boolean).join(' '),
+        'data-label': labels[person],
       }, value || '—'));
     }
     body.appendChild(tr);
   }
 
-  return el('div', { class: 'tablewrap' },
-    el('table', { class: 'conj', style: { minWidth: '760px' } }, el('thead', {}, head), body));
+  return el('div', { class: 'conjwrap' },
+    el('table', { class: 'conj' }, el('thead', {}, head), body));
 }
