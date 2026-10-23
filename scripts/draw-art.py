@@ -10,7 +10,7 @@ translucent white highlight spots). Everything is generated so the geometry can 
 every shape passes through Art.add(), which works out where it lands on the
 canvas (through any rotated or scaled groups) and refuses to write a drawing
 with anything closer than MARGIN to the edge. Each drawing then asserts that
-the parts which ought to touch do touch: feet and towers on their grass,
+the parts which ought to touch do touch: towers on their facade,
 drums stacked without gaps, sails on their hub, and so on.
 
 Standard library only. The output is static SVG: no animation, no scripts,
@@ -27,7 +27,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'public', 'assets
 MARGIN = 4
 
 # Duolingo's palette
-GREEN, GREEN_D, GREEN_L = '#58CC02', '#58A700', '#89E219'   # grass and trees only
+GREEN, GREEN_D, GREEN_L = '#58CC02', '#58A700', '#89E219'   # the globe's land
 BLUE, BLUE_D, BLUE_L, BLUE_W = '#1CB0F6', '#1899D6', '#84D8FF', '#DDF4FF'
 BLUE_DD = '#0F7FB8'           # deep accent, for small details
 GOLD, GOLD_D = '#FFC800', '#E5A400'
@@ -42,7 +42,7 @@ BRONZE, BRONZE_D = '#E0853F', '#B8652B'
 # a few in-between shades the palette doesn't name
 CREAM_ARCH, CREAM_ARCH_D = '#D8C38A', '#C2AB6C'
 BRONZE_DD = '#94501F'
-WOOD, WOOD_D = '#B8652B', '#94501F'
+
 SAND, SAND_D, SAND_DD = '#E8C48A', '#C9A066', '#A8824E'
 
 
@@ -144,21 +144,6 @@ def rpoly_d(pts, r):
         if k > 0:
             d.append(f'Q{f(p1[0])} {f(p1[1])} {f(b[0])} {f(b[1])}')
     return ''.join(d) + 'Z'
-
-
-def ell_y(x, e, top=True):
-    """The grass ellipse's top (or bottom) edge above x."""
-    cx, cy, rx, ry = e
-    dx = (x - cx) / rx
-    if abs(dx) >= 1:
-        return None
-    h = ry * math.sqrt(1 - dx * dx)
-    return cy - h if top else cy + h
-
-
-def on_grass(x, y, e, inset=2, what='object'):
-    t, b = ell_y(x, e, True), ell_y(x, e, False)
-    assert t is not None and t + inset <= y <= b - inset, (what, 'not on the grass', x, y, t, b)
 
 
 # ------------------------------------------------------------------ the canvas
@@ -307,117 +292,36 @@ def confetti(art, seed, box, n, avoid, size=1.0, spacing=30):
     assert len(placed) == n, (art.name, 'could not place all the confetti', len(placed))
 
 
-def grass(art, e, lip=8, light=False):
-    """A grass disc with a darker front lip, like a pressed button. The
-    light one is for the green mascot, which would vanish into green grass."""
-    cx, cy, rx, ry = e
-    art.ellipse(cx, cy + lip, rx, ry, GREEN if light else GREEN_D, what='grass lip')
-    art.ellipse(cx, cy, rx, ry, GREEN_L if light else GREEN, what='grass')
-
-
-def round_tree(art, x, base, e, s=1.0):
-    """A lollipop tree: trunk, a ball of leaves shaded on the right."""
-    on_grass(x - 6 * s, base, e, what='tree trunk')
-    on_grass(x + 6 * s, base, e, what='tree trunk')
-    art.rect(x - 6 * s, base - 44 * s, 12 * s, 44 * s, WOOD, rx=6 * s, what='trunk')
-    art.rect(x, base - 44 * s, 6 * s, 44 * s, WOOD_D, rx=3 * s, what='trunk shade')
-    cy, r = base - 70 * s, 36 * s
-    assert cy + r > base - 44 * s + 6, 'crown does not reach the trunk'
-    art.circle(x, cy, r, GREEN_D, what='crown shade')
-    art.circle(x - 5 * s, cy - 4 * s, r - 5 * s, GREEN, what='crown')
-
-
-def cypress(art, x, base, e, s=1.0):
-    """A cypress: a tall flame of green, its right half in shade."""
-    on_grass(x - 4 * s, base, e, what='cypress')
-    on_grass(x + 4 * s, base, e, what='cypress')
-    hgt, wid = 170 * s, 46 * s
-    art.rect(x - 5 * s, base - 22 * s, 10 * s, 22 * s, WOOD, rx=5 * s, what='cypress trunk')
-    top, bot = (x, base - hgt), (x, base - 14 * s)
-    right = bezier(top, (x + wid * 0.78, base - hgt * 0.55), (x + wid * 0.62, base - 14 * s), bot)
-    left = bezier(bot, (x - wid * 0.62, base - 14 * s), (x - wid * 0.78, base - hgt * 0.55), top)
-    full = (f'M{f(x)} {f(top[1])}C{f(x + wid * 0.78)} {f(base - hgt * 0.55)} {f(x + wid * 0.62)} {f(bot[1])} {f(x)} {f(bot[1])}'
-            f'C{f(x - wid * 0.62)} {f(bot[1])} {f(x - wid * 0.78)} {f(base - hgt * 0.55)} {f(x)} {f(top[1])}Z')
-    half = (f'M{f(x)} {f(top[1])}C{f(x + wid * 0.78)} {f(base - hgt * 0.55)} {f(x + wid * 0.62)} {f(bot[1])} {f(x)} {f(bot[1])}Z')
-    art.path(full, [top] + right + left, GREEN, what='cypress')
-    art.path(half, [top] + right, GREEN_D, what='cypress shade')
-
-
-def trunk(art, x, base, e, s, h, w=12):
-    on_grass(x - w / 2 * s, base, e, what='tree trunk')
-    on_grass(x + w / 2 * s, base, e, what='tree trunk')
-    art.rect(x - w / 2 * s, base - h * s, w * s, h * s, WOOD, rx=w / 2 * s, what='trunk')
-    art.rect(x, base - h * s, w / 2 * s, h * s, WOOD_D, rx=w / 4 * s, what='trunk shade')
-
-
-def oval_tree(art, x, base, e, s=1.0):
-    """A tall poplar-ish tree: a long trunk under an upright oval crown."""
-    trunk(art, x, base, e, s, 50, 11)
-    cy, rx, ry = base - 88 * s, 27 * s, 48 * s
-    assert cy + ry > base - 50 * s + 6, 'crown does not reach the trunk'
-    art.ellipse(x, cy, rx, ry, GREEN_D, what='crown shade')
-    art.ellipse(x - 5 * s, cy - 5 * s, rx - 5 * s, ry - 5 * s, GREEN, what='crown')
-
-
-def cluster_tree(art, x, base, e, s=1.0):
-    """A bushy tree: three overlapping round crowns on a short trunk."""
-    trunk(art, x, base, e, s, 44, 12)
-    balls = [(x - 20 * s, base - 54 * s, 22 * s), (x + 19 * s, base - 58 * s, 21 * s), (x - 2 * s, base - 82 * s, 26 * s)]
-    for bx, by, r in balls:
-        art.circle(bx, by, r, GREEN_D, what='crown shade')
-    for bx, by, r in balls:
-        art.circle(bx - 4 * s, by - 4 * s, r - 5 * s, GREEN, what='crown')
-    assert max(by + r for bx, by, r in balls) > base - 44 * s + 6, 'crown does not reach the trunk'
-
-
-def conifer(art, x, base, e, s=1.0):
-    """A cone-shaped fir: three stacked rounded tiers, the right half in
-    shade."""
-    trunk(art, x, base, e, s, 22, 10)
-    tiers = [(base - 14 * s, 36 * s, 40 * s), (base - 42 * s, 29 * s, 38 * s), (base - 68 * s, 21 * s, 36 * s)]
-    for yb, hw, h in tiers:
-        pts = [(x - hw, yb), (x, yb - h), (x + hw, yb)]
-        art.poly(pts, GREEN, r=[6 * s, 5 * s, 6 * s], what='fir tier')
-        art.poly(clip_x(pts, x + 2 * s), GREEN_D, r=0, what='fir shade')
-    assert tiers[0][0] > base - 22 * s, 'fir floats off its trunk'
-
-
-def bush(art, x, base, e, s=1.0):
-    """A low shrub: overlapping round mounds sitting on the grass."""
-    mounds = [(x - 13 * s, 13 * s), (x + 12 * s, 12 * s), (x, 17 * s)]
-    for mx, r in mounds:
-        on_grass(mx, base, e, what='bush')
-        art.circle(mx, base - r * 0.7, r, GREEN_D, what='bush shade')
-    for mx, r in mounds:
-        art.circle(mx - 3 * s, base - r * 0.7 - 3 * s, r - 4 * s, GREEN, what='bush')
-
-
 def sun(art, cx, cy, r):
     art.circle(cx, cy, r, GOLD, what='sun')
     art.path(f'M{f(cx)} {f(cy - r)}A{f(r)} {f(r)} 0 0 1 {f(cx)} {f(cy + r)}Z',
              arc_pts(cx, cy, r, r, -90, 90), GOLD_D, extra='opacity=".45"', what='sun shade')
 
 
-# ------------------------------------------------------------------ the mascot
-# Profe is a speech bubble with a face: the "Pregúntale a Profe" card's
-# bubble, in the site's blue. A soft squircle with a short tail down to the
-# lower left, Duo's eyes and an open smile, and nothing else: no arms, no
-# legs, no hat. Shaded the way Duolingo shades: one flat colour, a darker
-# crescent down the lower right (the same lip as a pressed button). No
-# outlines, no gradients, no white highlight spots.
+# ------------------------------------------------------------------ the globe
+# The home page's picture is an object, not a character: a desk globe in
+# Duolingo's style. A blue sphere with flat green continents, its darker
+# crescent down the lower right; a gold half-ring holding it on a tilted
+# axis; a short stem and a gold foot with a pressed-button lip. No faces,
+# no outlines, no gradients, no white highlight spots.
 #
-# It is drawn in its own units, the bubble's body centred on (0, 0), and
-# placed by the caller: large on the home page, small as the logo.
+# It is drawn in its own units, the sphere centred on (0, 0), and placed by
+# the caller: large on the home page; the logo is the sphere alone.
 AX, AX_L = '#4B9AF3', '#A4CEFF'                     # the site's blue, and a pale tint for the confetti
 AX_D = '#3C81DB'                                    # its shade
-EYE_INK = '#22265A'
 PINK = '#FF8FB5'
 SAY_INK = '#3C81DB'                                  # the greeting bubbles' lettering
 # the same bubbles for the dark page (mascot-dark.svg): fill, edge, lettering
 SAY_DARK = ('#202F36', '#37464F', '#78B0FC')
-BW, BH, SQK = 130, 100, 0.74                         # the body's half width and half height, squareness
-TAIL = [(-84, 58), (-26, 86), (-100, 148)]            # root, root, tip: down to the lower left
-EYE_DX, EYE_Y, EYE_W, EYE_H = 38, -20, 27, 34       # the eyes: close set, taller than wide
+SQK = 0.74
+GLOBE_R, TILT = 128, 22                              # the sphere's radius; the axis leans this far right
+CONTINENTS = (                                       # flat blobs, in the sphere's units
+    [(-100, -84), (-44, -100), (-24, -66), (-54, -38), (-66, -10), (-98, -28)],      # North America
+    [(-62, 12), (-24, 20), (-30, 62), (-54, 104), (-70, 56)],                        # South America
+    [(8, -100), (54, -108), (78, -72), (42, -54), (14, -62)],                        # Europe
+    [(10, -38), (62, -42), (80, -6), (58, 42), (38, 90), (20, 34), (2, -4)],         # Africa
+    [(86, -86), (150, -60), (150, 14), (104, -8), (90, -50)],                        # Asia, round the edge
+)
 
 
 def squircle_pts(hw, hh, k=SQK, cx=0, cy=0, n=16):
@@ -507,85 +411,6 @@ def dots(art, seed, box, n, avoid, spacing=60):
     assert len(placed) == n, (art.name, 'could not place all the confetti', len(placed))
 
 
-def rounded_pts(pts, r, n=6):
-    """A polygon with its corners rounded (as rpoly_d draws them), as points."""
-    out = []
-    for i in range(len(pts)):
-        p0, p1, p2 = pts[i - 1], pts[i], pts[(i + 1) % len(pts)]
-        ri = r[i] if isinstance(r, (list, tuple)) else r
-        l1, l2 = math.dist(p0, p1), math.dist(p1, p2)
-        k = min(ri, l1 / 2, l2 / 2)
-        a = (p1[0] + (p0[0] - p1[0]) * k / l1, p1[1] + (p0[1] - p1[1]) * k / l1)
-        b = (p1[0] + (p2[0] - p1[0]) * k / l2, p1[1] + (p2[1] - p1[1]) * k / l2)
-        for j in range(n + 1):
-            t = j / n
-            out.append(((1 - t) ** 2 * a[0] + 2 * t * (1 - t) * p1[0] + t * t * b[0],
-                        (1 - t) ** 2 * a[1] + 2 * t * (1 - t) * p1[1] + t * t * b[1]))
-    return out
-
-
-def bubble(art, body, tail, fill, dark, shift, what):
-    """A speech bubble drawn as one shape: the body and its tail are one
-    outline, filled dark, with the fill shifted up and left over it. The
-    dark shows only as a lip along the bottom and down the tail's lower
-    edge, so the tail keeps a single point."""
-    shapes = [poly_shape(body), poly_shape(tail)]
-    shade(art, shapes, fill, dark, shift, what)
-    return shapes
-
-
-def profe(art):
-    """The mascot, in its own units. Returns its outline points."""
-    _, body = squircle_pts(BW, BH, k=SQK, n=24)
-    tail = rounded_pts(TAIL, [10, 10, 12])
-    for p in TAIL[:2]:
-        assert inside_poly(p, body), 'tail not joined to the body'
-    assert not inside_poly(TAIL[2], body), 'tail tip inside the body'
-    bubble(art, body, tail, AX, AX_D, (-6, -12), 'profe')
-
-    # eyes: two tall white ovals set close together, a big round pupil in
-    # each looking straight out at you, one catchlight each
-    for s in (-1, 1):
-        ex, ey, w, h = s * EYE_DX, EYE_Y, EYE_W, EYE_H
-        art.ellipse(ex, ey, w, h, WHITE, what='eye')
-        pr = w * 0.64
-        px, py = ex, ey + 5
-        art.circle(px, py, pr, EYE_INK, what='pupil')
-        art.circle(px - pr * 0.38, py - pr * 0.4, pr * 0.32, WHITE, what='catchlight')
-        # the pupil sits well inside the white
-        for a in range(0, 360, 15):
-            q = (px + pr * math.cos(math.radians(a)), py + pr * math.sin(math.radians(a)))
-            assert ((q[0] - ex) / (w - 3)) ** 2 + ((q[1] - ey) / (h - 3)) ** 2 < 1, 'pupil falls out of the eye'
-        for q in arc_pts(ex, ey, w, h, 0, 360, 16):
-            assert inside_poly(q, body), 'eye off the bubble'
-    assert 2 * EYE_DX - 2 * EYE_W < 24, 'eyes too far apart'
-
-    # an open smile with a pink tongue
-    mx, my, mw, md = 0, EYE_Y + EYE_H + 16, 26, 20
-    mouth = (f'M{f(mx - mw)} {f(my)}Q{f(mx)} {f(my + 7)} {f(mx + mw)} {f(my)}'
-             f'C{f(mx + mw)} {f(my + md * 0.8)} {f(mx + mw * 0.5)} {f(my + md)} {f(mx)} {f(my + md)}'
-             f'C{f(mx - mw * 0.5)} {f(my + md)} {f(mx - mw)} {f(my + md * 0.8)} {f(mx - mw)} {f(my)}Z')
-    mpts = [(mx - mw, my), (mx + mw, my), (mx, my + md)]
-    art.clip_begin(mouth, mpts, 'mouth')
-    art.path(mouth, mpts, EYE_INK, what='mouth')
-    art.ellipse(mx + 2, my + md + 1, mw * 0.6, md * 0.5, PINK, what='tongue')
-    art.clip_end()
-    assert inside_poly((mx, my + md + 10), body), 'mouth off the bubble'
-    return body + tail
-
-
-def logo():
-    art = Art('logo.svg', 64, 64)
-    S = 0.205
-    art.push(place(32, 32 - 31 * S, S))
-    art.begin_track()
-    profe(art)
-    box = art.end_track()
-    art.pop()
-    assert box[2] - box[0] > 50, ('logo too small', box)
-    return art
-
-
 def say(art, x, y, w, h, s, tail_to, size=24, tilt=0, dark=False):
     """A white speech bubble with a light grey edge and lip, blue lettering,
     and a tail toward `tail_to`. All the hero's bubbles are this one colour.
@@ -619,40 +444,182 @@ def say(art, x, y, w, h, s, tail_to, size=24, tilt=0, dark=False):
     return (x - 8, y - 8, x + w + 8, y + h + 12)
 
 
+def globe(art, stand=True):
+    """The globe, in its own units. Returns its outline points."""
+    R = GLOBE_R
+    d, sphere = disc((0, 0), R, n=48)
+    lit = (-16, -14)                       # the lit sphere, shifted up and left
+    ld, _ = disc(lit, R, n=48)
+    art.clip_begin(d, sphere, 'globe')
+    art.rect(-R - 2, -R - 2, 2 * R + 4, 2 * R + 4, AX_D, what='sea shade')
+    art.circle(lit[0], lit[1], R, AX, what='sea')
+    # the continents: dark everywhere, then lit inside the lit sphere, so
+    # the crescent of shade runs across land and sea alike
+    for c in CONTINENTS:
+        art.poly(c, GREEN_D, r=16, what='land shade')
+    art.clip_begin(ld, [], 'globe light')
+    for c in CONTINENTS:
+        art.poly(c, GREEN, r=16, what='land')
+    art.clip_end()
+    art.clip_end()
+    for c in CONTINENTS:
+        assert sum(math.hypot(*p) < R for p in c) >= 3, 'a continent fell off the globe'
+    out = list(sphere)
+    if not stand:
+        return out
+
+    # the half-ring: from the north pivot round the right side to the south
+    # pivot, on the tilted axis, the same distance from the sphere all round
+    r0, r1 = R + 10, R + 24
+    a0, a1 = -90 + TILT, 90 + TILT
+    ring = arc_pts(0, 0, r1, r1, a0, a1, 40) + arc_pts(0, 0, r0, r0, a1, a0, 40)
+    shade(art, [poly_shape(ring)], GOLD, GOLD_D, (-3, -4), 'ring')
+    out += ring
+    # pivots: a short axle into the sphere and a round cap at each end
+    for a in (a0, a1):
+        u = (math.cos(math.radians(a)), math.sin(math.radians(a)))
+        art.capsule((u[0] * (R - 6), u[1] * (R - 6)), (u[0] * r0, u[1] * r0), 5, GOLD_D, what='axle')
+        cx, cy = u[0] * (r0 + r1) / 2, u[1] * (r0 + r1) / 2
+        art.circle(cx, cy, 11, GOLD_D, what='pivot')
+        art.circle(cx - 1.5, cy - 2, 8.5, GOLD, what='pivot')
+    # the stem from the ring's lowest point, and the foot
+    assert a0 < 90 < a1, 'the ring does not pass under the sphere'
+    top, foot = r1 - 4, r1 + 30
+    art.rect(-10, top, 20, foot - top + 4, GOLD, rx=6, what='stem')
+    art.rect(0, top, 10, foot - top + 4, GOLD_D, rx=5, what='stem shade')
+    fw, fh, lip = 92, 22, 8
+    art.rect(-fw, foot + lip, 2 * fw, fh, GOLD_D, rx=fh / 2, what='foot lip')
+    art.rect(-fw, foot, 2 * fw, fh, GOLD, rx=fh / 2, what='foot')
+    out += [(-fw, foot), (fw, foot + fh + lip)]
+    return out
+
+
+def logo():
+    art = Art('logo.svg', 64, 64)
+    S = 27 / GLOBE_R
+    art.push(place(32, 32, S))
+    art.begin_track()
+    globe(art, stand=False)
+    box = art.end_track()
+    art.pop()
+    art.assert_centred(box, 'logo', tol=1)
+    return art
+
+
 def hero(dark=False):
-    """The home page's mascot; dark=True is the same drawing with the
+    """The home page's picture; dark=True is the same drawing with the
     greeting bubbles in dark-theme colours, for the dark page."""
     art = Art('mascot-dark.svg' if dark else 'mascot.svg', 560, 480)
-    S, TILT = 0.94, -4
-    CX, CY = 282, 200
+    S, CX, CY = 0.92, 272, 206
     art.push(place(CX, CY, S))
-    art.push(rotate(TILT))
-    M = mul(place(CX, CY, S)[1], rotate(TILT)[1])
+    M = place(CX, CY, S)[1]
     art.begin_track()
-    outline = profe(art)
+    outline = globe(art)
     m_box = art.end_track()
     art.pop()
-    art.pop()
     keep = [apply(M, p) for p in outline]
-    assert abs((m_box[0] + m_box[2]) / 2 - 280) <= 24, ('mascot not centred', m_box)
+    assert abs((m_box[0] + m_box[2]) / 2 - 280) <= 24, ('globe not centred', m_box)
 
     # three greeting bubbles, one per language, all the same colour
     boxes = []
-    boxes.append(say(art, 10, 92, 122, 54, '¡Hola!', (150, 128), tilt=-4, dark=dark))
-    boxes.append(say(art, 416, 214, 136, 54, 'Bonjour', (404, 190), tilt=3, dark=dark))
-    boxes.append(say(art, 330, 374, 108, 54, 'Ciao', (322, 322), tilt=-3, dark=dark))
+    boxes.append(say(art, 14, 84, 122, 54, '¡Hola!', (150, 128), tilt=-4, dark=dark))
+    boxes.append(say(art, 412, 44, 136, 54, 'Bonjour', (396, 100), tilt=3, dark=dark))
+    boxes.append(say(art, 22, 300, 108, 54, 'Ciao', (156, 280), tilt=-3, dark=dark))
     for b in boxes:
         for x, y in keep:
-            assert not (b[0] < x < b[2] and b[1] < y < b[3]), ('bubble on the mascot', b, round(x), round(y))
+            assert not (b[0] < x < b[2] and b[1] < y < b[3]), ('bubble on the globe', b, round(x), round(y))
 
     dots(art, 7, (14, 14, 546, 466), 7, [m_box, *boxes], spacing=70)
     return art
 
 
+# ------------------------------------------------------------------ the country pictures
+# Small Duolingo vocabulary pictures that stand in front of each landmark:
+# a croissant for France, a wine bottle and glass for Spain, a bowl of
+# pasta for Italy. Each is drawn in its own units, centred on (0, 0) at its
+# foot, and placed by the caller.
+def croissant(art):
+    """Five plump segments fanned in a crescent: the big middle one darker,
+    the pair beside it lighter, two small round tips lower down, each with
+    a darker lip along its bottom."""
+    C, C_L, C_D = '#E5A157', '#F0B46E', '#CF8A43'
+    for sx in (-1, 1):
+        art.circle(sx * 90, -24, 22, C_D, what='croissant tip lip')
+        art.circle(sx * 90, -28, 21, C, what='croissant tip')
+    for sx in (-1, 1):
+        side = [(sx * 22, -84), (sx * 58, -70), (sx * 86, -40), (sx * 74, -10), (sx * 24, -8)]
+        art.poly([(x, y + 6) for x, y in side], C_D, r=[16, 26, 18, 12, 6], what='croissant side lip')
+        art.poly(side, C_L, r=[16, 26, 18, 12, 6], what='croissant side')
+    mid = [(-42, -100), (42, -100), (24, -4), (-24, -4)]
+    art.poly([(x, y + 6) for x, y in mid], C_D, r=[22, 22, 12, 12], what='croissant middle lip')
+    art.poly(mid, C, r=[22, 22, 12, 12], what='croissant middle')
+    return [(-112, -100), (112, 2)]
+
+
+def wine(art):
+    """A dark bottle with a red capsule and label, and a pale glass of red
+    wine in front of it to the right."""
+    B, B_D, W, W_D = '#4B4B4B', '#3A3A3A', '#D93A5E', '#B92A4C'
+    GL, GL_D = '#C8F0FF', '#9FDDF5'
+    # the bottle
+    bx = -34
+    art.rect(bx - 34, -150, 68, 150, B, rx=18, what='bottle')
+    art.rect(bx + 6, -150, 28, 150, B_D, rx=14, what='bottle shade')
+    art.rect(bx + 6, -150, 14, 150, B_D, what='bottle shade')
+    art.path(f'M{f(bx - 34)} {f(-128)}C{f(bx - 34)} {f(-168)} {f(bx - 14)} {f(-172)} {f(bx - 13)} {f(-196)}'
+             f'L{f(bx + 13)} {f(-196)}C{f(bx + 14)} {f(-172)} {f(bx + 34)} {f(-168)} {f(bx + 34)} {f(-128)}Z',
+             [(bx - 34, -196), (bx + 34, -128)], B, what='shoulder')
+    art.rect(bx - 15, -232, 30, 40, W, rx=6, what='capsule')
+    art.rect(bx + 3, -232, 12, 40, W_D, rx=5, what='capsule shade')
+    art.rect(bx - 18, -236, 36, 10, W, rx=5, what='capsule lip')
+    art.rect(bx - 34, -110, 68, 62, W, rx=4, what='label')
+    art.rect(bx + 10, -110, 24, 62, W_D, rx=4, what='label shade')
+    # the glass: a round bowl, the wine in its lower half, a stem and foot
+    gx, gy, gw = 48, -128, 40
+    bowl = (f'M{f(gx - gw)} {f(gy - 40)}L{f(gx + gw)} {f(gy - 40)}'
+            f'C{f(gx + gw + 4)} {f(gy + 10)} {f(gx + 26)} {f(gy + 40)} {f(gx)} {f(gy + 40)}'
+            f'C{f(gx - 26)} {f(gy + 40)} {f(gx - gw - 4)} {f(gy + 10)} {f(gx - gw)} {f(gy - 40)}Z')
+    bpts = [(gx - gw - 4, gy - 40), (gx + gw + 4, gy + 40)]
+    art.clip_begin(bowl, bpts, 'glass')
+    art.rect(gx - gw - 6, gy - 42, 2 * gw + 12, 84, GL, what='glass')
+    art.rect(gx + gw * 0.4, gy - 42, gw, 84, GL_D, what='glass shade')
+    art.rect(gx - gw - 6, gy - 2, 2 * gw + 12, 44, W, what='wine')
+    art.rect(gx + gw * 0.4, gy - 2, gw, 44, W_D, what='wine shade')
+    art.clip_end()
+    art.rect(gx - 5, gy + 36, 10, 82, GL, rx=4, what='stem')
+    art.rect(gx - 30, -12, 60, 12, GL, rx=6, what='foot')
+    art.rect(gx + 4, -12, 26, 12, GL_D, rx=6, what='foot shade')
+    return [(bx - 34, -236), (gx + gw + 4, 0)]
+
+
+def pasta(art):
+    """A pale bowl heaped with golden spaghetti, a strand over the rim."""
+    BW_, BW_D = '#E8EEF3', '#C9D4DC'
+    rim = -60
+    # the heap: overlapping round mounds, curls of darker noodle on them
+    mounds = [(-52, rim + 4, 34), (-14, rim - 18, 40), (30, rim - 12, 38), (62, rim + 4, 30)]
+    for mx, my, r in mounds:
+        art.circle(mx, my, r, GOLD, what='pasta')
+    for mx, my, r in mounds:
+        art.line(arc_pts(mx + 2, my + 2, r * 0.55, r * 0.5, 200, 340, 10), GOLD_D, 6, what='noodle')
+    art.line([(18, rim - 4), (16, rim + 24), (22, rim + 40)], GOLD_D, 7, what='strand')
+    # the bowl: a flat rim, a deep round body, a small foot
+    body = (f'M{f(-100)} {f(rim)}L{f(100)} {f(rim)}C{f(100)} {f(rim + 50)} {f(56)} {f(-10)} {f(0)} {f(-10)}'
+            f'C{f(-56)} {f(-10)} {f(-100)} {f(rim + 50)} {f(-100)} {f(rim)}Z')
+    bpts = [(-100, rim), (100, -10)]
+    art.clip_begin(body, bpts, 'bowl')
+    art.rect(-102, rim - 2, 204, 54, BW_, what='bowl')
+    art.rect(30, rim - 2, 74, 54, BW_D, what='bowl shade')
+    art.clip_end()
+    art.line([(18, rim), (22, rim + 26)], GOLD, 7, what='strand over the rim')
+    art.rect(-30, -12, 60, 12, BW_D, rx=5, what='bowl foot')
+    return [(-100, rim - 58), (100, 0)]
+
+
 # ------------------------------------------------------------------ Spain
 # The Sagrada Familia, Nativity side: four spindle bell towers with mosaic
 # finials (the inner pair taller), the tall central tower behind, the gable
-# with Gaudi's green cypress, and the facade with its three parabolic portals.
+# with a small gold-tipped spindle, and the facade with its three parabolic portals.
 def finial(art, cx, y, s, col, col_d):
     """The mosaic pinnacle on a Sagrada Familia tower, standing on (cx, y):
     a coloured knob, a gold cross, white balls at the cross's ends."""
@@ -706,15 +673,10 @@ def spindle(art, cx, base, top, hw, col, col_d, s=1.0, slots=7, phase=0.0, stone
 def spain():
     art = Art('es.svg', 560, 480)
     sun(art, 128, 132, 64)
-    ground = (280, 414, 240, 38)
-    grass(art, ground)
-    cluster_tree(art, 76, 418, ground, 0.9)
-    oval_tree(art, 490, 410, ground, 0.78)
 
     mid = 280
     BODY_T, BODY_B = 318, 408
     art.begin_track()
-    art.ellipse(mid + 6, BODY_B + 1, 140, 12, GREEN_D, what='basilica shadow')
     # the tall central tower, behind
     w_c, tip_c = spindle(art, mid, 330, 72, 25, GOLD, GOLD_D, s=1.15, slots=0, stone=('#F3DDB4', '#DDBF8C'))
     # the four Nativity towers: the inner pair taller
@@ -722,7 +684,7 @@ def spain():
     for x, top, hw, col, col_d, ph in ((180, 160, 19, RED, RED_D, 0.4), (380, 160, 19, RED, RED_D, 1.6),
                                       (232, 118, 21.5, ORANGE, ORANGE_D, 2.2), (328, 118, 21.5, ORANGE, ORANGE_D, 0.9)):
         tb = BODY_T + 6
-        w, tip = spindle(art, x, tb, top, hw, col, col_d, s=0.85 if hw < 20 else 0.95, slots=8, phase=ph)
+        w, tip = spindle(art, x, tb, top, hw, col, col_d, s=0.85 if hw < 20 else 0.95, slots=0, phase=ph)
         towers.append((x, tb, hw))
         assert BODY_T < tb, 'tower floats above the body'
     # the central gable over the main portal, with a small gold-tipped
@@ -759,12 +721,15 @@ def spain():
         art.circle(x, 336, 3.6, SAND_DD, what='frieze')
     box = art.end_track()
     art.assert_centred(box, 'basilica')
-    for x in (150 + 8, 410 - 8):
-        on_grass(x, BODY_B, ground, what='facade')
     for x, tb, hw in towers:
         assert 150 <= x - hw and x + hw <= 410, 'tower hangs off the facade'
 
-    confetti(art, 3, (16, 16, 544, 300), 5, [(130, 20, 430, 420), (40, 50, 200, 210), (40, 300, 130, 430), (440, 300, 540, 430)], spacing=60)
+    # Spanish wine, in front at the lower right
+    art.push(place(470, 412, 0.7))
+    wine(art)
+    art.pop()
+
+    confetti(art, 3, (16, 16, 544, 300), 5, [(130, 20, 430, 420), (40, 50, 200, 210), (40, 300, 130, 430), (410, 230, 540, 430)], spacing=60)
     return art
 
 
@@ -772,11 +737,6 @@ def spain():
 def france():
     art = Art('fr.svg', 560, 480)
     mid = 280
-    ground = (280, 440, 238, 26)
-    grass(art, ground)
-    oval_tree(art, 88, 446, ground, 0.86)
-    bush(art, 138, 452, ground, 0.85)
-    round_tree(art, 474, 444, ground, 0.72)
 
     # proportions traced from the reference drawing: 1.85 times as tall as
     # it is wide at the foot; the first deck at 22% of the height and 56% of
@@ -791,7 +751,6 @@ def france():
     P2 = 0.58 * P1
     D1, D2 = 22, 15                         # deck thicknesses
     EI, EI_L, EI_D, EI_DD = '#D39A62', '#E9BC88', '#B47A45', '#9C6436'
-    LATTICE = ''                            # the bracing: one opaque deep bronze
 
     def profile(y_bot, y_top, w_bot, w_top, power):
         def w(y):
@@ -805,23 +764,17 @@ def france():
         return left, right
 
     def section(pts, what, w, y_bot, y_top, rows, extra=None):
-        """A storey: base tone, its right half in shade, then horizontal
-        bands (no X bracing), all clipped to the outline."""
+        """A storey: base tone, its right half in shade, clipped to the
+        outline. Plain: no bracing, no bands."""
         art.clip_begin(poly_d(pts), pts, what)
         x0, x1 = min(p[0] for p in pts), max(p[0] for p in pts)
         art.rect(x0 - 2, y_top - 2, x1 - x0 + 4, y_bot - y_top + 4, EI, what=what)
         art.rect(mid, y_top - 2, x1 - mid + 2, y_bot - y_top + 4, EI_D, what=what + ' shade')
         if extra:
             extra()
-        lw = max(3.4, min(6.5, w(y_bot) * 0.13))
-        ys = [y_bot - (y_bot - y_top) * i / rows for i in range(rows + 1)]
-        for ya, yb in zip(ys, ys[1:]):
-            wa, wb = w(ya), w(yb)
-            art.line([(mid - wa, ya), (mid + wa, ya)], EI_DD, lw * 1.2, extra=LATTICE, what='brace')
         art.clip_end()
 
     art.begin_track()
-    art.ellipse(mid + 6, FOOT + 2, BASE + 26, 10, GREEN_D, what='tower shadow')
 
     # the legs: one splayed trapezoid to the first deck, the great round
     # arch cut out of it
@@ -900,8 +853,6 @@ def france():
         x0, x1 = mid + sgn * w_leg(FOOT), mid + sgn * a_s
         lo, hi = min(x0, x1) - 4, max(x0, x1) + 4
         art.rect(lo, FOOT - 9, hi - lo, 13, EI_D if sgn > 0 else EI_L, rx=6, what='foot pad')
-        for x in (lo, hi):
-            on_grass(x, FOOT + 4, ground, what='tower foot')
 
     box = art.end_track()
     art.assert_centred(box, 'Eiffel Tower')
@@ -909,7 +860,12 @@ def france():
     assert 1.8 <= height / width <= 1.9, ('Eiffel Tower proportions off', round(height / width, 2))
     assert 370 <= height <= 395, ('Eiffel Tower should stand about 380 tall', round(height))
 
-    confetti(art, 5, (16, 16, 544, 330), 8, [(160, 40, 400, 470), (30, 320, 150, 470), (410, 320, 540, 470)], spacing=60)
+    # a croissant, in front at the lower right
+    art.push(place(446, 446, 0.84))
+    croissant(art)
+    art.pop()
+
+    confetti(art, 5, (16, 16, 544, 330), 8, [(160, 40, 400, 470), (30, 320, 150, 470), (370, 340, 540, 470)], spacing=60)
     return art
 
 
@@ -919,25 +875,15 @@ def italy():
     # an afternoon sun behind the tower's lit side, so its cream wall has
     # something to stand against on a white page
     sun(art, 226, 186, 92)
-    ground = (280, 414, 240, 38)
-    grass(art, ground)
-    cypress(art, 92, 418, ground, 1.0)
-    cypress(art, 136, 410, ground, 0.6)
-    cypress(art, 420, 410, ground, 0.8)
-    cluster_tree(art, 480, 416, ground, 0.74)
 
-    # the tower leans right about its foot, so its foot sits left of centre
-    # by about half the lean
-    cx, base = 266, 404
-    LEAN = 5
+    # the tower stands upright, centred
+    cx, base = 280, 404
     art.begin_track()
-    art.ellipse(cx + 12, base + 2, 92, 13, GREEN_D, what='tower shadow')
-    art.push(rotate(LEAN, cx, base))
 
     R = 60                           # drum radius
     drums = []                       # (bottom, top, half width)
     y = base
-    drums.append((y + 8, y - 60, R)); y -= 60          # ground floor (runs into the grass)
+    drums.append((y + 8, y - 60, R)); y -= 60          # ground floor, its plinth below
     for _ in range(6):
         drums.append((y, y - 31, R)); y -= 31
     bell_r = 40
@@ -984,18 +930,15 @@ def italy():
     ledge(TOP, bell_r + 2, 9)
     art.path(f'M{f(cx - bell_r + 6)} {f(TOP - 4)}A{f(bell_r - 6)} 13 0 0 1 {f(cx + bell_r - 6)} {f(TOP - 4)}Z',
              [(cx - bell_r + 6, TOP - 17), (cx + bell_r - 6, TOP - 4)], CREAM_D, what='roof')
-    b0, t0, _ = drums[0]
-    # the base corners, after the lean, sit in the grass
-    for x in (cx - R - 8, cx + R + 8):
-        wx, wy = art.world((x, drums[0][0]))
-        on_grass(wx, wy, ground, what='tower base')
-    art.pop()
     box = art.end_track()
-    # centre the tower itself, not its shadow
-    tower_box = box
-    art.assert_centred(tower_box, 'Leaning Tower')
+    art.assert_centred(box, 'Tower of Pisa')
 
-    confetti(art, 9, (16, 16, 544, 330), 9, [(140, 90, 420, 430), (60, 150, 200, 430)], spacing=54)
+    # a bowl of pasta, in front at the lower right
+    art.push(place(446, 414, 0.92))
+    pasta(art)
+    art.pop()
+
+    confetti(art, 9, (16, 16, 544, 330), 9, [(140, 90, 420, 430), (60, 150, 200, 430), (360, 300, 540, 430)], spacing=54)
     return art
 
 
