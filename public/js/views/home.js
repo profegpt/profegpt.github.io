@@ -33,7 +33,6 @@ export function renderHome(main) {
   const lead = el('p', { class: 'home__lead' });
   const choose = el('span', {});
   const enterLabel = el('span', {});
-  const hint = el('p', { class: 'home__hint' });
   const soonTitle = el('span', { class: 'langbox__name' });
   const soonBody = el('span', { class: 'langbox__english' });
 
@@ -85,7 +84,7 @@ export function renderHome(main) {
   const section = el('section', { class: 'home shell' },
     el('h2', { class: 'section__title', id: 'home-choose' }, choose),
     grid,
-    el('div', { class: 'home__go' }, enter, hint));
+    el('div', { class: 'home__go' }, enter));
 
   main.append(hero, el('hr', { class: 'rule' }), section);
 
@@ -94,7 +93,6 @@ export function renderHome(main) {
     lead.textContent = t('home.lead');
     choose.textContent = t('home.choose');
     enterLabel.textContent = t('home.enter');
-    hint.textContent = t('home.hint');
     soonTitle.textContent = t('home.soon');
     soonBody.textContent = t('home.soonBody');
     document.title = t('home.title');

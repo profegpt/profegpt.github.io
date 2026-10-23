@@ -439,7 +439,7 @@ function persistentMap(name) {
   return new PersistentMap(name);
 }
 
-/** A small object whose properties are kept on CacheService, for the lock. */
+/** A small object whose properties are kept on CacheService. Unused since the teacher's lock was removed; kept for restoring it — see docs/teacher-lock.md. */
 function persistentObject(name, defaults) {
   const store = CacheService.getScriptCache();
   const slot = `o:${name}`;

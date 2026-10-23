@@ -4,8 +4,6 @@ import { renderConjugator } from './views/conjugator.js';
 import { renderDictionary } from './views/dictionary.js';
 import { renderChat } from './views/chat.js';
 import { clear } from './lib/dom.js';
-import { mountLanguageSwitch } from './lib/language-switch.js';
-import { mountSiteLock } from './lib/site-lock.js';
 import { mountSettings } from './lib/settings.js';
 import { t } from './lib/i18n.js';
 import {
@@ -32,16 +30,14 @@ const HOME = { path: '/', nav: null, render: renderHome, home: true };
 
 const main = document.getElementById('main');
 
-mountLanguageSwitch(document.querySelector('.langswitch'));
 mountSettings(document.querySelector('.nav__end'));
-mountSiteLock();
 
 /**
  * The site's own address, for the footer. Shown everywhere except on it — the
  * Apps Script build, a local server — so a reader always has the real URL to
  * bookmark or pass on. The address is its own label in every language.
  */
-const WEBSITE = 'https://profegpt.github.io/profegpt';
+const WEBSITE = 'https://profegpt.github.io';
 
 const NAV_KEYS = {
   traductor: 'translator',

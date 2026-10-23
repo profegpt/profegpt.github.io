@@ -78,4 +78,22 @@ test('no key, and no server code, is in the site', () => {
 });
 
 fs.rmSync(out, { recursive: true, force: true });
+
+// --- at the root of the host, as profegpt.github.io is -----------------------
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'profegpt-pages-root-'));
+build({ out: root, config: { base: '', api: config.api }, quiet: true });
+const rootHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+test('at the root, paths are left as they are', () => {
+  assert.ok(rootHtml.includes('<script type="module" src="/js/app.js">'));
+  assert.ok(rootHtml.includes('href="/styles.css"'));
+  assert.ok(!rootHtml.includes('/profegpt/'));
+});
+
+test('and the app is told it has no prefix', () => {
+  assert.ok(rootHtml.includes('<meta name="profegpt-base" content="" />'));
+  assert.equal(fs.readFileSync(path.join(root, '404.html'), 'utf8'), rootHtml);
+});
+
+fs.rmSync(root, { recursive: true, force: true });
 console.log(`✓ all ${passed} Pages checks passed`);

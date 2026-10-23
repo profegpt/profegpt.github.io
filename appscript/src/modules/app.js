@@ -16,7 +16,6 @@ const MOUNTS = [
   ['/api/translate', 'server/routes/translate.js'],
   ['/api/dictionary', 'server/routes/dictionary.js'],
   ['/api/verbs', 'server/routes/verbs.js'],
-  ['/api/lock', 'server/routes/lock.js'],
   ['/api/speak', 'server/routes/speak.js'],
 ];
 
