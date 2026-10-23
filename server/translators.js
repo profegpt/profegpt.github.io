@@ -37,6 +37,17 @@ const normalise = (text) => String(text).toLowerCase().normalize('NFD').replace(
   .replace(/\s+/g, ' ')
   .trim();
 
+/**
+ * DeepL marks the title of a work the way plain text marks italics: *Gatsby le
+ * Magnifique*. On a page that shows the text as it is, those asterisks are just
+ * stray characters a student would copy. So they come off — unless the
+ * sentence asked for them, in which case it had asterisks of its own.
+ */
+export function withoutAddedEmphasis(source, translated) {
+  if (String(source).includes('*')) return translated;
+  return String(translated).replace(/\*+([^*\n]+?)\*+/g, '$1').replace(/\*/g, '');
+}
+
 /** Replace `find` in `text`, keeping the capitalisation that was already there. */
 function substitute(text, find, replacement, { progressive = null, to = null } = {}) {
   const pattern = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
@@ -294,7 +305,8 @@ async function restoreIdioms(source, translated, from, to) {
     // Trimmed: a span that comes back with a leading space will not match the
     // same words inside the sentence, and the repair silently does nothing.
     // eslint-disable-next-line no-await-in-loop
-    const literal = (await deepl(idiom.phrase, from, to).catch(() => null))?.text?.trim();
+    const span = await deepl(idiom.phrase, from, to).catch(() => null);
+    const literal = span && withoutAddedEmphasis(idiom.phrase, span.text).trim();
     if (!literal) continue;
     if (alreadyIdiomatic(literal, idiom.say)) continue;
     if (normalise(literal) === normalise(idiom.say)) continue;
@@ -323,6 +335,7 @@ export async function translate(text, from, to) {
   let result;
   try {
     result = await deepl(text, from, to);
+    result = { ...result, text: withoutAddedEmphasis(text, result.text) };
   } catch (cause) {
     const error = new Error(`DeepL could not translate: ${cause.message}`);
     error.status = 503;
@@ -330,7 +343,7 @@ export async function translate(text, from, to) {
     throw error;
   }
 
-  const translateSpan = async (span) => (await deepl(span, from, to)).text;
+  const translateSpan = async (span) => withoutAddedEmphasis(span, (await deepl(span, from, to)).text);
   const withNames = await restoreNames(text, result.text, from, to, translateSpan)
     .catch(() => result.text);
   const withIdioms = await restoreIdioms(text, withNames, from, to)

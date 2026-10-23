@@ -151,6 +151,65 @@ function buildTranslator(root) {
   const status = el('span', {}, t('translator.ready'));
   const engine = el('span', {}, '');
 
+  /**
+   * Read the translation aloud, in the language it is in — the side's own, or
+   * English when the translation went into English.
+   *
+   * One clip per translation, kept until the text changes: pressing it twice
+   * hears it again rather than paying for it again. ElevenLabs' free month is
+   * shared by the whole site, so the server caps a sentence at 200 characters
+   * and caches every one; past the cap the button is simply disabled. Without
+   * a key it takes itself away, as the dictionary's speaker does.
+   */
+  let clip = null;
+  let clipText = '';
+  const listen = el('button', {
+    class: 'speak speak--sm',
+    type: 'button',
+    title: t('translator.listen'),
+    'aria-label': t('translator.listen'),
+  }, icon(ICONS.speaker, { size: 15 }));
+
+  listen.addEventListener('click', async () => {
+    const text = output.textContent.trim();
+    if (!text || listen.classList.contains('is-loading')) return;
+    if (clip && clipText === text) { clip.currentTime = 0; clip.play().catch(() => {}); return; }
+
+    listen.classList.add('is-loading');
+    listen.classList.remove('speak--failed');
+    try {
+      const english = state.to === 'en' ? '&lang=en' : '';
+      const response = await fetch(`/api/speak?text=${encodeURIComponent(text)}&study=${studyLang()}${english}`);
+      if (!response.ok) {
+        if (response.status === 503) { listen.remove(); return; }
+        const failure = await response.json().catch(() => ({}));
+        listen.classList.add('speak--failed');
+        listen.title = failure.spent ? t('dictionary.speakSpent') : t('dictionary.speakFailed');
+        return;
+      }
+      clip = new Audio(URL.createObjectURL(await response.blob()));
+      clipText = text;
+      await clip.play().catch(() => {});
+    } catch {
+      listen.classList.add('speak--failed');
+      listen.title = t('dictionary.speakFailed');
+    } finally {
+      listen.classList.remove('is-loading');
+    }
+  });
+
+  /** Nothing to read, or too long to spend the month on: the button waits. */
+  function paintListen() {
+    const text = output.textContent.trim();
+    listen.disabled = !text || text.length > 200;
+    listen.title = t('translator.listen');
+    listen.classList.remove('speak--failed');
+  }
+  // However the translation changes — translated, cleared, swapped — the
+  // button follows it.
+  new MutationObserver(paintListen).observe(output, { childList: true, characterData: true, subtree: true });
+  paintListen();
+
   const copy = el('button', { class: 'btn btn--sm', type: 'button', title: t('translator.copy') },
     icon(ICONS.copy, { size: 13 }), t('translator.copy'));
 
@@ -185,7 +244,7 @@ function buildTranslator(root) {
   const targetPane = el('div', { class: 'pane' },
     el('div', { class: 'pane__bar' },
       el('span', { class: 'pane__lang' }, targetDot, targetLang),
-      copy),
+      el('span', { class: 'pane__tools' }, listen, copy)),
     el('div', { class: 'pane__body' }, output),
     notes,
     el('div', { class: 'pane__foot' }, engine, el('span', {})));

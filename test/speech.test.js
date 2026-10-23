@@ -8,7 +8,7 @@
  */
 process.env.ELEVENLABS_API_KEY = 'test-key';
 
-const { speak, MAX_SPOKEN, hasSpeech } = await import('../server/speech.js');
+const { speak, MAX_SPOKEN, MAX_SENTENCE, hasSpeech } = await import('../server/speech.js');
 
 let checked = 0;
 const failures = [];
@@ -19,8 +19,10 @@ function ok(name, condition, detail = '') {
 }
 
 let calls = 0;
-globalThis.fetch = async () => {
+let lastBody = null;
+globalThis.fetch = async (_url, init = {}) => {
   calls += 1;
+  lastBody = init.body ? JSON.parse(init.body) : null;
   return {
     ok: true,
     status: 200,
@@ -68,6 +70,33 @@ ok('null is refused', await refuses(null));
 calls = 0;
 result = await speak('pan comido');
 ok('pan comido is spoken', result.audio.length > 0 && calls === 1, `calls=${calls}`);
+
+// --- the translator's speaker: one sentence, capped, cached ----------------
+calls = 0;
+result = await speak("Je suis fatigué, mais c'est la vie.", 'fr', { sentence: true });
+ok('a translated sentence is read', result.audio.length > 0 && calls === 1, `calls=${calls}`);
+ok('in the language of the side', lastBody?.language_code === 'fr', JSON.stringify(lastBody));
+await speak("Je suis fatigué, mais c'est la vie.", 'fr', { sentence: true });
+ok('and is paid for once', calls === 1, `calls=${calls}`);
+
+calls = 0;
+await speak("I'm tired, but that's life.", 'fr', { sentence: true, english: true });
+ok('a translation into English is read in English', lastBody?.language_code === 'en', JSON.stringify(lastBody));
+
+async function refusesSentence(text) {
+  const before = calls;
+  try {
+    await speak(text, 'es', { sentence: true });
+    return false;
+  } catch {
+    return calls === before;
+  }
+}
+ok('a sentence over the cap is refused unspent', await refusesSentence('a '.repeat(MAX_SENTENCE)));
+ok('markup is not a sentence', await refusesSentence('<script>alert(1)</script>'));
+ok('an address is not a sentence', await refusesSentence('https://example.com/x'));
+ok('punctuation alone is not a sentence', await refusesSentence('?!...'));
+ok('a word is still refused as a word when it is a sentence', await refuses('Je suis fatigué.'));
 
 // --- with no key at all, it declines rather than throwing oddly -----------
 delete process.env.ELEVENLABS_API_KEY;
