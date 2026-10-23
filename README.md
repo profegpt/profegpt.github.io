@@ -701,20 +701,19 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 
 | | |
 | --- | --- |
-| `logo.svg` | the mascot's head — a blue axolotl with its leaf-shaped gills and big eyes. Also the favicon (the script copies it). |
-| `mascot.svg` `mascot-dark.svg` | the home page: the mascot, a blue axolotl with leaf-shaped gills in the same blue and eyes shaped like Duo's, swimming with its hands out and its tail curling away, floating free — no floor — between three matching speech bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
+| `logo.svg` | the mascot, small — a blue speech bubble with a face. Also the favicon (the script copies it). |
+| `mascot.svg` `mascot-dark.svg` | the home page: the mascot, Profe: a speech bubble with a face — the *Pregúntale a Profe* card's bubble in the site's blue, with eyes shaped like Duo's and an open smile, and no arms, legs or hat — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
 | `es.svg` `fr.svg` `it.svg` | each language's landmark: the Sagrada Família, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
-The mascot is original — an axolotl in the site's blue (`#4B9AF3`) — and nothing is copied from Duolingo's artwork. The Eiffel Tower
-and the Sagrada Família follow reference drawings for their proportions. The style is theirs: flat shapes with no outlines, a
-darker shade down one side, a lighter belly, rounded everything, no white
+The mascot is original — a speech bubble in the site's blue (`#4B9AF3`) — and nothing is copied from Duolingo's artwork. The Eiffel Tower
+follows a reference drawing for its proportions, in a clean bronze with opaque bracing. The style is theirs: flat shapes with no outlines, a
+darker shade down one side, rounded everything, no white
 highlight spots, and confetti around the big scenes. The trees vary — round,
 oval, clustered, cypress, fir, bush — so no two scenes repeat. The script asserts that every shape stays inside
-its canvas and that everything that should touch does — the mascot's cap down
-over its crown with no head showing above it, its arms at its sides, its gills
-behind its head, the Sagrada Família's towers on its façade, the
+its canvas and that everything that should touch does — the mascot's tail joined
+to its bubble (drawn as one outline, so the tail's shading comes to a single point), its eyes and smile on its face, the greeting bubbles clear of it, the Sagrada Família's towers on its façade, the
 Pisa drums stacked without a gap after the lean — that each landmark is centred
 in its picture, and that the Eiffel Tower keeps the real one's proportions
 (1.85 times as tall as its base is wide, decks at about 22%, 42% and 87% of its
