@@ -701,15 +701,15 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 
 | | |
 | --- | --- |
-| `logo.svg` | the mascot's head — a periwinkle axolotl with its gills, big eyes and a mortarboard. Also the favicon (the script copies it). |
-| `mascot.svg` | the home page: the mascot, a blue axolotl in Minecraft's colours, mid-jump with its arms flung wide and an open book, floating free — no floor — between three matching white speech bubbles, *¡Hola!*, *Bonjour* and *Ciao* |
+| `logo.svg` | the mascot's head — a blue axolotl with its gills, big eyes and a mortarboard. Also the favicon (the script copies it). |
+| `mascot.svg` `mascot-dark.svg` | the home page: the mascot, a blue axolotl with violet gills and a small mortarboard, swimming with its hands out and its tail curling away, floating free — no floor — between three matching speech bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
 | `es.svg` `fr.svg` `it.svg` | each language's landmark: the Sagrada Família, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
-The mascot is original — an axolotl, coloured from Minecraft's blue variant
-(body `#A79FFF`, shading `#8690F5`, gills `#816FE7`, sampled from the game's
-texture), in a pose of its own — and nothing is copied from Duolingo's artwork. The style is theirs: flat shapes with no outlines, a
+The mascot is original — an axolotl in the site's blue (`#4B9AF3`, gills
+`#5B6FE8`) — and nothing is copied from Duolingo's artwork. The Eiffel Tower
+and the Sagrada Família follow reference drawings for their proportions. The style is theirs: flat shapes with no outlines, a
 darker shade down one side, a light highlight pill, rounded everything, and
 confetti around the big scenes. The script asserts that every shape stays inside
 its canvas and that everything that should touch does — the mascot's cap down
@@ -717,8 +717,8 @@ over its crown with no head showing above it, its arms at its sides, its gills
 behind its head, the Sagrada Família's towers on its façade, the
 Pisa drums stacked without a gap after the lean — that each landmark is centred
 in its picture, and that the Eiffel Tower keeps the real one's proportions
-(platforms at about 19%, 38% and 87% of its height, the second 40% the width of
-the first) — and every picture was rendered on both
+(1.85 times as tall as its base is wide, decks at about 22%, 42% and 87% of its
+height) — and every picture was rendered on both
 the white and the dark background and looked at before it was kept.
 
 **Everything is still.** No transitions, no animations, no canvas: the old
