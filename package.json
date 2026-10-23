@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "test": "node test/conjugator.test.js && node test/conjugator-fr.test.js && node test/conjugator-it.test.js && node test/conjugator-view.test.js && node test/markdown.test.js && node test/tutor.test.js && node test/tutor-fr.test.js && node test/tutor-it.test.js && node test/lock.test.js && node test/corpus.test.js && node test/speech.test.js && node test/translators.test.js && node test/idioms.test.js && node test/dictionary-it.test.js && node test/appscript.test.js && node test/pages.test.js",
+    "test": "node test/conjugator.test.js && node test/conjugator-fr.test.js && node test/conjugator-it.test.js && node test/conjugator-view.test.js && node test/markdown.test.js && node test/tutor.test.js && node test/tutor-fr.test.js && node test/tutor-it.test.js && node test/corpus.test.js && node test/speech.test.js && node test/translators.test.js && node test/idioms.test.js && node test/dictionary-it.test.js && node test/appscript.test.js && node test/pages.test.js",
     "appscript:build": "node appscript/build.mjs",
     "appscript:preview": "node appscript/preview.mjs",
     "appscript:push": "node appscript/build.mjs && cd appscript && npx @google/clasp push --force",

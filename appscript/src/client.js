@@ -192,7 +192,7 @@
     it: 'Nota: questa versione non ha ancora chiavi API, quindi il traduttore e la pronuncia per ora sono disattivati. Il sito completo è su ',
     en: 'Note: this version has no API keys yet, so the translator and pronunciation are off for now. The full site is at ',
   };
-  const WEBSITE = 'https://profegpt.github.io/profegpt';
+  const WEBSITE = 'https://profegpt.github.io';
 
   function showNotice() {
     const lang = document.documentElement.lang;

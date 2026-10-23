@@ -315,34 +315,23 @@ dents*; Italian gets *costare un occhio della testa*, *in bocca al lupo*, *ogni
 morte di papa*. Where a well-known English idiom has no true Italian
 counterpart it is left out rather than matched with a near miss.
 
-### The teacher's lock
+### The teacher's lock (removed)
 
-The site has one passcode left, and it is the teacher's. It seals the site
-**for everyone at once**, not just this browser: the switch lives on the server
-(`server/routes/lock.js`) and clients poll it, so a locked room reaches someone
-already mid-page. Anyone holding the passcode can throw it either way, including
-from the tape the lock puts up, so nobody is stranded. It is `TEACHER_PASSCODE`, default
-`AP_Lit`, matched without regard to case or surrounding spaces.
-
-The form lives in the settings menu — the gear at the right-hand end of the
-header, on every page including the home page. The gear turns the accent colour
-while the site is locked, so a teacher can see the state of the room without
-opening anything.
-
-The lock is held in memory, so restarting the server clears it — a deliberate
-failsafe against being locked out by a process nobody is watching.
+There used to be a padlock that sealed the site for every open page at once
+until a teacher unlocked it. It was taken out; how it worked, every file it
+touched, and how to put it back from git are in
+[docs/teacher-lock.md](docs/teacher-lock.md).
 
 ### The settings menu
 
-`public/js/lib/settings.js`. Two things live in it, and both used to be buttons
-of their own in the header: **light and dark mode**, and **the teacher's lock**.
-Neither is something a student reaches for mid-lesson, and the header already
-carries the page links and the language switch, so they are one click further
-away and the header is quieter for it.
+`public/js/lib/settings.js`. Two choices live in it, and both used to be
+controls of their own in the header: **light or dark**, drawn as a sun and a
+moon, and **the language of the interface** — the language the site is about,
+or English. Neither is something a student reaches for mid-lesson, so the
+header carries only the page links.
 
-Light and dark are offered as a choice of two, with the current one marked,
-rather than as a toggle. A toggle shows an icon for the mode you are *not* in,
-which reads backwards half the time.
+Each is a choice of two, with the current one marked, rather than a toggle. A
+toggle shows the option you are *not* on, which reads backwards half the time.
 
 ### Switching subject
 
@@ -365,9 +354,10 @@ conjugator. The chat clears too.
 
 ### Site language
 
-The **ES | EN** switch in the header changes the language of the interface and
-nothing else. It reads **FR | EN** on the French side and **IT | EN** on the
-Italian one, and either half is one click away — nothing is behind a passcode.
+The language choice in the settings menu changes the language of the interface
+and nothing else: *Español* or *English* on the Spanish side, *Français* or
+*English* on the French one, *Italiano* or *English* on the Italian one. Nothing
+is behind a passcode.
 Strings live in `public/js/lib/i18n.js`; a language change re-renders the
 current view.
 
@@ -412,7 +402,7 @@ What changes:
 
 | | |
 | --- | --- |
-| the header switch | **ES \| EN** becomes **FR \| EN** |
+| the interface choice | *Français* or *English* |
 | the translator | French ↔ English through DeepL, with French idioms |
 | the conjugator | French tables, and the three tabs become **-er / -ir / -re** |
 | the dictionary | a free French dictionary, credited where its licence requires it |
@@ -420,7 +410,7 @@ What changes:
 | the interface | every string, in French or English |
 | the picture | the Eiffel Tower |
 
-What does not change: the theme, the teacher's lock, and the shape
+What does not change: the theme and the shape
 of every page. It is the same site pointed at a different language, not a
 second site.
 
@@ -553,7 +543,7 @@ What changes:
 
 | | |
 | --- | --- |
-| the header switch | **IT \| EN** |
+| the interface choice | *Italiano* or *English* |
 | the translator | Italian ↔ English through DeepL, with Italian idioms |
 | the conjugator | Italian tables, and the three tabs become **-are / -ere / -ire** |
 | the dictionary | the Wikizionario, credited where its licence requires it |
@@ -687,12 +677,13 @@ code `it`.
 
 Modelled on [investors.duolingo.com](https://investors.duolingo.com/), measured
 from the live page rather than eyeballed: a white page, huge chunky **lowercase
-headings in Duolingo green** (`#58CC02`), grey body text (`#4B4B4B`), and cards
+headings in one colour** — Duolingo's blue (`#1CB0F6`) rather than its green —
+grey body text (`#4B4B4B`), and cards
 and buttons with a **2px border and a 4px bottom edge** (`#E5E5E5`, 12–16px
-corners) that press down two pixels when clicked. Duolingo blue (`#1CB0F6`) is
-for links and secondary buttons, and marks what is selected — a chosen language
-card, the active tab, the interface language — the way Duolingo marks a chosen
-answer. Gold is for notices and idioms; red for irregular forms.
+corners) that press down two pixels when clicked. Blue is the primary button,
+the links, and what is selected — a chosen language card, the active tab, the
+interface language — the way Duolingo marks a chosen answer. The translator's
+English side is marked purple so the two panes stay apart. Gold is for notices and idioms; red for irregular forms.
 
 **Fonts.** Duolingo's own faces, Feather Bold and DIN Round, are not free.
 **Fredoka** stands in for Feather on the big headings and **Nunito** for DIN
@@ -700,8 +691,7 @@ Round everywhere else, both from Google Fonts.
 
 **The header is Duolingo's**: the mark and the lowercase wordmark on the left;
 plain uppercase links on the right, light grey, a shade darker on hover and for
-the page you are on; then the **ES | EN** switch and the settings gear, both
-drawn as Duolingo buttons. On a phone the links move to a row of their own under
+the page you are on; then the settings gear, drawn as a Duolingo button. On a phone the links move to a row of their own under
 the logo, spread edge to edge. **There is no menu button at any width.**
 
 **The illustrations are drawn SVGs in `public/assets/art/`**, generated by
@@ -726,8 +716,7 @@ the white and the dark background and looked at before it was kept.
 
 **Everything is still.** No transitions, no animations, no canvas: the old
 animated network behind the hero, the parallax wallpaper and the thrown confetti
-are gone. Waiting is three still dots. The teacher's lock crosses the page with
-two flat strips of yellow tape rather than rolling them in.
+are gone. Waiting is three still dots.
 
 **The photographs are retired, not deleted.** The six city wallpapers (Madrid,
 Paris, Rome; day and night) are in `archive/wallpapers/`, outside `public/`, so
@@ -735,12 +724,12 @@ they are kept but never served or loaded.
 
 **Light and dark.** Light is the default, as Duolingo's page is; dark is a
 choice in the settings menu, and uses Duolingo's own dark palette — deep
-blue-grey `#131F24` rather than black, slate borders, the same green. The choice
+blue-grey `#131F24` rather than black, slate borders, the same blue. The choice
 is stamped onto `<html data-theme>` by an inline script before the first paint,
 so the page never flashes the wrong one.
 
 **Checkboxes are drawn, not the browser's**: a rounded box with a thick bottom
-edge that fills green with a white tick.
+edge that fills blue with a white tick.
 
 **No rubber-band bounce** at either end of the page (`overscroll-behavior`).
 
@@ -763,7 +752,6 @@ cp .env.example .env      # then put your keys in it
 | `RAE_API_KEY` | Optional. Raises rae-api.com's limits from 100 lookups a day to 5,000. |
 | `ELEVENLABS_API_KEY` | Pronunciation on the dictionary page. Without it the speaker button removes itself. |
 | `ELEVENLABS_VOICE_ID` | Optional. A premade voice; the default is a clear educator voice. |
-| `TEACHER_PASSCODE` | The teacher's lock. Default `AP_Lit` — change it. |
 | `PORT` | Defaults to `4000`. |
 
 Those three keys and the passcode are the only settings that matter. There is
@@ -821,7 +809,6 @@ server/
                         three into one shape; rejects what is not a word before
                         spending a request on it
     verbs.js            RAE's own conjugation tables, normalised to our shape
-    lock.js             the teacher's lock, held in memory
 public/
   index.html            app shell
   styles.css            the whole design system
@@ -829,9 +816,8 @@ public/
     app.js              history-API router: / is the home page, /es /fr /it
                         the languages, and old unprefixed links go to /es
     lib/study.js        the language the site is *about*, read from the address
-    lib/site.js         where the site lives: /profegpt on Pages, / elsewhere
-    lib/settings.js     the gear: light or dark, and the teacher's lock
-    lib/site-lock.js    the lock's form and state, polled from the server
+    lib/site.js         where the site lives: the root, or a prefix if ever needed
+    lib/settings.js     the gear: light or dark, and the interface language
     lib/conjugator.js   the Spanish conjugation engine
     lib/conjugator-fr.js ·fr the French one: two stems, two auxiliaries
     lib/conjugator-it.js ·it the Italian one: -isc-, the 1-3-3 passato remoto,
@@ -846,9 +832,7 @@ public/
     lib/chat-session.js the conversation, held outside the view so navigating
                         away cannot interrupt an answer
     lib/theme.js        dark/light switching
-    lib/tape.js         the X that seals the page when the teacher locks it
     lib/i18n.js         every interface string — one table per study language
-    lib/language-switch.js  the ES/EN — or FR/EN, IT/EN — switch
     data/grammar.js     22 grammar explanations, Spanish and English
     data/grammar-fr.js ·fr 23 more, French and English
     data/grammar-it.js ·it 20 more, Italian and English
@@ -870,8 +854,6 @@ test/
                                the rephrasings offered when it declines
   tutor-fr.test.js      ·fr  70 that the French pack drives the same router
   tutor-it.test.js      ·it  89 that the Italian pack does too
-  lock.test.js              16 on the padlock, against a real express app, and
-                               that it is the only word the lock accepts
   corpus.test.js            24 checks on sentence ranking and gloss extraction
   speech.test.js            17 on what may be spoken and what is refused
                                before a character of the month is spent
@@ -884,8 +866,9 @@ test/
   appscript.test.js         21 on the Apps Script build, run in a bare V8
                                context with stand-in Google services, including
                                the two-step HTTP API the Pages site uses
-  pages.test.js              7 on the Pages build: every path prefixed, deep
-                               links covered, no key or server code shipped
+  pages.test.js              9 on the Pages build: paths prefixed when there is
+                               a prefix and untouched at the root, deep links
+                               covered, no key or server code shipped
 
 appscript/
   build.mjs             server/ and public/ → an Apps Script project in dist/
@@ -953,8 +936,8 @@ anything:
 
 | | | |
 | --- | --- | --- |
-| **GitHub Pages** | <https://profegpt.github.io/profegpt/> | the main address. The browser half of the site, as static files. |
-| **Google Apps Script** | the *ProfeGPT web app* deployment | the server half for the Pages site — translation, dictionaries, pronunciation, the lock — and the whole site again, on its own, for anyone with that link. |
+| **GitHub Pages** | <https://profegpt.github.io/> | the main address. The browser half of the site, as static files. |
+| **Google Apps Script** | the *ProfeGPT web app* deployment | the server half for the Pages site — translation, dictionaries, pronunciation — and the whole site again, on its own, for anyone with that link. |
 
 GitHub Pages serves files and nothing else, and the server half needs the API
 keys, which must never reach a browser. Apps Script runs the same server code
@@ -963,7 +946,7 @@ properties, and answers the Pages site's `/api/…` requests over plain HTTP. So
 **Pages for the page, Apps Script for everything behind it.**
 
 ```
-browser ── /profegpt/es/chat ──────────────▶ GitHub Pages (files)
+browser ── profegpt.github.io/es/chat ──────▶ GitHub Pages (files)
    │
    └── fetch('/api/translate') ── pages/client.js ──▶ Apps Script doPost
                                                          │  DeepL, RAE, Wiktionary,
@@ -976,12 +959,13 @@ browser ── /profegpt/es/chat ──────────────▶ G
 `.github/workflows/pages.yml` runs `npm test`, then `scripts/build-pages.mjs`,
 and publishes `_site/` on every push to `main`. The build:
 
-- **puts the site under `/profegpt`**, because this repository is a project site
-  of the `profegpt` organization, published at `profegpt.github.io/profegpt`.
-  Root-relative paths in the page and stylesheet get the prefix, and a
-  `<meta name="profegpt-base">` tells the app (`public/js/lib/site.js`). The app
-  only ever thinks in unprefixed paths; the prefix comes off as an address is
-  read and goes back on as one is written.
+- **publishes at the root.** The repository is `profegpt/profegpt.github.io`,
+  which GitHub serves at `https://profegpt.github.io/`, so `base` in
+  `pages/config.json` is empty. Should the site ever be a project site under a
+  prefix instead (say `/profegpt`), setting `base` is all it takes: root-relative
+  paths in the page and stylesheet get the prefix, and a
+  `<meta name="profegpt-base">` tells the app (`public/js/lib/site.js`), which
+  only ever thinks in unprefixed paths.
 - **inlines `pages/client.js`**, which sends `/api/…` to the Apps Script web app
   named in `pages/config.json`. It takes two requests: a `POST` that starts the
   call and gets an id back at once — Apps Script will not wait for the server's
@@ -989,7 +973,7 @@ and publishes `_site/` on every push to `main`. The build:
   The body is JSON sent as `text/plain`, so the browser sends no preflight,
   which Apps Script cannot answer; its responses are open to every origin.
 - **copies `index.html` to `404.html`**, so a deep link such as
-  `/profegpt/it/chat` gets the app, which reads the address and draws the page.
+  `/it/chat` gets the app, which reads the address and draws the page.
 
 `npm run pages:build` builds it locally; `test/pages.test.js` checks that no
 path is left without its prefix, that deep links are covered, and that no key or
@@ -1008,7 +992,7 @@ visitors on the old version.)
 
 The keys go in *Project Settings → Script properties*, one row per variable you
 would put in `.env`: `DEEPL_API_KEY`, `ELEVENLABS_API_KEY`, `RAE_API_KEY`,
-`TEACHER_PASSCODE`. While none of the three keys is set, the Apps Script page
+While none of the three keys is set, the Apps Script page
 shows a notice pointing to the Pages site.
 
 To set it up from scratch:
@@ -1029,9 +1013,8 @@ including the two-step HTTP API.
 
 How Apps Script differs from the Node server:
 
-- **Nothing is held in memory.** Each request is a fresh process. The caches
-  and the teacher's lock live in CacheService instead. CacheService forgets
-  after six hours at most, so a forgotten lock still lifts itself.
+- **Nothing is held in memory.** Each request is a fresh process, so the caches
+  live in CacheService instead.
 - **Requests run one after another.** UrlFetchApp is synchronous, so a French
   or Italian lookup that needs the entry, an accent search and an English gloss
   makes three requests in a row. It is slower than on Node, and it is the
@@ -1043,18 +1026,14 @@ How Apps Script differs from the Node server:
   the real address to bookmark or share. On the Pages site the link is left out.
 - **Quotas are the owner's.** Every visitor's request runs as the deploying
   account: about 20,000 URL fetches a day on a personal Google account, and
-  30 requests at a time. The Pages site's lock check is one request every
-  twenty seconds per open page.
+  30 requests at a time.
 
 ### Running it yourself
 
 `npm start` runs the whole site — page and server — on Node, at
 <http://localhost:4000>, reading keys from `.env`. That is how it is developed;
 any Node host would also serve it as one process. It needs to be **one
-instance**, since the lock and the caches are held in memory.
-
-**Change the passcode before anyone has the URL.** `TEACHER_PASSCODE` has a
-default, and the default is in the source of a public repository.
+instance**, since the caches are held in memory.
 
 `GET /api/health` answers `{ ok, translator }` — whether a DeepL key is set — and
 on Apps Script also the runtime and how many of the three keys are present.
@@ -1064,7 +1043,6 @@ on Apps Script also the runtime and how many of the three keys are present.
 | Variable | Why it matters live |
 | --- | --- |
 | `RAE_API_KEY` | **Get one.** Anonymous dictionary access is 100 lookups a day, which one class will exhaust. Free at <https://rae-api.com/login>. |
-| `TEACHER_PASSCODE` | **Change it.** The default is in a public repo. |
 | `DEEPL_API_KEY` | **Get one.** It is the translator, on every side; without it the translator says it is unavailable. Free tier, 500k characters a month; only a free key (ending `:fx`) is used, so it cannot be billed. |
 | `ELEVENLABS_API_KEY` | Pronunciation. Free tier, 10,000 characters a month for the whole site; use a free account, which refuses past the limit rather than charging. |
 

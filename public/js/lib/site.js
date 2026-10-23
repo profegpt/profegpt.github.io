@@ -1,10 +1,12 @@
 /**
  * Where the site lives.
  *
- * On the Node server and on Apps Script the site is at the root of its host:
- * /es/chat is /es/chat. On GitHub Pages it is a project site, served under
- * the repository's name — https://profegpt.github.io/profegpt/es/chat — so
- * every address the app reads or writes has that prefix in front of it.
+ * Everywhere today the site is at the root of its host: /es/chat is /es/chat,
+ * on the Node server, on Apps Script, and on GitHub Pages at
+ * https://profegpt.github.io. But a GitHub Pages *project* site is served under
+ * the repository's name — /profegpt/es/chat — and then every address the app
+ * reads or writes needs that prefix in front of it. This is what handles it,
+ * so the site can move under a prefix by changing pages/config.json alone.
  *
  * The prefix is a <meta name="profegpt-base"> that only the Pages build puts
  * into the page (scripts/build-pages.mjs). Without it the base is empty and

@@ -1,21 +1,21 @@
 /**
  * The settings menu: the gear at the right-hand end of the header.
  *
- * Two things live in it, and both used to be buttons of their own in the
- * header — light and dark mode, and the teacher's padlock. Neither is something
- * a student reaches for mid-lesson, and the header has the page links and the
- * language switch to carry, so they are one click further away and the header
- * is quieter for it.
+ * Two choices live in it: light or dark, and the language the interface is
+ * written in — the language the site is about, or English. Neither is
+ * something a reader reaches for mid-lesson, so both sit one click away and
+ * the header carries only the page links.
  *
- * Light and dark are offered as a choice of two rather than a toggle: a toggle
- * shows an icon for the mode you are *not* in, which reads backwards half the
- * time. Here the one you are in is marked.
+ * Each is a choice of two rather than a toggle: a toggle shows the option you
+ * are *not* on, which reads backwards half the time. Here the one you are on
+ * is marked.
+ *
+ * The teacher's padlock used to live here too; see docs/teacher-lock.md.
  */
 
-import { el, clear, icon, ICONS } from './dom.js';
-import { t } from './i18n.js';
+import { el, icon, ICONS } from './dom.js';
+import { lang, languageOptions, setLang, t } from './i18n.js';
 import { applyTheme, currentTheme } from './theme.js';
-import { lockForm, onLockChange, isSiteLocked } from './site-lock.js';
 
 export function mountSettings(holder) {
   const button = el('button', {
@@ -30,7 +30,6 @@ export function mountSettings(holder) {
   function label() {
     button.setAttribute('aria-label', t('settings.label'));
     button.title = t('settings.label');
-    button.classList.toggle('is-locked', isSiteLocked());
   }
 
   function close() {
@@ -44,36 +43,40 @@ export function mountSettings(holder) {
   const onOutside = (event) => { if (!holder.contains(event.target)) close(); };
   const onKey = (event) => { if (event.key === 'Escape') { close(); button.focus(); } };
 
-  function themeChoice(theme, shape) {
-    const choice = el('button', {
+  /** One button of a pair, marked when it is the current choice. */
+  function choice(isOn, onPick, content, label = null) {
+    return el('button', {
       type: 'button',
       role: 'menuitemradio',
-      'aria-checked': String(currentTheme() === theme),
-      class: `settings__choice${currentTheme() === theme ? ' is-active' : ''}`,
-      onclick: () => { applyTheme(theme); paintThemes(); },
-    }, icon(shape, { size: 15 }), t(`settings.${theme}`));
-    choice.dataset.theme = theme;
-    return choice;
+      'aria-checked': String(isOn),
+      'aria-label': label,
+      title: label,
+      class: `settings__choice${isOn ? ' is-active' : ''}`,
+      onclick: onPick,
+    }, content);
   }
 
-  function paintThemes() {
-    for (const choice of panel?.querySelectorAll('.settings__choice') ?? []) {
-      const on = choice.dataset.theme === currentTheme();
-      choice.classList.toggle('is-active', on);
-      choice.setAttribute('aria-checked', String(on));
-    }
+  function build() {
+    const [study, english] = languageOptions();
+    return el('div', { class: 'settings', role: 'menu', 'aria-label': t('settings.label') },
+      el('p', { class: 'settings__title' }, t('settings.appearance')),
+      el('div', { class: 'settings__choices' },
+        // The sun and the moon say it without words, which in some languages
+        // ran to a second line; the words stay as the buttons' labels.
+        choice(currentTheme() === 'light', () => { applyTheme('light'); repaint(); },
+          icon(ICONS.sun, { size: 20 }), t('settings.light')),
+        choice(currentTheme() === 'dark', () => { applyTheme('dark'); repaint(); },
+          icon(ICONS.moon, { size: 20 }), t('settings.dark'))),
+      el('p', { class: 'settings__title settings__title--rule' }, t('nav.langLabel')),
+      el('div', { class: 'settings__choices' },
+        // The language the site is about, in its own name, and English. The
+        // interface follows at once; the menu stays open, now in that language.
+        choice(lang() === study, () => { setLang(study); }, t('translator.studyName')),
+        choice(lang() === english, () => { setLang(english); }, 'English')));
   }
 
   function open() {
-    const { form } = lockForm(close);
-    panel = el('div', { class: 'settings', role: 'menu', 'aria-label': t('settings.label') },
-      el('p', { class: 'settings__title' }, t('settings.appearance')),
-      el('div', { class: 'settings__choices' },
-        themeChoice('light', ICONS.sun),
-        themeChoice('dark', ICONS.moon)),
-      el('p', { class: 'settings__title settings__title--rule' },
-        icon(ICONS.lock, { size: 13 }), t('lock.title')),
-      form);
+    panel = build();
     holder.appendChild(panel);
     button.setAttribute('aria-expanded', 'true');
 
@@ -84,14 +87,21 @@ export function mountSettings(holder) {
     }, 0);
   }
 
+  /** Rebuilt in place, so a choice is marked — and worded — as soon as it is made. */
+  function repaint() {
+    label();
+    if (!panel) return;
+    const next = build();
+    panel.replaceWith(next);
+    panel = next;
+  }
+
   button.addEventListener('click', () => (panel ? close() : open()));
 
-  clear(holder);
-  holder.appendChild(button);
+  holder.replaceChildren(button);
   label();
 
-  window.addEventListener('langchange', () => { close(); label(); });
+  window.addEventListener('langchange', repaint);
   window.addEventListener('studychange', () => { close(); label(); });
-  window.addEventListener('themechange', paintThemes);
-  onLockChange(label);
+  window.addEventListener('themechange', repaint);
 }

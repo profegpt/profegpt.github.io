@@ -46,10 +46,6 @@ const cacheMap = (file, name = 'cache') => [
  * turning a persistent cache back into a per-request one.
  */
 const SERVER_PATCHES = {
-  'server/routes/lock.js': [[
-    'const lock = { locked: false, since: null };',
-    "const lock = persistentObject('lock', { locked: false, since: null });",
-  ]],
   'server/corpus.js': [cacheMap('server/corpus.js')],
   'server/speech.js': [cacheMap('server/speech.js')],
   'server/routes/dictionary.js': [cacheMap('server/routes/dictionary.js')],
@@ -63,7 +59,6 @@ const SERVER_ENTRIES = [
   'server/routes/translate.js',
   'server/routes/dictionary.js',
   'server/routes/verbs.js',
-  'server/routes/lock.js',
   'server/routes/speak.js',
 ];
 

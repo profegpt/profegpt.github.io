@@ -5,7 +5,6 @@ import { hasDeepl } from './deepl.js';
 import { router as translate } from './routes/translate.js';
 import { router as dictionary } from './routes/dictionary.js';
 import { router as verbs } from './routes/verbs.js';
-import { router as lock } from './routes/lock.js';
 import { router as speak } from './routes/speak.js';
 
 loadEnv();
@@ -20,7 +19,6 @@ app.use(express.json({ limit: '256kb' }));
 app.use('/api/translate', translate);
 app.use('/api/dictionary', dictionary);
 app.use('/api/verbs', verbs);
-app.use('/api/lock', lock);
 app.use('/api/speak', speak);
 
 app.get('/api/health', (_req, res) => {

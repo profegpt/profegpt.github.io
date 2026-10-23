@@ -90,27 +90,6 @@ await test('only the three service keys count, and no model is configured', asyn
   assert.equal(health.chain, undefined);
 });
 
-await test('the teacher lock survives between executions', async () => {
-  const app = project();
-  const post = (body) => call(app, {
-    method: 'POST', url: '/api/lock', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-  });
-
-  const wrong = await post({ passcode: 'nope' });
-  assert.equal(wrong.status, 403);
-
-  const locked = await post({ passcode: 'AP_Lit', locked: true });
-  assert.equal(json(locked).locked, true);
-
-  // A different execution, as the next visitor's request would be.
-  assert.equal(json(await call(app, { url: '/api/lock' })).locked, true);
-
-  // The old word that opened French and Latin is gone with them.
-  const old = await post({ passcode: 'profe' });
-  assert.equal(old.status, 403);
-  assert.equal(json(old).opened, undefined);
-});
-
 await test('there is no chat endpoint: the tutor answers in the browser', async () => {
   const response = await call(project(), {
     method: 'POST',
@@ -260,13 +239,13 @@ await test('a failing host is a 5xx answer, not a crashed execution', async () =
 await test('unknown routes and bad JSON are refused politely', async () => {
   const app = project();
   assert.equal((await call(app, { url: '/api/nothing' })).status, 404);
-  const bad = await call(app, { method: 'POST', url: '/api/lock', headers: { 'content-type': 'application/json' }, body: '{' });
+  const bad = await call(app, { method: 'POST', url: '/api/translate', headers: { 'content-type': 'application/json' }, body: '{' });
   assert.equal(bad.status, 400);
 });
 
 await test('apiResult hands over a stashed response exactly once', async () => {
   const app = project();
-  const response = await call(app, { id: 'abcdef123456', url: '/api/lock' });
+  const response = await call(app, { id: 'abcdef123456', url: '/api/health' });
   const collected = app.execution().apiResult('abcdef123456');
   assert.equal(JSON.stringify(collected), JSON.stringify(response));
   assert.equal(app.execution().apiResult('abcdef123456'), null);
@@ -275,7 +254,7 @@ await test('apiResult hands over a stashed response exactly once', async () => {
 
 await test('a browser that gets real answers stops the stashing', async () => {
   const app = project();
-  await call(app, { id: 'abcdef123456', unwrapped: true, url: '/api/lock' });
+  await call(app, { id: 'abcdef123456', unwrapped: true, url: '/api/health' });
   assert.equal(app.execution().apiResult('abcdef123456'), null);
 });
 

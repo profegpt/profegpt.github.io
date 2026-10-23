@@ -35,7 +35,6 @@ export function renderTranslatorPage(main) {
   // the language's landmark on the right.
   const hero = el('section', { class: 'hero shell' },
     el('div', { class: 'hero__copy' },
-      el('p', { class: 'eyebrow' }, t('hero.badge')),
       el('h1', { class: 'hero__title' },
         el('span', {}, 'profegpt'),
         el('span', {}, t('translator.studyName'))),
@@ -97,6 +96,12 @@ function buildFinder() {
     openDictionary(input.value);
   });
 
+  const hints = el('div', { class: 'finder__hints' },
+    el('span', {}, t('finder.tryWith')),
+    ...t('finder.samples').split(',').map((word) =>
+      el('button', { type: 'button', onclick: () => openDictionary(word) }, word)));
+  fitOnOneLine(hints);
+
   return el('section', { class: 'finder', id: 'buscador' },
     el('div', { class: 'shell' },
       el('div', { class: 'finder__grid' },
@@ -106,11 +111,25 @@ function buildFinder() {
           el('p', { class: 'finder__lead' }, t('finder.lead'))),
         el('div', {},
           form,
-          el('div', { class: 'finder__hints' },
-            el('span', {}, t('finder.tryWith')),
-            ...t('finder.samples').split(',').map((word) =>
-              el('button', { type: 'button', onclick: () => openDictionary(word) }, word))),
-          el('p', { class: 'finder__note' }, t('finder.note'))))));
+          hints))));
+}
+
+/**
+ * Keep the sample words to a single line: as many as fit, never a second row.
+ *
+ * Measured rather than clipped with CSS, because a button clipped out of sight
+ * can still be reached with Tab. Every word is shown, then any that wrapped
+ * below the first line is hidden — again whenever the width changes, so a
+ * wide screen offers more of them and a phone fewer.
+ */
+function fitOnOneLine(row) {
+  const fit = () => {
+    const items = [...row.children];
+    for (const item of items) item.hidden = false;
+    const top = items[0]?.offsetTop ?? 0;
+    for (const item of items) if (item.offsetTop > top + 4) item.hidden = true;
+  };
+  new ResizeObserver(fit).observe(row);
 }
 
 function buildTranslator(root) {

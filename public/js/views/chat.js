@@ -17,7 +17,7 @@ export function renderChat(main) {
     icon(ICONS.send, { size: 16, fill: true }));
 
   const composer = el('form', { class: 'composer' }, input, send);
-  const hint = el('p', { class: 'composer__hint' }, t('chat.enterHint'), ' · ', t('chat.groundedOnly'));
+  const hint = el('p', { class: 'composer__hint' }, t('chat.groundedOnly'));
   const chat = el('div', { class: 'chat' }, log, composer, hint);
   main.append(el('div', { class: 'page shell' }, chat));
 

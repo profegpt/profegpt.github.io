@@ -85,8 +85,6 @@ const SPANISH = {
     conjugation: two('Conjugación', 'Conjugation'),
     dictionary: two('Diccionario', 'Dictionary'),
     chat: two('Chat', 'Chat'),
-    theme: two('Cambiar de tema', 'Switch theme'),
-    menu: two('Abrir menú', 'Open menu'),
     langLabel: two('Idioma de la web', 'Site language'),
   },
 
@@ -101,10 +99,9 @@ const SPANISH = {
   },
 
   hero: {
-    badge: two('Español ↔ Inglés', 'Spanish ↔ English'),
     sub: two(
-      'Traduce en los dos sentidos, conjuga cualquier verbo en todos los tiempos, consulta la RAE y pregúntale al tutor. Todo en una página.',
-      'Translate both ways, conjugate any verb in every tense, look words up in the RAE dictionary, and ask the tutor. All on one page.',
+      'Traduce en los dos sentidos, conjuga cualquier verbo en todos los tiempos, consulta la RAE y pregúntale al tutor.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the RAE dictionary, and ask the tutor.',
     ),
     ctaTranslate: two('Probar el traductor', 'Try the translator'),
     ctaChat: two('Hablar con ProfeGPT', 'Talk to ProfeGPT'),
@@ -116,7 +113,7 @@ const SPANISH = {
       'No se ha podido traducir esta frase ahora mismo. Inténtalo de nuevo dentro de un rato; mientras tanto, el diccionario y el conjugador siguen funcionando.',
       'This sentence could not be translated just now. Try again in a little while — the dictionary and the conjugator still work in the meantime.'),
     eyebrow: two('Traductor', 'Translator'),
-    title: two('Los dos sentidos, un botón', 'Both directions, one button'),
+    title: two('Traductor', 'Translator'),
     lead: two(
       'Escribe y traduce al instante. El botón central cambia de idioma y se lleva el texto consigo.',
       'Type and translate instantly. The centre button swaps the languages and carries the text across with it.',
@@ -150,9 +147,8 @@ const SPANISH = {
     ),
     button: two('Buscar', 'Search'),
     tryWith: two('Prueba con', 'Try'),
-    note: two('Pulsa Enter para abrir la página del diccionario.', 'Press Enter to open the dictionary page.'),
     label: two('Buscar una palabra en el diccionario', 'Search for a word in the dictionary'),
-    samples: two('sobremesa,madrugar,entrañable,friolero,estrenar', 'sobremesa,madrugar,entrañable,friolero,estrenar'),
+    samples: two('sobremesa,madrugar,entrañable,friolero,estrenar,ojalá,trasnochar,chiringuito', 'sobremesa,madrugar,entrañable,friolero,estrenar,ojalá,trasnochar,chiringuito'),
   },
 
   features: {
@@ -254,7 +250,6 @@ const SPANISH = {
     messageLabel: two('Mensaje', 'Message'),
     send: two('Enviar', 'Send'),
     you: two('TÚ', 'YOU'),
-    enterHint: two('Enter para enviar · Shift + Enter para un salto de línea', 'Enter to send · Shift + Enter for a new line'),
     groundedOnly: two(
       'Respuestas del conjugador, el diccionario, el traductor y las fichas de gramática — sin ninguna IA',
       'Answers from the conjugator, the dictionary, the translator and the grammar notes — no AI involved'),
@@ -265,30 +260,6 @@ const SPANISH = {
     ),
   },
 
-  tape: {
-    unlock: two('Desbloquear', 'Unlock'),
-  },
-
-  lock: {
-    cancel: two('Cancelar', 'Cancel'),
-    title: two('Bloquear la web', 'Lock the site'),
-    detail: two(
-      'Con el código, la web queda bloqueada para todo el mundo hasta que alguien la desbloquee.',
-      'With the passcode, the site is locked for everyone until someone unlocks it.',
-    ),
-    passcode: two('Código del profe', 'Teacher passcode'),
-    lockNow: two('Bloquear', 'Lock'),
-    wrong: two('Código incorrecto.', 'Wrong passcode.'),
-    lockLabel: two('Bloquear la web', 'Lock the site'),
-    unlockLabel: two('Desbloquear la web', 'Unlock the site'),
-    sealedTitle: two('Clase en marcha', 'Class in session'),
-    sealedDetail: two(
-      'Un profe ha bloqueado la web. Introduce el código para desbloquearla.',
-      'A teacher has locked the site. Enter the passcode to unlock it.',
-    ),
-    sealedNote: two('Se desbloquea para todos a la vez.', 'It unlocks for everyone at once.'),
-  },
-
   home: {
     title: two('ProfeGPT', 'ProfeGPT'),
     lead: two(
@@ -296,7 +267,6 @@ const SPANISH = {
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
     choose: two('Elige un idioma', 'Choose a language'),
     enter: two('Entrar', 'Enter'),
-    hint: two('Pulsa Intro para entrar', 'Press Enter to go in'),
     soon: two('Más idiomas', 'More languages'),
     soonBody: two('Próximamente.', 'Coming soon.'),
     back: two('Inicio', 'Home'),
@@ -317,8 +287,6 @@ const FRENCH = {
     conjugation: deux('Conjugaison', 'Conjugation'),
     dictionary: deux('Dictionnaire', 'Dictionary'),
     chat: deux('Chat', 'Chat'),
-    theme: deux('Changer de thème', 'Switch theme'),
-    menu: deux('Ouvrir le menu', 'Open menu'),
     langLabel: deux('Langue du site', 'Site language'),
   },
 
@@ -333,10 +301,9 @@ const FRENCH = {
   },
 
   hero: {
-    badge: deux('Français ↔ Anglais', 'French ↔ English'),
     sub: deux(
-      'Traduisez dans les deux sens, conjuguez n’importe quel verbe à tous les temps, cherchez un mot et interrogez le tuteur. Le tout sur une page.',
-      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask the tutor. All on one page.',
+      'Traduisez dans les deux sens, conjuguez n’importe quel verbe à tous les temps, cherchez un mot et interrogez le tuteur.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask the tutor.',
     ),
     ctaTranslate: deux('Essayer le traducteur', 'Try the translator'),
     ctaChat: deux('Parler à ProfeGPT', 'Talk to ProfeGPT'),
@@ -348,7 +315,7 @@ const FRENCH = {
       'Cette phrase n’a pas pu être traduite pour le moment. Réessayez dans un moment ; en attendant, le dictionnaire et la conjugaison fonctionnent toujours.',
       'This sentence could not be translated just now. Try again in a little while — the dictionary and the conjugator still work in the meantime.'),
     eyebrow: deux('Traducteur', 'Translator'),
-    title: deux('Les deux sens, un bouton', 'Both directions, one button'),
+    title: deux('Traducteur', 'Translator'),
     lead: deux(
       'Écrivez et traduisez aussitôt. Le bouton central change de langue et emporte le texte avec lui.',
       'Type and translate instantly. The centre button swaps the languages and carries the text across with it.',
@@ -382,9 +349,8 @@ const FRENCH = {
     ),
     button: deux('Chercher', 'Search'),
     tryWith: deux('Essayez', 'Try'),
-    note: deux('Appuyez sur Entrée pour ouvrir la page du dictionnaire.', 'Press Enter to open the dictionary page.'),
     label: deux('Chercher un mot dans le dictionnaire', 'Search for a word in the dictionary'),
-    samples: deux('flâner,dépaysement,râler,chaleureux,bricoler', 'flâner,dépaysement,râler,chaleureux,bricoler'),
+    samples: deux('flâner,dépaysement,râler,chaleureux,bricoler,bouquiner,débrouillard,chuchoter', 'flâner,dépaysement,râler,chaleureux,bricoler,bouquiner,débrouillard,chuchoter'),
   },
 
   features: {
@@ -488,7 +454,6 @@ const FRENCH = {
     messageLabel: deux('Message', 'Message'),
     send: deux('Envoyer', 'Send'),
     you: deux('VOUS', 'YOU'),
-    enterHint: deux('Entrée pour envoyer · Maj + Entrée pour un retour à la ligne', 'Enter to send · Shift + Enter for a new line'),
     groundedOnly: deux(
       'Réponses du conjugueur, du dictionnaire, du traducteur et des fiches de grammaire — sans aucune IA',
       'Answers from the conjugator, the dictionary, the translator and the grammar notes — no AI involved'),
@@ -499,30 +464,6 @@ const FRENCH = {
     ),
   },
 
-  tape: {
-    unlock: deux('Débloquer', 'Unlock'),
-  },
-
-  lock: {
-    cancel: deux('Annuler', 'Cancel'),
-    title: deux('Verrouiller le site', 'Lock the site'),
-    detail: deux(
-      'Avec le code, le site est verrouillé pour tout le monde jusqu’à ce que quelqu’un le déverrouille.',
-      'With the passcode, the site is locked for everyone until someone unlocks it.',
-    ),
-    passcode: deux('Code du professeur', 'Teacher passcode'),
-    lockNow: deux('Verrouiller', 'Lock'),
-    wrong: deux('Code incorrect.', 'Wrong passcode.'),
-    lockLabel: deux('Verrouiller le site', 'Lock the site'),
-    unlockLabel: deux('Déverrouiller le site', 'Unlock the site'),
-    sealedTitle: deux('Cours en cours', 'Class in session'),
-    sealedDetail: deux(
-      'Un professeur a verrouillé le site. Entrez le code pour le déverrouiller.',
-      'A teacher has locked the site. Enter the passcode to unlock it.',
-    ),
-    sealedNote: deux('Il se déverrouille pour tout le monde à la fois.', 'It unlocks for everyone at once.'),
-  },
-
   home: {
     title: deux('ProfeGPT', 'ProfeGPT'),
     lead: deux(
@@ -530,7 +471,6 @@ const FRENCH = {
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
     choose: deux('Choisissez une langue', 'Choose a language'),
     enter: deux('Entrer', 'Enter'),
-    hint: deux('Appuyez sur Entrée pour entrer', 'Press Enter to go in'),
     soon: deux('D’autres langues', 'More languages'),
     soonBody: deux('Bientôt.', 'Coming soon.'),
     back: deux('Accueil', 'Home'),
@@ -551,8 +491,6 @@ const ITALIAN = {
     conjugation: due('Coniugazione', 'Conjugation'),
     dictionary: due('Dizionario', 'Dictionary'),
     chat: due('Chat', 'Chat'),
-    theme: due('Cambia tema', 'Switch theme'),
-    menu: due('Apri il menu', 'Open menu'),
     langLabel: due('Lingua del sito', 'Site language'),
   },
 
@@ -567,10 +505,9 @@ const ITALIAN = {
   },
 
   hero: {
-    badge: due('Italiano ↔ Inglese', 'Italian ↔ English'),
     sub: due(
-      'Traduci in tutte e due le direzioni, coniuga qualsiasi verbo in tutti i tempi, cerca una parola e chiedi al tutor. Tutto in una pagina.',
-      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask the tutor. All on one page.',
+      'Traduci in tutte e due le direzioni, coniuga qualsiasi verbo in tutti i tempi, cerca una parola e chiedi al tutor.',
+      'Translate both ways, conjugate any verb in every tense, look words up in the dictionary, and ask the tutor.',
     ),
     ctaTranslate: due('Prova il traduttore', 'Try the translator'),
     ctaChat: due('Parla con ProfeGPT', 'Talk to ProfeGPT'),
@@ -582,7 +519,7 @@ const ITALIAN = {
       'Non è stato possibile tradurre questa frase in questo momento. Riprova tra poco; nel frattempo il dizionario e il coniugatore funzionano.',
       'This sentence could not be translated just now. Try again in a little while — the dictionary and the conjugator still work in the meantime.'),
     eyebrow: due('Traduttore', 'Translator'),
-    title: due('Due direzioni, un solo pulsante', 'Both directions, one button'),
+    title: due('Traduttore', 'Translator'),
     lead: due(
       'Scrivi e traduci all’istante. Il pulsante centrale inverte le lingue e si porta dietro il testo.',
       'Type and translate instantly. The centre button swaps the languages and carries the text across with it.',
@@ -616,9 +553,8 @@ const ITALIAN = {
     ),
     button: due('Cerca', 'Search'),
     tryWith: due('Prova con', 'Try'),
-    note: due('Premi Invio per aprire la pagina del dizionario.', 'Press Enter to open the dictionary page.'),
     label: due('Cerca una parola nel dizionario', 'Search for a word in the dictionary'),
-    samples: due('sprezzatura,magari,abbiocco,meriggiare,menefreghista', 'sprezzatura,magari,abbiocco,meriggiare,menefreghista'),
+    samples: due('sprezzatura,magari,abbiocco,meriggiare,menefreghista,chiacchierare,pisolino,spuntino', 'sprezzatura,magari,abbiocco,meriggiare,menefreghista,chiacchierare,pisolino,spuntino'),
   },
 
   features: {
@@ -722,7 +658,6 @@ const ITALIAN = {
     messageLabel: due('Messaggio', 'Message'),
     send: due('Invia', 'Send'),
     you: due('TU', 'YOU'),
-    enterHint: due('Invio per inviare · Maiusc + Invio per andare a capo', 'Enter to send · Shift + Enter for a new line'),
     groundedOnly: due(
       'Risposte dal coniugatore, dal dizionario, dal traduttore e dalle schede di grammatica — senza alcuna IA',
       'Answers from the conjugator, the dictionary, the translator and the grammar notes — no AI involved'),
@@ -733,30 +668,6 @@ const ITALIAN = {
     ),
   },
 
-  tape: {
-    unlock: due('Sblocca', 'Unlock'),
-  },
-
-  lock: {
-    cancel: due('Annulla', 'Cancel'),
-    title: due('Blocca il sito', 'Lock the site'),
-    detail: due(
-      'Con il codice, il sito resta bloccato per tutti finché qualcuno non lo sblocca.',
-      'With the passcode, the site is locked for everyone until someone unlocks it.',
-    ),
-    passcode: due('Codice del prof', 'Teacher passcode'),
-    lockNow: due('Blocca', 'Lock'),
-    wrong: due('Codice errato.', 'Wrong passcode.'),
-    lockLabel: due('Blocca il sito', 'Lock the site'),
-    unlockLabel: due('Sblocca il sito', 'Unlock the site'),
-    sealedTitle: due('Lezione in corso', 'Class in session'),
-    sealedDetail: due(
-      'Un prof ha bloccato il sito. Inserisci il codice per sbloccarlo.',
-      'A teacher has locked the site. Enter the passcode to unlock it.',
-    ),
-    sealedNote: due('Si sblocca per tutti nello stesso momento.', 'It unlocks for everyone at once.'),
-  },
-
   home: {
     title: due('ProfeGPT', 'ProfeGPT'),
     lead: due(
@@ -764,7 +675,6 @@ const ITALIAN = {
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
     choose: due('Scegli una lingua', 'Choose a language'),
     enter: due('Entra', 'Enter'),
-    hint: due('Premi Invio per entrare', 'Press Enter to go in'),
     soon: due('Altre lingue', 'More languages'),
     soonBody: due('In arrivo.', 'Coming soon.'),
     back: due('Home', 'Home'),

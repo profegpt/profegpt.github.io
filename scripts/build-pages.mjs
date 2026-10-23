@@ -6,8 +6,10 @@
  * GitHub Pages serves files and nothing else, so this is the browser half of
  * the site with two changes, and the server half runs on Apps Script:
  *
- *   - It lives under /profegpt, since this repository is a project site of
- *     the profegpt organization. Root-relative paths in the page and the stylesheet
+ *   - It can live under a prefix. Today it does not: the repository is named
+ *     profegpt.github.io, which GitHub serves at the root of profegpt.github.io,
+ *     so "base" in pages/config.json is empty. Were it a project site again
+ *     (say /profegpt), root-relative paths in the page and the stylesheet would
  *     get the prefix, and a <meta name="profegpt-base"> tells the app about it
  *     (public/js/lib/site.js). The app's modules import each other relatively
  *     and need nothing.
@@ -16,7 +18,7 @@
  *     of the app to do that, with the address from pages/config.json.
  *
  * Every route is a client-side route, so 404.html is a copy of index.html:
- * GitHub Pages answers /profegpt/it/chat with it, and the app reads the
+ * GitHub Pages answers /it/chat with it, and the app reads the
  * address and draws the right page.
  */
 
@@ -75,7 +77,7 @@ function copyDir(from, to) {
 }
 
 export function build({ out = path.join(ROOT, '_site'), config = JSON.parse(read('pages/config.json')), quiet = false } = {}) {
-  if (!config.base || !config.api) throw new Error('pages/config.json needs "base" and "api"');
+  if (typeof config.base !== 'string' || !config.api) throw new Error('pages/config.json needs "base" (may be empty) and "api"');
 
   fs.rmSync(out, { recursive: true, force: true });
   copyDir(path.join(ROOT, 'public'), out);
@@ -92,7 +94,7 @@ export function build({ out = path.join(ROOT, '_site'), config = JSON.parse(read
     const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true })
       .forEach((entry) => (entry.isDirectory() ? walk(path.join(dir, entry.name)) : files.push(entry.name)));
     walk(out);
-    console.log(`_site ← ${files.length} files, under ${config.base}, API at ${new URL(config.api).host}`);
+    console.log(`_site ← ${files.length} files, under ${config.base || '/'}, API at ${new URL(config.api).host}`);
   }
   return { out };
 }
