@@ -269,8 +269,11 @@ function replaceOnce(text, from, to, label) {
 function page(clientBundle) {
   let html = read('public/index.html');
   html = replaceOnce(html, '<link rel="stylesheet" href="/styles.css" />', `<style>\n${styles()}\n</style>`, 'the stylesheet');
-  html = replaceOnce(html, '<link rel="icon" href="/favicon.svg" type="image/svg+xml" />\n', '', 'the favicon');
-  html = replaceOnce(html, '  <link rel="apple-touch-icon" href="/favicon.svg" />\n', '', 'the touch icon');
+  // Apps Script serves no favicon of its own, so both links and the comment
+  // above them go; whatever ?v= cache-buster they carry.
+  const icons = /[ \t]*<!-- The \?v= is a cache-buster[\s\S]*?-->\n[ \t]*<link rel="icon"[^>]*>\n[ \t]*<link rel="apple-touch-icon"[^>]*>\n/;
+  if (!icons.test(html)) throw new Error('index.html: could not find the favicon links');
+  html = html.replace(icons, '');
 
   const client = read('appscript/src/client.js');
   html = replaceOnce(

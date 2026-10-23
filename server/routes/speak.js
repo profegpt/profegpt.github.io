@@ -8,7 +8,7 @@
  */
 
 import { Router } from 'express';
-import { hasSpeech, MAX_SPOKEN, speak } from '../speech.js';
+import { hasSpeech, MAX_SENTENCE, MAX_SPOKEN, speak } from '../speech.js';
 import { studyOf } from '../study.js';
 
 export const router = Router();
@@ -37,19 +37,34 @@ const MESSAGES = {
 /** The same guard the dictionary uses, minus the space: one word, in letters. */
 const LOOKS_LIKE_A_WORD = /^[\p{L}][\p{L}\p{M}'’\- ]*$/u;
 
+/**
+ * `?word=` is the dictionary's speaker: one word, in the side's language.
+ * `?text=` is the translator's: one translated sentence, up to MAX_SENTENCE,
+ * in the side's language — or in English with `&lang=en`, when the
+ * translation went into English. speech.js checks both shapes again before
+ * spending anything.
+ */
 router.get('/', async (req, res) => {
   const study = studyOf(req.query.study);
   const messages = MESSAGES[study];
 
   if (!hasSpeech()) return res.status(503).json({ error: messages.off });
 
-  const word = String(req.query.word ?? '').trim().slice(0, MAX_SPOKEN + 1);
-  if (!word || word.length > MAX_SPOKEN || !LOOKS_LIKE_A_WORD.test(word)) {
-    return res.status(400).json({ error: messages.notAWord });
+  const sentence = req.query.text !== undefined;
+  const english = req.query.lang === 'en';
+  let word;
+  if (sentence) {
+    word = String(req.query.text ?? '').trim();
+    if (!word || word.length > MAX_SENTENCE) return res.status(400).json({ error: messages.notAWord });
+  } else {
+    word = String(req.query.word ?? '').trim().slice(0, MAX_SPOKEN + 1);
+    if (!word || word.length > MAX_SPOKEN || !LOOKS_LIKE_A_WORD.test(word)) {
+      return res.status(400).json({ error: messages.notAWord });
+    }
   }
 
   try {
-    const { audio, cached } = await speak(word, study);
+    const { audio, cached } = await speak(word, study, { sentence, english });
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Length', String(audio.length));
     // A word sounds the same tomorrow, and the browser cache spares the

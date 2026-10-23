@@ -677,13 +677,15 @@ code `it`.
 
 Modelled on [investors.duolingo.com](https://investors.duolingo.com/), measured
 from the live page rather than eyeballed: a white page, huge chunky **lowercase
-headings in one colour** — Duolingo's blue (`#1CB0F6`) rather than its green —
+headings in one colour** — a soft blue, `#4B9AF3`, halfway between the
+periwinkle of Minecraft's blue axolotl and Duolingo's blue, rather than
+Duolingo's green —
 grey body text (`#4B4B4B`), and cards
 and buttons with a **2px border and a 4px bottom edge** (`#E5E5E5`, 12–16px
-corners) that press down two pixels when clicked. Blue is the primary button,
-the links, and what is selected — a chosen language card, the active tab, the
+corners) that press down two pixels when clicked. That blue is the primary
+button, the links, and what is selected — a chosen language card, the active tab, the
 interface language — the way Duolingo marks a chosen answer. The translator's
-English side is marked purple so the two panes stay apart. Gold is for notices and idioms; red for irregular forms.
+English side is marked orange so the two panes stay apart. Gold is for notices and idioms; red for irregular forms.
 
 **Fonts.** Duolingo's own faces, Feather Bold and DIN Round, are not free.
 **Fredoka** stands in for Feather on the big headings and **Nunito** for DIN
@@ -699,18 +701,20 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 
 | | |
 | --- | --- |
-| `logo.svg` | the mascot's head — a blue speech bubble with big eyes and a mortarboard. Also the favicon (the script copies it). |
-| `mascot.svg` | the home page: the mascot waving, floating free — no floor — between three matching white speech bubbles, *¡Hola!*, *Bonjour* and *Ciao* |
+| `logo.svg` | the mascot's head — a periwinkle axolotl with its gills, big eyes and a mortarboard. Also the favicon (the script copies it). |
+| `mascot.svg` | the home page: the mascot, a blue axolotl in Minecraft's colours, mid-jump with its arms flung wide and an open book, floating free — no floor — between three matching white speech bubbles, *¡Hola!*, *Bonjour* and *Ciao* |
 | `es.svg` `fr.svg` `it.svg` | each language's landmark: the Sagrada Família, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
-The mascot is original — a speech bubble, not an owl — and nothing is copied
-from Duolingo's artwork. The style is theirs: flat shapes with no outlines, a
+The mascot is original — an axolotl, coloured from Minecraft's blue variant
+(body `#A79FFF`, shading `#8690F5`, gills `#816FE7`, sampled from the game's
+texture), in a pose of its own — and nothing is copied from Duolingo's artwork. The style is theirs: flat shapes with no outlines, a
 darker shade down one side, a light highlight pill, rounded everything, and
 confetti around the big scenes. The script asserts that every shape stays inside
-its canvas and that everything that should touch does — the mascot's cap on its
-head and its arm on its body, the Sagrada Família's towers on its façade, the
+its canvas and that everything that should touch does — the mascot's cap down
+over its crown with no head showing above it, its arms at its sides, its gills
+behind its head, the Sagrada Família's towers on its façade, the
 Pisa drums stacked without a gap after the lean — that each landmark is centred
 in its picture, and that the Eiffel Tower keeps the real one's proportions
 (platforms at about 19%, 38% and 87% of its height, the second 40% the width of
@@ -727,7 +731,8 @@ they are kept but never served or loaded.
 
 **Light and dark.** Light is the default, as Duolingo's page is; dark is a
 choice in the settings menu, and uses Duolingo's own dark palette — deep
-blue-grey `#131F24` rather than black, slate borders, the same blue. The choice
+blue-grey `#131F24` rather than black, slate borders, and a lighter blue for
+headings. The choice
 is stamped onto `<html data-theme>` by an inline script before the first paint,
 so the page never flashes the wrong one.
 
