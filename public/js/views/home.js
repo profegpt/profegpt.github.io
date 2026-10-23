@@ -74,7 +74,7 @@ export function renderHome(main) {
   }, ...boxes, soon);
 
   // Duolingo's front page: the name huge on the left with a line under it, the
-  // mascot on the right, and the choice below a rule.
+  // globe on the right, and the choice below a rule.
   const hero = el('section', { class: 'hero shell' },
     el('div', { class: 'hero__copy' },
       el('h1', { class: 'hero__title' }, 'profegpt'),
