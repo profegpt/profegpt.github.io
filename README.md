@@ -699,9 +699,9 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 
 | | |
 | --- | --- |
-| `logo.svg` | the mascot's head — a green speech bubble with big eyes and a mortarboard. Also the favicon. |
-| `mascot.svg` | the home page: the mascot with an open book, waving, between *¡Hola!*, *Bonjour* and *Ciao* |
-| `es.svg` `fr.svg` `it.svg` | each language's landmark: La Mancha windmills, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
+| `logo.svg` | the mascot's head — a blue speech bubble with big eyes and a mortarboard. Also the favicon (the script copies it). |
+| `mascot.svg` | the home page: the mascot waving, floating free — no floor — between three matching white speech bubbles, *¡Hola!*, *Bonjour* and *Ciao* |
+| `es.svg` `fr.svg` `it.svg` | each language's landmark: the Sagrada Família, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
@@ -709,9 +709,12 @@ The mascot is original — a speech bubble, not an owl — and nothing is copied
 from Duolingo's artwork. The style is theirs: flat shapes with no outlines, a
 darker shade down one side, a light highlight pill, rounded everything, and
 confetti around the big scenes. The script asserts that every shape stays inside
-its canvas and that everything that should touch does — the mascot's feet on the
-grass, every Eiffel platform covering the section below it, the Pisa drums
-stacked without a gap after the lean — and every picture was rendered on both
+its canvas and that everything that should touch does — the mascot's cap on its
+head and its arm on its body, the Sagrada Família's towers on its façade, the
+Pisa drums stacked without a gap after the lean — that each landmark is centred
+in its picture, and that the Eiffel Tower keeps the real one's proportions
+(platforms at about 19%, 38% and 87% of its height, the second 40% the width of
+the first) — and every picture was rendered on both
 the white and the dark background and looked at before it was kept.
 
 **Everything is still.** No transitions, no animations, no canvas: the old
