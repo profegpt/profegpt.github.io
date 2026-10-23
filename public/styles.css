@@ -401,7 +401,6 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .pane:focus-within { border-color: var(--brand-light); }
 .pane__bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 10px 18px; border-bottom: 2px solid var(--line); }
 .pane__lang { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); }
-.pane__dot { width: 12px; height: 12px; border-radius: 50%; }
 .pane__body { flex: 1; display: flex; }
 .pane textarea {
   flex: 1;

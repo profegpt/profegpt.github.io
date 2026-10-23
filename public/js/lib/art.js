@@ -26,7 +26,7 @@ const ART = {
 
 /**
  * Versions drawn for the dark theme. An <img> cannot take the page's colours,
- * so a picture with page-coloured parts in it — the mascot's speech bubbles,
+ * so a picture with page-coloured parts in it — the home picture's speech bubbles,
  * white on the light page — has a second drawing, and the image swaps between
  * the two as the theme changes.
  */
