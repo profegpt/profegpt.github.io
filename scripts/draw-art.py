@@ -417,7 +417,7 @@ SAY_INK = '#3C81DB'                                  # the greeting bubbles' let
 SAY_DARK = ('#202F36', '#37464F', '#78B0FC')
 BW, BH, SQK = 130, 100, 0.74                         # the body's half width and half height, squareness
 TAIL = [(-84, 58), (-26, 86), (-100, 148)]            # root, root, tip: down to the lower left
-EYE_DX, EYE_Y, EYE_W, EYE_H = 40, -20, 30, 38       # Duo's eyes: close set, taller than wide
+EYE_DX, EYE_Y, EYE_W, EYE_H = 38, -20, 27, 34       # the eyes: close set, taller than wide
 
 
 def squircle_pts(hw, hh, k=SQK, cx=0, cy=0, n=16):
@@ -483,14 +483,6 @@ def shade(art, shapes, base, dark, shift, what, extra=None):
     art.clip_end()
 
 
-def eye_pts(s, ex, ey, w, h):
-    """One of Duo's eyes: a rounded, slightly squarish shape, taller than
-    wide, its top sloping down toward the nose. s is -1 for the left eye."""
-    inner, outer = ex - s * w, ex + s * w
-    corners = [(inner, ey - h * 0.86), (outer, ey - h), (outer, ey + h), (inner, ey + h)]
-    return corners, [w * 0.9, w, w, w]
-
-
 def dots(art, seed, box, n, avoid, spacing=60):
     """The reference's confetti: round dots of a few sizes, and the odd
     small rounded square."""
@@ -551,20 +543,21 @@ def profe(art):
     assert not inside_poly(TAIL[2], body), 'tail tip inside the body'
     bubble(art, body, tail, AX, AX_D, (-6, -12), 'profe')
 
-    # eyes like Duo's: big close-set whites, big dark pupils looking a
-    # little to the right, one catchlight each
+    # eyes: two tall white ovals set close together, a big round pupil in
+    # each looking straight out at you, one catchlight each
     for s in (-1, 1):
         ex, ey, w, h = s * EYE_DX, EYE_Y, EYE_W, EYE_H
-        corners, radii = eye_pts(s, ex, ey, w, h)
-        art.poly(corners, WHITE, r=radii, what='eye')
-        pr = w * 0.66
-        px, py = ex + 5, ey + 3 + h * 0.08
+        art.ellipse(ex, ey, w, h, WHITE, what='eye')
+        pr = w * 0.64
+        px, py = ex, ey + 5
         art.circle(px, py, pr, EYE_INK, what='pupil')
-        art.circle(px - pr * 0.36, py - pr * 0.4, pr * 0.3, WHITE, what='catchlight')
-        assert px + pr < ex + w - 2 and px - pr > ex - w + 2, 'pupil falls out of the eye'
-        assert py - pr > ey - h * 0.86 + 4 and py + pr < ey + h - 4, 'pupil falls out of the eye'
-        for c in corners:
-            assert inside_poly(c, body), 'eye off the bubble'
+        art.circle(px - pr * 0.38, py - pr * 0.4, pr * 0.32, WHITE, what='catchlight')
+        # the pupil sits well inside the white
+        for a in range(0, 360, 15):
+            q = (px + pr * math.cos(math.radians(a)), py + pr * math.sin(math.radians(a)))
+            assert ((q[0] - ex) / (w - 3)) ** 2 + ((q[1] - ey) / (h - 3)) ** 2 < 1, 'pupil falls out of the eye'
+        for q in arc_pts(ex, ey, w, h, 0, 360, 16):
+            assert inside_poly(q, body), 'eye off the bubble'
     assert 2 * EYE_DX - 2 * EYE_W < 24, 'eyes too far apart'
 
     # an open smile with a pink tongue
@@ -732,16 +725,13 @@ def spain():
         w, tip = spindle(art, x, tb, top, hw, col, col_d, s=0.85 if hw < 20 else 0.95, slots=8, phase=ph)
         towers.append((x, tb, hw))
         assert BODY_T < tb, 'tower floats above the body'
-    # the central gable over the main portal, with Gaudi's green cypress on top
+    # the central gable over the main portal, with a small gold-tipped
+    # spindle standing on its point
     g = [(mid - 46, BODY_T + 4), (mid - 30, 282), (mid, 248), (mid + 30, 282), (mid + 46, BODY_T + 4)]
     art.poly(g, SAND, r=[0, 10, 8, 10, 0], what='gable')
     art.poly(clip_x(g, mid + 16), SAND_D, r=0, what='gable shade')
-    cyp = [(mid - 15, 256), (mid, 196), (mid + 15, 256)]
-    art.poly(cyp, GREEN, r=[5, 6, 5], what='cypress spire')
-    art.poly([(mid, 200), (mid + 15, 256), (mid + 2, 256)], GREEN_D, r=[3, 5, 0], what='cypress spire shade')
-    for dx, dy in ((-4, 232), (3, 218), (-1, 246)):
-        art.circle(mid + dx, dy, 2.4, WHITE, what='dove')
-    assert cyp[0][1] > 248 + 2, 'the cypress does not stand on the gable'
+    spindle(art, mid, 262, 214, 11, GOLD, GOLD_D, s=0.55, slots=0)
+    assert 262 > 248 + 2, 'the small spindle does not stand on the gable'
     # the facade body, with three parabolic portals
     art.rect(150, BODY_T, 260, BODY_B - BODY_T, SAND, rx=12, what='facade')
     art.rect(352, BODY_T, 58, BODY_B - BODY_T, SAND_D, rx=12, what='facade shade')
