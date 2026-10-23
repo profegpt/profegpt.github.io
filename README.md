@@ -21,7 +21,7 @@ A home page, and four pages per language.
 
 | Route          | What it does |
 | -------------- | ------------ |
-| `/`            | The **home page**: the title and the mascot, and a card per language — Español, Français, Italiano, and a dashed *More languages — coming soon*. See below. |
+| `/`            | The **home page**: the title and the globe, and a card per language — Español, Français, Italiano, and a dashed *More languages — coming soon*. See below. |
 | `/es`          | The language's front page. A hero with the language's landmark; the **translator**, whose centre button flips the languages and carries the text across; and a **dictionary search** that opens the dictionary page with your query already applied. |
 | `/es/conjugacion` | Every tense of the indicative, subjunctive and imperative. Three tabs for the regular **-ar / -er / -ir** models, plus a verb search that conjugates anything you type. Irregular forms are highlighted. |
 | `/es/diccionario` | Definitions from the *Diccionario de la lengua española*, with senses, synonyms and locutions, plus real example sentences and — in English mode — an English gloss. |
@@ -701,20 +701,19 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 
 | | |
 | --- | --- |
-| `logo.svg` | the mascot, small — a blue speech bubble with a face. Also the favicon (the script copies it). |
-| `mascot.svg` `mascot-dark.svg` | the home page: the mascot, Profe: a speech bubble with a face — the *Pregúntale a Profe* card's bubble in the site's blue, with big oval eyes and an open smile, and no arms, legs or hat — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
-| `es.svg` `fr.svg` `it.svg` | each language's landmark: the Sagrada Família, the Eiffel Tower, the Leaning Tower of Pisa. On its card on the home page and in its front page's hero. |
+| `logo.svg` | the globe's sphere alone — blue sea, green continents. Also the favicon (the script copies it). |
+| `mascot.svg` `mascot-dark.svg` | the home page: an object rather than a mascot — a desk globe, its sphere in the site's blue with flat green continents, on a gold half-ring and foot — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
+| `es.svg` `fr.svg` `it.svg` | each language's landmark, floating free with no ground or trees, and a small Duolingo-style picture of the country in front of it: the Sagrada Família with a bottle and glass of wine, the Eiffel Tower with a croissant, the Tower of Pisa (drawn upright) with a bowl of pasta. On its card on the home page and in its front page's hero. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
-The mascot is original — a speech bubble in the site's blue (`#4B9AF3`) — and nothing is copied from Duolingo's artwork. The Eiffel Tower
-follows a reference drawing for its proportions, in a clean bronze with opaque bracing. The style is theirs: flat shapes with no outlines, a
+The globe is original, in the site's blue (`#4B9AF3`), and nothing is copied from Duolingo's artwork. The Eiffel Tower
+follows a reference drawing for its proportions, in a clean bronze, plain, with no bracing or bands. The style is theirs: flat shapes with no outlines, a
 darker shade down one side, rounded everything, no white
-highlight spots, and confetti around the big scenes. The trees vary — round,
-oval, clustered, cypress, fir, bush — so no two scenes repeat. The script asserts that every shape stays inside
-its canvas and that everything that should touch does — the mascot's tail joined
-to its bubble (drawn as one outline, so the tail's shading comes to a single point), its eyes and smile on its face, the greeting bubbles clear of it, the Sagrada Família's towers on its façade, the
-Pisa drums stacked without a gap after the lean — that each landmark is centred
+highlight spots, and confetti around the big scenes. The script asserts that every shape stays inside
+its canvas and that everything that should touch does — the globe's continents on
+its sphere, its ring passing under it to the stem, the greeting bubbles clear of it, the Sagrada Família's towers on its façade, the
+Pisa drums stacked without a gap — that each landmark is centred
 in its picture, and that the Eiffel Tower keeps the real one's proportions
 (1.85 times as tall as its base is wide, decks at about 22%, 42% and 87% of its
 height) — and every picture was rendered on both

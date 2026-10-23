@@ -5,19 +5,15 @@ import { page, studyLang } from '../lib/study.js';
 
 /**
  * The two sides of the translator: the language the site is about, and English.
- * `--es` is the study language's marker colour whichever language that is —
- * the palette has one accent per side of the pane, not one per language.
  */
 const LANGUAGES = () => ({
   [studyLang()]: {
     label: t('translator.studyName'),
-    colour: 'var(--es)',
     placeholder: 'translator.placeholderStudy',
     out: 'translator.outStudy',
   },
   en: {
     label: t('translator.englishName'),
-    colour: 'var(--en)',
     placeholder: 'translator.placeholderEn',
     out: 'translator.outEn',
   },
@@ -145,8 +141,6 @@ function buildTranslator(root) {
 
   const sourceLang = el('span', {});
   const targetLang = el('span', {});
-  const sourceDot = el('span', { class: 'pane__dot' });
-  const targetDot = el('span', { class: 'pane__dot' });
   const counter = el('span', {}, `0 / ${MAX_CHARS}`);
   const status = el('span', {}, t('translator.ready'));
   const engine = el('span', {}, '');
@@ -234,7 +228,7 @@ function buildTranslator(root) {
 
   const sourcePane = el('div', { class: 'pane pane--source' },
     el('div', { class: 'pane__bar' },
-      el('span', { class: 'pane__lang' }, sourceDot, sourceLang),
+      el('span', { class: 'pane__lang' }, sourceLang),
       el('button', { class: 'btn btn--sm', type: 'button', onclick: () => { input.value = ''; sync(); } }, t('translator.clear'))),
     el('div', { class: 'pane__body' }, input),
     el('div', { class: 'pane__foot' }, counter, status));
@@ -243,7 +237,7 @@ function buildTranslator(root) {
 
   const targetPane = el('div', { class: 'pane' },
     el('div', { class: 'pane__bar' },
-      el('span', { class: 'pane__lang' }, targetDot, targetLang),
+      el('span', { class: 'pane__lang' }, targetLang),
       el('span', { class: 'pane__tools' }, listen, copy)),
     el('div', { class: 'pane__body' }, output),
     notes,
@@ -280,8 +274,6 @@ function buildTranslator(root) {
     const target = languages[state.to];
     sourceLang.textContent = source.label;
     targetLang.textContent = target.label;
-    sourceDot.style.background = source.colour;
-    targetDot.style.background = target.colour;
     input.placeholder = t(source.placeholder);
     output.dataset.placeholder = t(target.out);
   }
