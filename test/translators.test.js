@@ -207,6 +207,15 @@ ok('"I am tired" is not, because "tired" is not', !allEverydayWords('I am tired'
 ok('a real name is not', !allEverydayWords('Cuban Missile Crisis'));
 ok('nothing is not', !allEverydayWords(''));
 
+// --- DeepL's asterisks around titles come off ---------------------------------
+plan = "J'ai voulu comprendre *Gatsby le Magnifique*, mais c'est *À la recherche du temps perdu* qui m'a achevé.";
+({ result } = await run('I wanted to understand The Great Gatsby, but it was In Search of Lost Time that finished me off.', 'en', 'fr'));
+ok('the asterisks DeepL puts round titles are removed', result?.text === "J'ai voulu comprendre Gatsby le Magnifique, mais c'est À la recherche du temps perdu qui m'a achevé.", result?.text);
+
+plan = 'Esto es *muy* importante.';
+({ result } = await run('This is *very* important.', 'en', 'es'));
+ok('but asterisks the sentence had itself are kept', result?.text === 'Esto es *muy* importante.', result?.text);
+
 // --- the route: a 503 the page can recognise, and never cached ----------------
 const { router } = await import('../server/routes/translate.js');
 const app = express();
