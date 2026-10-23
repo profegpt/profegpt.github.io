@@ -713,8 +713,7 @@ darker shade down one side, rounded everything, no white
 highlight spots, and no sun or confetti. The script asserts that every shape stays inside
 its canvas and that everything that should touch does — the globe's ring passing under
 its sphere to the stem, the greeting bubbles clear of it, the Sagrada Família's towers on its façade, the
-Pisa drums stacked without a gap — that each landmark is centred
-in its picture, and that the Eiffel Tower keeps the real one's proportions
+Pisa drums stacked without a gap — that each landmark and its country picture are centred together, and that the Eiffel Tower keeps the real one's proportions
 (1.85 times as tall as its base is wide, decks at about 22%, 42% and 87% of its
 height) — and every picture was rendered on both
 the white and the dark background and looked at before it was kept.

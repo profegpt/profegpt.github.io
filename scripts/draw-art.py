@@ -197,6 +197,16 @@ class Art:
         assert abs(mid - self.w / 2) <= tol, (self.name, what, 'not centred', round(mid, 1))
         return mid
 
+    def centre(self, box, what):
+        """Move everything drawn so far so that `box` (a canvas box) sits in
+        the middle of the canvas, and check it still clears the margin."""
+        dx = self.w / 2 - (box[0] + box[2]) / 2
+        dy = self.h / 2 - (box[1] + box[3]) / 2
+        assert box[0] + dx >= MARGIN and box[2] + dx <= self.w - MARGIN, (self.name, what, 'too wide to centre')
+        assert box[1] + dy >= MARGIN and box[3] + dy <= self.h - MARGIN, (self.name, what, 'too tall to centre')
+        self.out.insert(0, f'<g transform="translate({f(dx)} {f(dy)})">')
+        self.out.append('</g>')
+
     def world(self, p):
         return apply(self.stack[-1], p)
 
@@ -659,14 +669,17 @@ def spain():
     for x in (190, 204, 218, 342, 356, 370):
         art.circle(x, 336, 3.6, SAND_DD, what='frieze')
     box = art.end_track()
-    art.assert_centred(box, 'basilica')
     for x, tb, hw in towers:
         assert 150 <= x - hw and x + hw <= 410, 'tower hangs off the facade'
 
     # Spanish wine, in front at the lower right
     art.push(place(424, 414, 0.86))
+    art.begin_track()
     wine(art)
+    obox = art.end_track()
     art.pop()
+    # centre the landmark and its picture together, as one group
+    art.centre((min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3])), 'basilica and wine')
     return art
 
 
@@ -792,15 +805,18 @@ def france():
         art.rect(lo, FOOT - 9, hi - lo, 13, EI_D if sgn > 0 else EI_L, rx=6, what='foot pad')
 
     box = art.end_track()
-    art.assert_centred(box, 'Eiffel Tower')
     height, width = FOOT - (TIP - 1), 2 * BASE
     assert 1.8 <= height / width <= 1.9, ('Eiffel Tower proportions off', round(height / width, 2))
     assert 370 <= height <= 395, ('Eiffel Tower should stand about 380 tall', round(height))
 
     # a croissant, in front at the lower right
     art.push(place(408, 446, 1.0))
+    art.begin_track()
     croissant(art)
+    obox = art.end_track()
     art.pop()
+    # centre the landmark and its picture together, as one group
+    art.centre((min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3])), 'Eiffel Tower and croissant')
     return art
 
 
@@ -863,12 +879,15 @@ def italy():
     art.path(f'M{f(cx - bell_r + 6)} {f(TOP - 4)}A{f(bell_r - 6)} 13 0 0 1 {f(cx + bell_r - 6)} {f(TOP - 4)}Z',
              [(cx - bell_r + 6, TOP - 17), (cx + bell_r - 6, TOP - 4)], CREAM_D, what='roof')
     box = art.end_track()
-    art.assert_centred(box, 'Tower of Pisa')
 
     # a bowl of pasta, in front at the lower right
     art.push(place(392, 416, 1.08))
+    art.begin_track()
     pasta(art)
+    obox = art.end_track()
     art.pop()
+    # centre the landmark and its picture together, as one group
+    art.centre((min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3])), 'Tower of Pisa and pasta')
     return art
 
 
