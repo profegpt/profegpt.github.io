@@ -698,11 +698,6 @@ def spain():
     art.rect(150, BODY_T, 260, BODY_B - BODY_T, SAND, rx=12, what='facade')
     art.rect(352, BODY_T, 58, BODY_B - BODY_T, SAND_D, rx=12, what='facade shade')
     art.rect(352, BODY_T, 14, BODY_B - BODY_T, SAND_D, what='facade shade')
-    # a crest of rounded knobs along the top, Gaudi's soft battlements
-    for x in (156, 206, 256, 304, 354, 404):
-        col = SAND_D if x > 352 else SAND
-        art.path(f'M{f(x - 7)} {f(BODY_T + 4)}A7 9 0 0 1 {f(x + 7)} {f(BODY_T + 4)}Z',
-                 [(x - 7, BODY_T - 5), (x + 7, BODY_T + 4)], col, what='crest')
     art.rect(150, BODY_B - 14, 260, 14, SAND_D, rx=7, what='plinth')
     art.rect(352, BODY_B - 14, 58, 14, SAND_DD, rx=7, what='plinth shade')
 
