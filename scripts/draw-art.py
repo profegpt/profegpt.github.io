@@ -5,8 +5,8 @@ Draws ProfeGPT's illustrations into public/assets/art/.
     python3 scripts/draw-art.py [out_dir]
 
 Flat shapes in Duolingo's house style: no outlines, no gradients, a darker
-shade down the right/bottom side of every solid thing, and a pale highlight
-pill on the lit side. Everything is generated so the geometry can be checked:
+shade down the right/bottom side of every solid thing, flat tones only (no
+translucent white highlight spots). Everything is generated so the geometry can be checked:
 every shape passes through Art.add(), which works out where it lands on the
 canvas (through any rotated or scaled groups) and refuses to write a drawing
 with anything closer than MARGIN to the edge. Each drawing then asserts that
@@ -44,7 +44,6 @@ CREAM_ARCH, CREAM_ARCH_D = '#D8C38A', '#C2AB6C'
 BRONZE_DD = '#94501F'
 WOOD, WOOD_D = '#B8652B', '#94501F'
 SAND, SAND_D, SAND_DD = '#E8C48A', '#C9A066', '#A8824E'
-HI = 'opacity=".35"'          # the highlight pill: white at 35%
 
 
 def f(x):
@@ -308,16 +307,12 @@ def confetti(art, seed, box, n, avoid, size=1.0, spacing=30):
     assert len(placed) == n, (art.name, 'could not place all the confetti', len(placed))
 
 
-def grass(art, e, lip=8, pill=None, light=False):
+def grass(art, e, lip=8, light=False):
     """A grass disc with a darker front lip, like a pressed button. The
     light one is for the green mascot, which would vanish into green grass."""
     cx, cy, rx, ry = e
     art.ellipse(cx, cy + lip, rx, ry, GREEN if light else GREEN_D, what='grass lip')
     art.ellipse(cx, cy, rx, ry, GREEN_L if light else GREEN, what='grass')
-    if pill:
-        x, y, w = pill
-        assert ell_y(x, e) + 4 < y and y + 6 < ell_y(x + w, e, False) - 2, 'grass pill off the grass'
-        art.rect(x, y, w, 6, WHITE, rx=3, extra=HI, what='grass pill')
 
 
 def round_tree(art, x, base, e, s=1.0):
@@ -330,7 +325,6 @@ def round_tree(art, x, base, e, s=1.0):
     assert cy + r > base - 44 * s + 6, 'crown does not reach the trunk'
     art.circle(x, cy, r, GREEN_D, what='crown shade')
     art.circle(x - 5 * s, cy - 4 * s, r - 5 * s, GREEN, what='crown')
-    art.rect(x - 22 * s, cy - 18 * s, 8 * s, 18 * s, WHITE, rx=4 * s, rot=(25, x - 18 * s, cy - 9 * s), extra=HI, what='crown pill')
 
 
 def cypress(art, x, base, e, s=1.0):
@@ -347,38 +341,84 @@ def cypress(art, x, base, e, s=1.0):
     half = (f'M{f(x)} {f(top[1])}C{f(x + wid * 0.78)} {f(base - hgt * 0.55)} {f(x + wid * 0.62)} {f(bot[1])} {f(x)} {f(bot[1])}Z')
     art.path(full, [top] + right + left, GREEN, what='cypress')
     art.path(half, [top] + right, GREEN_D, what='cypress shade')
-    art.rect(x - wid * 0.3, base - hgt * 0.62, wid * 0.14, hgt * 0.22, WHITE, rx=wid * 0.07, extra=HI, what='cypress pill')
+
+
+def trunk(art, x, base, e, s, h, w=12):
+    on_grass(x - w / 2 * s, base, e, what='tree trunk')
+    on_grass(x + w / 2 * s, base, e, what='tree trunk')
+    art.rect(x - w / 2 * s, base - h * s, w * s, h * s, WOOD, rx=w / 2 * s, what='trunk')
+    art.rect(x, base - h * s, w / 2 * s, h * s, WOOD_D, rx=w / 4 * s, what='trunk shade')
+
+
+def oval_tree(art, x, base, e, s=1.0):
+    """A tall poplar-ish tree: a long trunk under an upright oval crown."""
+    trunk(art, x, base, e, s, 50, 11)
+    cy, rx, ry = base - 88 * s, 27 * s, 48 * s
+    assert cy + ry > base - 50 * s + 6, 'crown does not reach the trunk'
+    art.ellipse(x, cy, rx, ry, GREEN_D, what='crown shade')
+    art.ellipse(x - 5 * s, cy - 5 * s, rx - 5 * s, ry - 5 * s, GREEN, what='crown')
+
+
+def cluster_tree(art, x, base, e, s=1.0):
+    """A bushy tree: three overlapping round crowns on a short trunk."""
+    trunk(art, x, base, e, s, 44, 12)
+    balls = [(x - 20 * s, base - 54 * s, 22 * s), (x + 19 * s, base - 58 * s, 21 * s), (x - 2 * s, base - 82 * s, 26 * s)]
+    for bx, by, r in balls:
+        art.circle(bx, by, r, GREEN_D, what='crown shade')
+    for bx, by, r in balls:
+        art.circle(bx - 4 * s, by - 4 * s, r - 5 * s, GREEN, what='crown')
+    assert max(by + r for bx, by, r in balls) > base - 44 * s + 6, 'crown does not reach the trunk'
+
+
+def conifer(art, x, base, e, s=1.0):
+    """A cone-shaped fir: three stacked rounded tiers, the right half in
+    shade."""
+    trunk(art, x, base, e, s, 22, 10)
+    tiers = [(base - 14 * s, 36 * s, 40 * s), (base - 42 * s, 29 * s, 38 * s), (base - 68 * s, 21 * s, 36 * s)]
+    for yb, hw, h in tiers:
+        pts = [(x - hw, yb), (x, yb - h), (x + hw, yb)]
+        art.poly(pts, GREEN, r=[6 * s, 5 * s, 6 * s], what='fir tier')
+        art.poly(clip_x(pts, x + 2 * s), GREEN_D, r=0, what='fir shade')
+    assert tiers[0][0] > base - 22 * s, 'fir floats off its trunk'
+
+
+def bush(art, x, base, e, s=1.0):
+    """A low shrub: overlapping round mounds sitting on the grass."""
+    mounds = [(x - 13 * s, 13 * s), (x + 12 * s, 12 * s), (x, 17 * s)]
+    for mx, r in mounds:
+        on_grass(mx, base, e, what='bush')
+        art.circle(mx, base - r * 0.7, r, GREEN_D, what='bush shade')
+    for mx, r in mounds:
+        art.circle(mx - 3 * s, base - r * 0.7 - 3 * s, r - 4 * s, GREEN, what='bush')
 
 
 def sun(art, cx, cy, r):
     art.circle(cx, cy, r, GOLD, what='sun')
     art.path(f'M{f(cx)} {f(cy - r)}A{f(r)} {f(r)} 0 0 1 {f(cx)} {f(cy + r)}Z',
              arc_pts(cx, cy, r, r, -90, 90), GOLD_D, extra='opacity=".45"', what='sun shade')
-    art.rect(cx - r * 0.62, cy - r * 0.55, r * 0.42, r * 0.2, WHITE, rx=r * 0.1,
-             rot=(-40, cx - r * 0.41, cy - r * 0.45), extra=HI, what='sun pill')
 
 
 # ------------------------------------------------------------------ the mascot
-# Profe is a blue axolotl in a little mortarboard, posed like the user's
-# reference drawing (mirrored): a wide flat head on top with the big round
-# eyes up on its corners, three gill fronds fanning out each side, small
+# Profe is a blue axolotl, posed like the user's reference drawing
+# (mirrored): a wide flat head with Duo-style eyes on the front of its face,
+# three gill fronds fanning out each side in the body's own blue, small
 # splayed hands held out, a slim body, and a long tail sweeping down to the
 # lower right. Shaded the way Duolingo shades Duo: big flat shapes, a
-# lighter face and belly, a darker crescent down the lower right, bold
-# rounded highlights. No outlines, no gradients.
+# lighter face and belly, a darker crescent down the lower right. No
+# outlines, no gradients, no white highlight spots.
 #
 # It is drawn in its own units (the reference traced at 4x, so about 520
 # units tall), with the head centred on (HX, HY), and placed by the caller.
-AX, AX_L, AX_LL = '#4B9AF3', '#A4CEFF', '#CFE5FF'    # body, belly and face, highlights
+AX, AX_L, AX_LL = '#4B9AF3', '#A4CEFF', '#CFE5FF'    # body, belly and face, the tail fin's edge
 AX_D, AX_DD = '#3C81DB', '#2F6AC0'                   # shade, deepest shade
-GILL, GILL_L, GILL_LL = '#5B6FE8', '#7E8CF0', '#A9B3F7'   # gills: a violet-leaning blue
 EYE_INK = '#22265A'
 PINK = '#FF8FB5'
 SAY_INK = '#3C81DB'                                  # the speech bubbles' lettering
 # the same bubbles for the dark page (mascot-dark.svg): fill, edge and lip, lettering
 SAY_DARK = ('#202F36', '#37464F', '#78B0FC')
 HX, HY, HW, HH, SQK = 220, 128, 124, 74, 0.74        # the head
-EYE_DX, EYE_Y, EYE_R, SOCKET_R = 68, 104, 31, 40     # eyes, and the bumps they sit in
+GILL_X = 68                                          # gill roots, from the head's centre line
+EYE_DX, EYE_Y, EYE_W, EYE_H = 36, 116, 31, 38       # Duo's eyes: close set, taller than wide
 HEAD_TILT = 4
 
 
@@ -473,95 +513,80 @@ def hand(centre, r, ang, fingers=4, spread=110):
 
 
 def head_shape():
-    """The head: a wide squircle with a round bump on each upper corner for
-    the eyes to sit in."""
-    head = poly_shape(squircle_pts(HW, HH, cx=HX, cy=HY)[1])
-    sockets = [disc((HX + s * EYE_DX, EYE_Y), SOCKET_R) for s in (-1, 1)]
-    return [head] + sockets
+    """The head: a wide, soft squircle."""
+    return [poly_shape(squircle_pts(HW, HH, cx=HX, cy=HY)[1])]
 
 
-def frond(side, root, ang, length, r1, r2, lobes=True):
+def frond(side, root, ang, length, r1, r2):
     """One gill frond: a plump leaf, narrow where it leaves the head,
-    swelling past the middle and rounding off at the tip, with a frill of
-    small round scallops down its lower edge."""
+    swelling past the middle and rounding off at the tip."""
     a = math.radians(ang)
     ux, uy = side * math.cos(a), -math.sin(a)
     tip = (root[0] + ux * length, root[1] + uy * length)
     mid = (root[0] + ux * length * 0.62, root[1] + uy * length * 0.62)
-    polys = [hull(root, r1, mid, r2), hull(mid, r2, tip, r2 * 0.72)]
-    if lobes:
-        # the lower edge is the one turned toward the body
-        nx, ny = uy * side, -ux * side
-        if ny < 0:
-            nx, ny = -nx, -ny
-        for t, r in ((0.42, r2 * 0.42), (0.68, r2 * 0.5), (0.9, r2 * 0.42)):
-            c = (root[0] + ux * length * t, root[1] + uy * length * t)
-            w = r1 + (r2 - r1) * min(1.0, t / 0.62) if t < 0.62 else r2 - (r2 * 0.28) * (t - 0.62) / 0.38
-            polys.append(disc((c[0] + nx * (w - 1), c[1] + ny * (w - 1)), r, n=10))
-    return polys, tip
+    return [hull(root, r1, mid, r2), hull(mid, r2, tip, r2 * 0.72)], tip
 
 
-# each gill: (root x offset from the eye, root y, angle from the outward
-# horizontal, length) - fanning from straight up round to straight out
-GILLS = ((22, 82, 74, 62), (40, 98, 38, 68), (48, 122, 4, 58))
-# the logo's: fewer lobes, stubbier, swept a little more upward to fit
-LOGO_GILLS = ((20, 84, 100, 60), (32, 98, 70, 54), (36, 120, 40, 38))
+# each gill: (root x offset from GILL_X, root y, angle from the outward
+# horizontal, length): three leaves swept up and out from each side of the
+# head, the same in the mascot and the logo
+GILLS = ((20, 84, 100, 60), (32, 98, 70, 54), (36, 120, 40, 38))
 
 
-def gills(art, logo=False):
+def gills(art):
     tips, roots = [], []
     for side in (-1, 1):
-        for dx, y, ang, L in (GILLS if not logo else LOGO_GILLS):
-            x = HX + side * (EYE_DX + dx)
-            r1, r2 = (7, 14) if not logo else (11, 17)
-            polys, tip = frond(side, (x, y), ang, L, r1, r2, lobes=not logo)
-            hi = None
-            if not logo:
-                hi = (lambda tip=tip, root=(x, y): art.circle(root[0] + (tip[0] - root[0]) * 0.62 - 4, root[1] + (tip[1] - root[1]) * 0.62 - 5, 4.5, GILL_LL, what='gill highlight'))
-            shade(art, polys, GILL_L, GILL, (-4, -5), 'gill', hi)
+        for dx, y, ang, L in GILLS:
+            x = HX + side * (GILL_X + dx)
+            polys, tip = frond(side, (x, y), ang, L, 11, 17)
+            # the body's own blue, told apart from the head only by its shade
+            shade(art, polys, AX, AX_D, (-5, -6), 'gill')
             tips.append(tip)
             roots.append((x, y))
     return tips, roots
 
 
+def eye_pts(s, ex, ey, w, h):
+    """One of Duo's eyes: a rounded, slightly squarish shape, taller than
+    wide, its top sloping down toward the nose. s is -1 for the left eye."""
+    inner, outer = ex - s * w, ex + s * w
+    corners = [(inner, ey - h * 0.86), (outer, ey - h), (outer, ey + h), (inner, ey + h)]
+    return corners, [w * 0.9, w, w, w]
+
+
 def head(art, logo=False):
-    """The head, face and mortarboard (gills drawn first, behind). Returns
-    the head's shapes and the board's outline."""
+    """The head and face (gills drawn first, behind). Returns the head's
+    shapes."""
     shapes = head_shape()
     hpts = shapes[0][1]
 
     def inner():
         # the paler face below the eyes
         art.ellipse(HX, HY + 54, 98, 46, AX_L, what='face')
-        if not logo:
-            art.ellipse(HX - 104, HY + 6, 10, 20, AX_LL, rot=12, what='highlight')
-            art.circle(HX - 108, HY + 38, 6.5, AX_LL, what='highlight')
     shade(art, shapes, AX, AX_D, (-22, -14), 'head', inner)
 
-    # cheeks, under and outside the eyes
+    # eyes like Duo's: big close-set whites, big dark pupils looking a
+    # little to the right, one catchlight each
+    w, h = (EYE_W, EYE_H) if not logo else (EYE_W + 3, EYE_H + 3)
+    look = (5, 3)
     for s in (-1, 1):
-        art.ellipse(HX + s * 84, HY + 30, 15, 9, PINK, extra='opacity=".75"', what='cheek')
-
-    # eyes: big whites in their bumps, big dark pupils looking out at us,
-    # two catchlights each
-    er = EYE_R if not logo else 34
-    for s in (-1, 1):
-        ex, ey = HX + s * EYE_DX, EYE_Y
-        art.circle(ex, ey, er, WHITE, what='eye')
-        pr = er * 0.7
-        px, py = ex - s * 2, ey + 3
-        assert math.hypot(px - ex, py - ey) + pr < er - 2, 'pupil falls out of the eye'
-        art.ellipse(px, py, pr, pr * 1.06, EYE_INK, what='pupil')
-        art.circle(px - pr * 0.34, py - pr * 0.38, pr * 0.4, WHITE, what='catchlight')
-        if not logo:
-            art.circle(px + pr * 0.42, py + pr * 0.42, pr * 0.16, WHITE, what='catchlight')
-        for a in range(0, 360, 20):
-            q = (ex + er * math.cos(math.radians(a)), ey + er * math.sin(math.radians(a)))
-            assert inside_any(q, shapes), 'eye off the head'
-        assert inside_poly((ex, ey), hpts), 'eye not on the head'
+        ex, ey = HX + s * (EYE_DX if not logo else EYE_DX + 3), EYE_Y
+        corners, radii = eye_pts(s, ex, ey, w, h)
+        art.poly(corners, WHITE, r=radii, what='eye')
+        pr = w * 0.66
+        px, py = ex + look[0], ey + look[1] + h * 0.08
+        art.circle(px, py, pr, EYE_INK, what='pupil')
+        art.circle(px - pr * 0.36, py - pr * 0.4, pr * 0.3, WHITE, what='catchlight')
+        # the pupil sits well inside the white, clear of its rounded corners
+        assert px + pr < ex + w - 2 and px - pr > ex - w + 2, 'pupil falls out of the eye'
+        assert py - pr > ey - h * 0.86 + 4 and py + pr < ey + h - 4, 'pupil falls out of the eye'
+        for c in corners:
+            assert inside_poly(c, hpts), 'eye off the head'
+        assert ey < HY, 'eyes should sit in the upper half of the head'
+    assert 2 * (EYE_DX if not logo else EYE_DX + 3) - 2 * w < 16, 'eyes too far apart'
 
     # the mouth: a sweet little open smile with a pink tongue
-    mx, my, mw, md = HX, HY + 40, 24, 16
+    mx, my, mw, md = HX, HY + 44, 22, 15
     if logo:
         mw, md = 26, 18
     mouth = (f'M{f(mx - mw)} {f(my)}Q{f(mx)} {f(my + 6)} {f(mx + mw)} {f(my)}'
@@ -572,54 +597,18 @@ def head(art, logo=False):
     art.path(mouth, mpts, EYE_INK, what='mouth')
     art.ellipse(mx + 2, my + md + 1, mw * 0.6, md * 0.5, PINK, what='tongue')
     art.clip_end()
-    assert my > EYE_Y + er - 4, 'mouth runs into the eyes'
+    assert my > EYE_Y + h + 2, 'mouth runs into the eyes'
     assert inside_poly((mx, my + md + 8), hpts), 'mouth off the face'
-
-    # the mortarboard, small, sat on the crown between the eye bumps: a
-    # skull cap that sinks into the head, the board on top of it
-    top = HY - HH
-    cw, cb, ct = (38, top + 16, top - 6) if not logo else (46, top + 18, top - 8)
-    capp = [(HX - cw, cb), (HX - cw - 2, ct), (HX + cw + 2, ct), (HX + cw, cb)]
-    # the cap's lower edge bows down a little, round the head
-    capp = capp[:1] + capp[1:3] + [capp[3]] + [(HX, cb + 6)]
-    shade(art, [poly_shape(capp)], INK, INK_D, (-8, -3), 'cap')
-    for x, y in (capp[0], capp[3], capp[4]):
-        assert inside_any((x, y + 2), shapes), 'the cap does not sit down into the head'
-    for s in (-1, 1):
-        sx = HX + s * EYE_DX
-        assert math.dist((HX + s * cw, cb), (sx, EYE_Y)) > er + 4, 'the cap covers an eye'
-    bw, bh, bt = (66, 18, 7) if not logo else (80, 22, 9)
-    by = ct - 2
-    board = [(HX - bw, by), (HX, by - bh), (HX + bw, by), (HX, by + bh)]
-    art.poly([(x, y + bt) for x, y in board], INK_D, r=6, what='board edge')
-    art.poly(board, INK, r=6, what='board')
-    art.poly([(HX, by - bh), (HX + bw, by), (HX, by + bh)], '#444444', r=6, what='board shade')
-    if not logo:
-        art.rect(HX - bw + 22, by - 8, 26, 7, WHITE, rx=3.5, rot=(-14, HX - bw + 35, by - 4.5), extra='opacity=".22"', what='board highlight')
-    # no bald gap: the board's underside reaches down past the cap's top
-    assert by + bh + bt > ct + 8, 'gap between the board and the cap'
-    for s in (-1, 1):
-        assert by + bt < EYE_Y - er, 'the board hides an eye'
-    # the tassel: a short one off the left corner, dangling just above the eye
-    tx = HX - bw + 8
-    hang = by + (12 if not logo else 8)
-    art.line([(HX, by), (tx, by + 1), (tx, hang)], GOLD_D if not logo else GOLD, 4 if not logo else 8, what='cord')
-    tw, th = (11, 15) if not logo else (18, 14)
-    art.rect(tx - tw / 2, hang - 3, tw, th, GOLD, rx=tw / 2, what='tassel')
-    art.rect(tx, hang - 3, tw / 2, th, GOLD_D, rx=tw / 4, what='tassel shade')
-    art.circle(HX, by, 6 if not logo else 10, GOLD, what='button')
-    ex = HX - EYE_DX
-    assert abs(tx - ex) > er + tw / 2 or hang - 3 + th < EYE_Y - er - 2, 'tassel over the eye'
-    return shapes, board
+    return shapes
 
 
 def logo():
     art = Art('logo.svg', 64, 64)
     art.push(place(32, 33, 0.186))
-    art.push(translate(-HX, -(HY - 8)))
+    art.push(translate(-HX, -(HY - 14)))
     art.begin_track()
-    tips, roots = gills(art, logo=True)
-    shapes, _ = head(art, logo=True)
+    tips, roots = gills(art)
+    shapes = head(art, logo=True)
     for r in roots:
         assert inside_any(r, shapes), 'gill not attached to the head'
     art.assert_centred(art.end_track(), 'logo', tol=1.5)
@@ -679,7 +668,7 @@ def dots(art, seed, box, n, avoid, spacing=60):
     """The reference's confetti: round dots of a few sizes, and the odd
     small rounded square."""
     rnd = random.Random(seed)
-    cols = [AX, GOLD, PINK, GILL_L, ORANGE, AX_L]
+    cols = [AX, GOLD, PINK, PURPLE, ORANGE, AX_L]
     placed, tries = [], 0
     x0, y0, x1, y1 = box
     while len(placed) < n and tries < 20000:
@@ -716,8 +705,7 @@ def hero(dark=False):
     tail, spine = tail_shape((244, 296), (232, 384), (356, 382), (384, 476), 25, 6)
     fin, _ = tail_shape((236, 310), (220, 392), (344, 398), (374, 478), 27, 10)
     shade(art, fin, AX_L, AX_LL, (0, 0), 'tail fin')
-    shade(art, tail, AX, AX_D, (-9, -9), 'tail',
-          lambda: art.ellipse(296, 392, 22, 8, AX_LL, rot=24, what='tail highlight'))
+    shade(art, tail, AX, AX_D, (-9, -9), 'tail')
     assert inside_any((244, 300), body), 'tail not attached to the body'
     # little back legs, splayed at the hips
     legs = [((216, 304), 13, (180, 324), 11, 160), ((274, 300), 13, (310, 318), 11, 20)]
@@ -734,17 +722,16 @@ def hero(dark=False):
 
     def belly():
         art.ellipse(236, 270, 30, 40, AX_L, rot=-8, what='belly')
-        art.ellipse(206, 250, 8, 16, AX_LL, rot=10, what='highlight')
     shade(art, body, AX, AX_D, (-16, -8), 'body', belly)
 
     # the head, tilted a little toward the tail
     art.push(rotate(HEAD_TILT, 228, 206))
     tips, roots = gills(art)
-    shapes, board = head(art)
+    shapes = head(art)
     for r in roots:
         assert inside_any(r, shapes), 'gill not attached to the head'
     Mh = mul(M, rotate(HEAD_TILT, 228, 206)[1])
-    keep = [apply(Mh, p) for _, sp in shapes for p in sp] + [apply(Mh, p) for p in board + tips]
+    keep = [apply(Mh, p) for _, sp in shapes for p in sp] + [apply(Mh, p) for p in tips]
     # the chin sits down over the body
     assert inside_any(apply(rotate(HEAD_TILT, 228, 206)[1], (HX, HY + HH - 4)), body), 'head not on the body'
     art.pop()
@@ -821,7 +808,6 @@ def sg_spire(art, cx, tip, band, base, hw):
         if w > 9:
             for dx in (-0.36, 0.36):
                 art.rect(cx + dx * w - 2, y - 5, 4, 10, SG_D, rx=2, what='cone slot')
-    art.ellipse(cx - hw * 0.55, band + (base - band) * 0.22, 4.5, 26, WHITE, extra=HI, what='spire highlight')
     top = sg_finial(art, cx, tip + 4)
     return top
 
@@ -830,9 +816,10 @@ def spain():
     art = Art('es.svg', 560, 480)
     sun(art, 478, 96, 38)
     ground = (280, 436, 238, 24)
-    grass(art, ground, pill=(132, 446, 34))
-    round_tree(art, 64, 432, ground, 0.72)
-    round_tree(art, 498, 430, ground, 0.66)
+    grass(art, ground)
+    cluster_tree(art, 64, 432, ground, 0.7)
+    bush(art, 104, 440, ground, 0.8)
+    conifer(art, 494, 430, ground, 0.8)
 
     s = 0.56
     art.push(place(280 - 450 * s, 437 - 812 * s, s))
@@ -860,38 +847,59 @@ def spain():
     art.rect(C - 9, 459, 18, 4, SG_DD, rx=2, what='cross')
     assert 214 > tops[2], 'gable taller than the spires'
 
+    # the wings are not mirror images, as on the real basilica: the right
+    # one is a little wider, its roof a step higher, with one more pinnacle
+    # and one more column of windows
+    WINGS = {-1: dict(x0=C - 232, x1=C - 150, roof=600, pins=4, cols=4),
+             1: dict(x0=C + 150, x1=C + 244, roof=592, pins=5, cols=5)}
+    WALL_B = 788                            # wings run down behind the plinth (top 784)
+
     # the ribbed mass behind the porch, between the spires and the wings
-    art.rect(C - 232, 512, 464, 94, SG_D, rx=6, what='upper mass')
-    art.rect(C + 60, 512, 172, 94, SG_DD, rx=6, extra='opacity=".45"', what='upper mass shade')
-    for x in range(int(C - 224), int(C + 230), 16):
-        art.rect(x, 518, 6, 82, SG_L if x < C else SG, rx=3, what='rib')
+    m0, m1 = WINGS[-1]['x0'], WINGS[1]['x1']
+    art.rect(m0, 512, m1 - m0, 94, SG_D, rx=6, what='upper mass')
+    art.rect(C + 60, 512, m1 - C - 60, 94, SG_DD, rx=6, extra='opacity=".45"', what='upper mass shade')
+    n_rib = int((m1 - m0 - 16) // 16)
+    pitch = (m1 - m0 - 16 - 6) / n_rib     # ribs evenly spread, 8 in from each end
+    for i in range(n_rib + 1):
+        x = m0 + 8 + i * pitch
+        art.rect(x, 518, 6, 82, SG_L if x + 3 < C else SG, rx=3, what='rib')
+    assert abs(m0 + 8 + n_rib * pitch + 6 - (m1 - 8)) < 0.01, 'ribs not evenly spread across the mass'
 
     # the wings, with a row of small pointed pinnacles along each roof
     for side in (-1, 1):
-        x0, x1 = (C - 232, C - 150) if side < 0 else (C + 150, C + 232)
-        for i in range(4):
-            px = x0 + 10 + i * (x1 - x0 - 20) / 3
+        wg = WINGS[side]
+        x0, x1, roof = wg['x0'], wg['x1'], wg['roof']
+        n = wg['pins']
+        gap = (x1 - x0 - 20) / (n - 1)
+        for i in range(n):
+            px = x0 + 10 + i * gap
             ph = 92 if i % 2 == 0 else 74
-            pin = [(px - 10, 600), (px - 2, 600 - ph), (px + 2, 600 - ph), (px + 10, 600)]
+            # the pinnacle's foot runs 6 into the cornice, so it sits on it
+            pin = [(px - 10, roof + 6), (px - 2, roof + 6 - ph), (px + 2, roof + 6 - ph), (px + 10, roof + 6)]
             sg_shaded(art, pin, px + 2, lit=SG_L, dark=SG, what='pinnacle')
-        lit, dark = (SG, SG_D) if side < 0 else (SG_D, SG_D)
-        art.rect(x0, 604, x1 - x0, 176, lit, what='wing')
+        top = roof + 4
+        art.rect(x0, top, x1 - x0, WALL_B - top, SG if side < 0 else SG_D, what='wing')
         if side > 0:
-            art.rect(x0, 604, 10, 176, SG, what='wing edge')
-        art.rect(x0 - 6, 594, x1 - x0 + 12, 16, SG_L if side < 0 else SG, rx=5, what='cornice')
+            art.rect(x0, top, 10, WALL_B - top, SG, what='wing edge')
+        art.rect(x0 - 6, roof - 6, x1 - x0 + 12, 16, SG_L if side < 0 else SG, rx=5, what='cornice')
+        k_n = wg['cols']
         for r in range(3):
-            for k in range(4):
-                wx = x0 + 12 + k * (x1 - x0 - 24) / 3
-                art.rect(wx - 4, 626 + r * 50, 8, 34, SG_DD, rx=4, what='wing window')
-    art.ellipse(C - 214, 690, 5, 30, WHITE, extra=HI, what='wing highlight')
+            for k in range(k_n):
+                wx = x0 + 12 + k * (x1 - x0 - 24) / (k_n - 1)
+                art.rect(wx - 4, roof + 26 + r * 50, 8, 34, SG_DD, rx=4, what='wing window')
+        assert roof + 26 + 2 * 50 + 34 < 784, 'wing windows run into the plinth'
 
-    # the porch: a dark recess, a row of leaning columns, the pointed central
-    # door, the chevron of the lower gable and the big pediment over it all
-    art.rect(C - 150, 600, 300, 176, SG_DD, what='porch recess')
+    # the porch: a dark recess, a row of leaning columns evenly spaced, the
+    # pointed central door, the chevron of the lower gable and the big
+    # pediment over it all
+    PW, LEAN, PITCH = 150, 6, 36
+    art.rect(C - PW, 600, 2 * PW, 176, SG_DD, what='porch recess')
     for side in (-1, 1):
-        for k, bx in enumerate((136, 100, 64)):
-            b, t = C + side * bx, C + side * (bx + 10 + 4 * k)
+        for k in range(3):
+            bx = 136 - k * PITCH
+            b, t = C + side * bx, C + side * (bx + LEAN)
             col = [(b - 9, 776), (t - 7, 640), (t + 7, 640), (b + 9, 776)]
+            assert abs(t - C) + 7 <= PW, 'column pokes out of the porch'
             sg_shaded(art, col, (b + t) / 2 + 3, what='column')
     door = [(C - 40, 776), (C - 40, 652)] + bezier((C - 40, 652), (C - 40, 624), (C - 14, 606), (C, 598), 6) + \
         bezier((C, 598), (C + 14, 606), (C + 40, 624), (C + 40, 652), 6) + [(C + 40, 776)]
@@ -902,17 +910,18 @@ def spain():
         art.rect(C + dx - 5, 650, 10, 28, SG_DD, rx=5, what='doorway window')
     inner = [(C - 17, 776), (C - 17, 730), (C, 712), (C + 17, 730), (C + 17, 776)]
     art.poly(inner, SG_DD, r=[0, 8, 6, 8, 0], what='door')
+    assert 136 - 2 * PITCH - 9 > 40, 'the inner columns run into the doorway'
     chev = [(C - 160, 664), (C, 562), (C + 160, 664), (C + 140, 664), (C, 586), (C - 140, 664)]
     sg_shaded(art, chev, C, lit=SG_L, dark=SG, what='lower gable')
     ped = [(C - 168, 608), (C, 486), (C + 168, 608)]
     sg_shaded(art, ped, C, lit=SG_L, dark=SG, r=[4, 8, 4], what='pediment')
-    for x in range(int(C - 132), int(C + 140), 18):
+    for k in range(-7, 8):
+        x = C + k * 18                      # slots evenly spaced about the centre line
         yt = 486 + abs(x - C) / 168 * 122 + 16
         if 600 - yt > 14:
-            art.rect(x - 4, yt, 8, 598 - yt, SG_DD if x < C else SG_DD, rx=4, extra='opacity=".75"', what='pediment slot')
+            art.rect(x - 4, yt, 8, 600 - yt, SG_DD, rx=4, extra='opacity=".75"', what='pediment slot')
     art.rect(C - 172, 600, 344, 12, SG_L, rx=5, what='pediment sill')
     art.rect(C, 600, 172, 12, SG, rx=5, what='pediment sill shade')
-    art.ellipse(C - 96, 572, 5, 16, WHITE, rot=-50, extra=HI, what='pediment highlight')
 
     # the stepped plinth and the stairs up to the porch
     art.rect(C - 272, 784, 544, 28, SG, rx=4, what='plinth')
@@ -940,9 +949,10 @@ def france():
     art = Art('fr.svg', 560, 480)
     mid = 280
     ground = (280, 440, 238, 26)
-    grass(art, ground, pill=(96, 448, 40))
-    round_tree(art, 92, 446, ground, 0.9)
-    round_tree(art, 470, 444, ground, 0.8)
+    grass(art, ground)
+    oval_tree(art, 88, 446, ground, 0.86)
+    bush(art, 138, 452, ground, 0.85)
+    round_tree(art, 474, 444, ground, 0.72)
 
     # proportions traced from the reference drawing: 1.85 times as tall as
     # it is wide at the foot; the first deck at 22% of the height and 56% of
@@ -1073,14 +1083,6 @@ def france():
         for x in (lo, hi):
             on_grass(x, FOOT + 4, ground, what='tower foot')
 
-    # bold rounded highlights on the lit left side
-    ly = (Y1 + FOOT) / 2 + 6
-    lx = mid - (w_leg(ly) + a_s) / 2 - 6
-    art.ellipse(lx, ly, 7, 20, WHITE, rot=28, extra=HI, what='leg highlight')
-    sy = Y2 - (Y2 - Y3) * 0.28
-    art.ellipse(mid - w_up(sy) * 0.55, sy, 4.5, 26, WHITE, rot=5, extra=HI, what='shaft highlight')
-    my_ = (m_bot + m_top) / 2
-    art.ellipse(mid - w_mid(my_) * 0.62, my_, 5.5, 14, WHITE, rot=16, extra=HI, what='middle highlight')
     box = art.end_track()
     art.assert_centred(box, 'Eiffel Tower')
     height, width = FOOT - (TIP - 1), 2 * BASE
@@ -1098,11 +1100,11 @@ def italy():
     # something to stand against on a white page
     sun(art, 226, 186, 92)
     ground = (280, 414, 240, 38)
-    grass(art, ground, pill=(370, 430, 40))
+    grass(art, ground)
     cypress(art, 92, 418, ground, 1.0)
-    cypress(art, 138, 410, ground, 0.72)
-    cypress(art, 420, 410, ground, 0.68)
-    round_tree(art, 476, 416, ground, 0.84)
+    cypress(art, 136, 410, ground, 0.6)
+    cypress(art, 420, 410, ground, 0.8)
+    cluster_tree(art, 480, 416, ground, 0.74)
 
     # the tower leans right about its foot, so its foot sits left of centre
     # by about half the lean
@@ -1163,8 +1165,6 @@ def italy():
     art.path(f'M{f(cx - bell_r + 6)} {f(TOP - 4)}A{f(bell_r - 6)} 13 0 0 1 {f(cx + bell_r - 6)} {f(TOP - 4)}Z',
              [(cx - bell_r + 6, TOP - 17), (cx + bell_r - 6, TOP - 4)], CREAM_D, what='roof')
     b0, t0, _ = drums[0]
-    art.rect(cx - R + 2.5, t0 + 10, 6, b0 - t0 - 26, WHITE, rx=3, extra='opacity=".8"', what='tower highlight')
-    art.rect(cx - bell_r + 14, TOP - 12, 12, 4.5, WHITE, rx=2.25, rot=(-10, cx - bell_r + 20, TOP - 10), extra='opacity=".6"', what='roof pill')
     # the base corners, after the lean, sit in the grass
     for x in (cx - R - 8, cx + R + 8):
         wx, wy = art.world((x, drums[0][0]))
@@ -1200,7 +1200,6 @@ def translator():
     art.poly([(a, b + 4) for a, b in tail], BLUE_D, r=[2, 2, 2.5])
     card_lip(art, x, y, w, h, 13, BLUE, BLUE_D)
     art.poly(tail, BLUE, r=[2, 2, 2.5])
-    art.rect(x + 7, y + 6, 10, 5, WHITE, rx=2.5, extra=HI)
     # an "A" built from bars
     art.line([(26.5, 39), (34, 19), (41.5, 39)], WHITE, 5)
     art.line([(29.5, 32), (38.5, 32)], WHITE, 4.5)
@@ -1212,7 +1211,6 @@ def translator():
     art.poly([(a, b + 4) for a, b in tail], GREEN_D, r=[2, 2, 2.5])
     card_lip(art, x, y, w, h, 13, GREEN, GREEN_D)
     art.poly(tail, GREEN, r=[2, 2, 2.5])
-    art.rect(x + 7, y + 6, 10, 5, WHITE, rx=2.5, extra=HI)
     # swap arrows: right along the top, left along the bottom
     art.line([(49, 49), (73, 49)], WHITE, 4.5)
     art.poly([(70, 43), (78, 49), (70, 55)], WHITE, r=1.5)
@@ -1233,7 +1231,6 @@ def conjugator():
     cx, cy = 54, 44
     art.push(rotate(12, cx, cy + 22))
     x0, y0 = cx - w / 2, cy - h / 2
-    art.rect(x0 + 6, y0 + 7, 9, 4.5, WHITE, rx=2.25, extra=HI)
     for i, bw in enumerate((26, 18, 24, 14)):
         art.rect(x0 + 8, y0 + 17 + i * 8.5, bw, 5, WHITE if i == 0 else GOLD_D, rx=2.5)
     art.pop()
@@ -1258,7 +1255,6 @@ def dictionary():
     art.rect(x + 19, y + 14, 28, 18, WHITE, rx=5)
     art.rect(x + 24, y + 19, 18, 3.4, BLUE, rx=1.7)
     art.rect(x + 24, y + 25, 12, 3.4, BLUE, rx=1.7)
-    art.rect(x + 16, y + 40, 4, 16, WHITE, rx=2, extra=HI)
     art.poly([(x + 36, y + h - 6), (x + 44, y + h - 6), (x + 44, y + h + 10), (x + 40, y + h + 6), (x + 36, y + h + 10)], RED, r=[0, 0, 1, 1, 1])
     art.pop()
     return art
@@ -1272,7 +1268,6 @@ def chat():
     art.poly([(a, b + 5) for a, b in tail], PURPLE_D, r=[2, 2, 3])
     card_lip(art, x, y, w, h, 18, PURPLE, PURPLE_D, lip=5)
     art.poly(tail, PURPLE, r=[2, 2, 3])
-    art.rect(x + 10, y + 7, 14, 6, WHITE, rx=3, extra=HI)
     for i in range(3):
         art.circle(x + 20 + i * 16, y + h / 2 + 2, 5.5, WHITE)
     art.pop()
@@ -1289,7 +1284,6 @@ def soon():
     art.poly([(24, 30), (38, 22), (48, 26), (44, 36), (34, 40), (30, 50), (22, 44)], land, r=5)
     art.poly([(50, 46), (62, 42), (70, 50), (62, 66), (52, 62)], land, r=5)
     art.poly([(56, 20), (66, 18), (72, 28), (62, 28)], land, r=3)
-    art.rect(cx - 24, cy - 26, 6, 14, WHITE, rx=3, rot=(35, cx - 21, cy - 19), extra='opacity=".6"')
     # the gold plus badge
     bx, by, br = 68, 68, 17
     art.circle(bx + 1.5, by + 2.5, br, GOLD_D)
