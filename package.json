@@ -12,7 +12,8 @@
     "appscript:preview": "node appscript/preview.mjs",
     "appscript:push": "node appscript/build.mjs && cd appscript && npx @google/clasp push --force",
     "pages:build": "node scripts/build-pages.mjs",
-    "appscript:deploy": "node appscript/build.mjs && cd appscript && npx @google/clasp push --force && npx @google/clasp deploy -i AKfycbzQJSe8rHdR9ZDTmpEfFtOtUaHbirB9jQd0rP8GuOYqA-5MNLCDGZYBfOPirBDVybsObQ -d \"ProfeGPT web app\""
+    "jsdelivr:publish": "sh scripts/publish-jsdelivr.sh",
+    "appscript:deploy": "node appscript/build.mjs && cd appscript && npx @google/clasp push --force && npx @google/clasp deploy -i AKfycbzQJSe8rHdR9ZDTmpEfFtOtUaHbirB9jQd0rP8GuOYqA-5MNLCDGZYBfOPirBDVybsObQ -d \"ProfeGPT web app\" && cd .. && sh scripts/publish-jsdelivr.sh"
   },
   "engines": {
     "node": ">=20"

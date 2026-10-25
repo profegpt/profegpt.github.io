@@ -995,6 +995,18 @@ deployment to the new version, so its address — the one `pages/config.json`
 points at — never changes. (`npm run appscript:push` only uploads, and leaves
 visitors on the old version.)
 
+It then runs **`scripts/publish-jsdelivr.sh`**, which republishes
+**<https://tinyurl.com/profegptapp>**, the link that works for every visitor.
+script.google.com shows Google's "Sorry, unable to open the file at this time"
+to anyone whose browser is signed into a personal Gmail that does not own the
+script, and github.io is blocked at school. The link opens `profegpt/open.svg`
+from the repository `yuzhe-chen/saxon-arcade` (checked out at `~/planner/arcade`)
+on jsDelivr. That loader writes the live web app's own page into a frame
+(`scripts/standalone.mjs` takes it from the `/exec` address and adds a
+`google.script.run` that sends `api()` calls to `doPost` and `doGet(?result=id)`
+as plain, cookie-free requests). No server change is involved. After any deploy
+done another way, run `npm run jsdelivr:publish`.
+
 The keys go in *Project Settings → Script properties*, one row per variable you
 would put in `.env`: `DEEPL_API_KEY`, `ELEVENLABS_API_KEY`, `RAE_API_KEY`,
 While none of the three keys is set, the Apps Script page
