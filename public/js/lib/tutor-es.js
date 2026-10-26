@@ -91,6 +91,7 @@ export const PACK = {
 
   /** Words in a question that pin it to one tense. */
   TENSE_HINTS: [
+    [/\b(presente de subjuntivo|subjuntivo presente|present subjunctive)\b/, 'subjuntivo.presente'],
     [/\b(presente|present)\b/, 'indicativo.presente'],
     [/\b(preterit\w*|indefinido|pasado simple|past simple)\b/, 'indicativo.preterito'],
     [/\b(imperfecto de subjuntivo|imperfect subjunctive|subjuntivo imperfecto)\b/, 'subjuntivo.imperfectoRa'],
@@ -222,4 +223,7 @@ Asked another way, I might be able to. Try one of these — or type **help** for
 
   /** Tenses shown when a question names a verb but no particular tense. */
   DEFAULT_TENSES: ['indicativo.presente', 'indicativo.preterito', 'subjuntivo.presente'],
+
+  /** The regular verbs a tense is shown on when no verb is named. */
+  MODEL_VERBS: ['hablar', 'comer', 'vivir'],
 };
