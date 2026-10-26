@@ -125,14 +125,16 @@ export function renderMarkdown(source, target) {
     }
 
     const bullet = /^\s*[-*+]\s+(.*)$/.exec(line);
-    const ordered = /^\s*\d+[.)]\s+(.*)$/.exec(line);
+    const ordered = /^\s*(\d+)[.)]\s+(.*)$/.exec(line);
     if (bullet || ordered) {
       const wanted = bullet ? 'ul' : 'ol';
       if (!list || list.tagName.toLowerCase() !== wanted) {
         list = node(wanted);
+        // "4. …" starts a list at 4, as it does in any other markdown.
+        if (ordered && ordered[1] !== '1') list.setAttribute('start', ordered[1]);
         target.appendChild(list);
       }
-      list.appendChild(inline((bullet || ordered)[1], node('li')));
+      list.appendChild(inline(bullet ? bullet[1] : ordered[2], node('li')));
       index += 1;
       continue;
     }

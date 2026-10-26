@@ -99,6 +99,7 @@ export const PACK = {
   TENSE_HINTS: [
     [/\b(passe compose|passé composé|perfect)\b/, 'indicatif.passeCompose'],
     [/\b(imparfait du subjonctif|imperfect subjunctive|subjonctif imparfait)\b/, 'subjonctif.imparfait'],
+    [/\b(subjonctif present|subjonctif présent|present du subjonctif|présent du subjonctif|present subjunctive)\b/, 'subjonctif.present'],
     [/\b(present|présent)\b/, 'indicatif.present'],
     [/\b(imparfait|imperfect)\b/, 'indicatif.imparfait'],
     [/\b(passe simple|passé simple|preterite)\b/, 'indicatif.passeSimple'],
@@ -218,4 +219,7 @@ Asked another way, I might be able to. Try one of these — or type **help** for
   },
 
   DEFAULT_TENSES: ['indicatif.present', 'indicatif.passeCompose', 'subjonctif.present'],
+
+  /** The regular verbs a tense is shown on when no verb is named. */
+  MODEL_VERBS: ['parler', 'finir', 'vendre'],
 };

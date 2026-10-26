@@ -287,4 +287,7 @@ Asked another way, I might be able to. Try one of these — or type **help** for
   },
 
   DEFAULT_TENSES: ['indicativo.presente', 'indicativo.passatoProssimo', 'congiuntivo.presente'],
+
+  /** The regular verbs a tense is shown on when no verb is named. */
+  MODEL_VERBS: ['parlare', 'credere', 'dormire'],
 };

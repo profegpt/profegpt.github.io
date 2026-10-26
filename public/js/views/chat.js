@@ -45,9 +45,9 @@ export function renderChat(main) {
           el('table', { class: 'conj', style: { minWidth: '0' } },
             el('thead', {}, el('tr', {},
               el('th', { scope: 'col' }, block.caption || block.head[0]),
-              el('th', { scope: 'col' }, block.head[1]))),
-            el('tbody', {}, ...block.rows.map(([left, right]) =>
-              el('tr', {}, el('th', { scope: 'row' }, left), el('td', {}, right)))))));
+              ...block.head.slice(1).map((label) => el('th', { scope: 'col' }, label)))),
+            el('tbody', {}, ...block.rows.map(([left, ...cells]) =>
+              el('tr', {}, el('th', { scope: 'row' }, left), ...cells.map((cell) => el('td', {}, cell))))))));
       } else if (block.type === 'suggestions') {
         // Questions the tutor can answer, offered when it could not answer the
         // one asked. Each one is asked as it stands when clicked.

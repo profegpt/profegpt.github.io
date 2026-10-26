@@ -18,6 +18,7 @@ import { lang } from './i18n.js';
 const state = {
   messages: [],  // { role, content, blocks? } — the visible transcript
   busy: false,   // a lookup (dictionary, translator) is in flight
+  context: null, // what the last answer was about, for "give other definitions"
 };
 
 const listeners = new Set();
@@ -43,6 +44,7 @@ export function isBusy() {
 export function reset() {
   state.messages = [];
   state.busy = false;
+  state.context = null;
   emit();
 }
 
@@ -65,7 +67,10 @@ export async function ask(text) {
   try {
     // Answers follow the site's language, since that is the language the
     // reader chose to work in.
-    ({ blocks } = await askTutor(text, { language: lang(), force: true }));
+    const result = await askTutor(text, { language: lang(), force: true, context: state.context });
+    ({ blocks } = result);
+    // A miss keeps the old context, so a follow-up can still be retried.
+    if (result.confident) state.context = result.context ?? null;
   } catch (error) {
     blocks = [{ type: 'md', text: String(error.message) }];
   }

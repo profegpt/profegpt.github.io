@@ -221,19 +221,41 @@ function withVerbLink(pack, blocks, verb, language) {
   return blocks;
 }
 
-async function dictionaryAnswer(pack, word, language) {
+/**
+ * A dictionary entry, a few senses at a time.
+ *
+ * `from` is how many senses were already shown, so "give other definitions"
+ * carries on where the last answer stopped instead of repeating it. The blocks
+ * carry a `context` naming the word, which the chat hands back on the next
+ * question.
+ */
+async function dictionaryAnswer(pack, word, language, { from = 0, count = 3 } = {}) {
   const data = await getJson(`/api/dictionary?word=${encodeURIComponent(word)}&study=${pack.code}`);
-  const senses = data.entries.flatMap((entry) => entry.senses).slice(0, 3);
-  if (!senses.length) return null;
+  const all = data.entries.flatMap((entry) => entry.senses);
+  const senses = all.slice(from, from + count);
+  const fullEntry = {
+    type: 'links',
+    label: pack.labels.fullEntry[language],
+    items: [{ label: data.word, href: `${page('/diccionario', pack.code)}?q=${encodeURIComponent(data.word)}` }],
+  };
+
+  if (!senses.length) {
+    if (!from) return null;
+    const blocks = [{ type: 'md', text: (NO_MORE_SENSES[language] ?? NO_MORE_SENSES.en)(data.word, all.length) }, fullEntry];
+    blocks.context = { kind: 'dictionary', word: data.word, shown: all.length };
+    return blocks;
+  }
 
   const blocks = [{
     type: 'md',
-    text: `${exclaim(pack, 'good')}**${data.word}**${data.entries[0]?.origin ? ` — *${data.entries[0].origin}*` : ''}`,
+    text: from
+      ? (MORE_SENSES_HEAD[language] ?? MORE_SENSES_HEAD.en)(data.word, from + 1, from + senses.length, all.length)
+      : `${exclaim(pack, 'good')}**${data.word}**${data.entries[0]?.origin ? ` — *${data.entries[0].origin}*` : ''}`,
   }];
 
   const lines = senses.map((sense, index) => {
     const tags = [sense.category, sense.gender, sense.verbCategory].filter(Boolean).join(', ');
-    return `${index + 1}. ${tags ? `*(${tags})* ` : ''}${sense.description}`;
+    return `${from + index + 1}. ${tags ? `*(${tags})* ` : ''}${sense.description}`;
   });
   blocks.push({ type: 'md', text: lines.join('\n') });
 
@@ -243,17 +265,99 @@ async function dictionaryAnswer(pack, word, language) {
     blocks.push({ type: 'md', text: `> ${source}${example.en ? `\n> \n> ${example.en}` : ''}` });
   }
 
-  const synonyms = senses[0].synonyms.slice(0, 6);
+  const synonyms = (senses[0].synonyms ?? []).slice(0, 6);
   if (synonyms.length) {
     blocks.push({ type: 'md', text: `${pack.labels.synonyms[language]}${synonyms.join(', ')}` });
   }
 
-  blocks.push({
-    type: 'links',
-    label: pack.labels.fullEntry[language],
-    items: [{ label: data.word, href: `${page('/diccionario', pack.code)}?q=${encodeURIComponent(data.word)}` }],
-  });
+  const shown = from + senses.length;
+  if (shown < all.length) {
+    blocks.push({ type: 'suggestions', items: [(MORE_SENSES_ASK[language] ?? MORE_SENSES_ASK.en)] });
+  }
+
+  blocks.push(fullEntry);
+  blocks.context = { kind: 'dictionary', word: data.word, shown };
   return blocks;
+}
+
+const MORE_SENSES_HEAD = {
+  en: (word, a, b, n) => `More senses of **${word}** (${a}–${b} of ${n}):`,
+  es: (word, a, b, n) => `Más acepciones de **${word}** (${a}–${b} de ${n}):`,
+  fr: (word, a, b, n) => `D’autres sens de **${word}** (${a}–${b} sur ${n}) :`,
+  it: (word, a, b, n) => `Altri significati di **${word}** (${a}–${b} di ${n}):`,
+};
+
+const NO_MORE_SENSES = {
+  en: (word, n) => `That's every sense the dictionary gives for **${word}** — ${n} in all.`,
+  es: (word, n) => `Esas son todas las acepciones que da el diccionario para **${word}**: ${n} en total.`,
+  fr: (word, n) => `Ce sont tous les sens que donne le dictionnaire pour **${word}** : ${n} au total.`,
+  it: (word, n) => `Sono tutti i significati che il dizionario dà per **${word}**: ${n} in tutto.`,
+};
+
+const MORE_SENSES_ASK = {
+  en: 'give other definitions',
+  es: 'dame otras acepciones',
+  fr: 'donne d’autres définitions',
+  it: 'dammi altri significati',
+};
+
+/** "give other definitions" with no word on the table yet. */
+const WHICH_WORD = {
+  en: 'Which word? Ask me *what does … mean* first, and then for its other definitions.',
+  es: '¿De qué palabra? Pregúntame primero *qué significa …* y luego por sus otras acepciones.',
+  fr: 'Quel mot ? Demande-moi d’abord *que veut dire …*, puis ses autres sens.',
+  it: 'Quale parola? Chiedimi prima *cosa significa …*, e poi gli altri significati.',
+};
+
+/**
+ * A follow-up asking for more of the last dictionary entry. Both halves are
+ * needed — "other" alone is too common a word — unless the question is
+ * nothing but "more".
+ */
+const MORE_WORD = /\b(other|others|more|another|else|rest|next|otra|otras|otro|otros|mas|autre|autres|plus|suite|altre|altri|altro|ancora)\b/;
+const SENSE_WORD = /\b(definitions?|meanings?|senses?|definicion|definiciones|acepcion|acepciones|significados?|sens|definizion[ei]|significat[oi])\b/;
+const BARE_MORE = /^(?:(?:give|show|tell)(?: me)? )?(?:more|other ones|others|the rest|mas|otra|otras|plus|encore|suite|altro|altri|ancora)$/;
+
+// ---------------------------------------------------------------------------
+// a tense named on its own
+// ---------------------------------------------------------------------------
+
+/**
+ * "tell me about the present tense" names a tense but no verb, and no grammar
+ * note covers every tense. The conjugator does, so the answer is the tense
+ * itself on the language's model regular verbs — data, not prose, and so
+ * every tense in every language is covered without anything being written.
+ */
+const TENSE_WORD = /\b(tense|tenses|tiempo|tiempos|temps|tempo|tempi)\b/;
+
+const TENSE_LEAD = {
+  en: 'Here it is on three regular model verbs. For any other verb, ask me to conjugate it.',
+  es: 'Así queda en tres verbos regulares modelo. Para cualquier otro verbo, pídeme que lo conjugue.',
+  fr: 'Le voici sur trois verbes réguliers modèles. Pour tout autre verbe, demande-moi de le conjuguer.',
+  it: 'Eccolo su tre verbi regolari modello. Per qualsiasi altro verbo, chiedimi di coniugarlo.',
+};
+
+function tenseAnswer(pack, tense, language) {
+  const [mood, name] = tense.split('.');
+  const tables = (pack.MODEL_VERBS ?? [])
+    .map((verb) => pack.conjugate(verb))
+    .filter((result) => result.ok && result.table[mood]?.[name]);
+  const label = pack.TENSE_LABELS[tense]?.[language];
+  if (!tables.length || !label) return null;
+
+  return [
+    { type: 'md', text: `### ${label[0].toUpperCase()}${label.slice(1)}\n\n${TENSE_LEAD[language] ?? TENSE_LEAD.en}` },
+    {
+      type: 'table',
+      head: [pack.labels.person[language], ...tables.map((result) => result.verb)],
+      rows: pack.PERSONS.map((p) => [pack.PERSON_LABELS[p], ...tables.map((result) => result.table[mood][name][p] || '—')]),
+    },
+    {
+      type: 'links',
+      label: pack.labels.fullTable[language],
+      items: tables.map((result) => ({ label: result.verb, href: `${page('/conjugacion', pack.code)}?v=${encodeURIComponent(result.verb)}` })),
+    },
+  ];
 }
 
 /**
@@ -378,7 +482,7 @@ function scoreTopic(pack, topic, folded) {
  * Work out what the question is asking and answer it.
  * @returns {Promise<{blocks: Array, confident: boolean, language: string}>}
  */
-export async function answer(question, { language = null, force = false, study = null } = {}) {
+export async function answer(question, { language = null, force = false, study = null, context = null } = {}) {
   const pack = activePack(study);
   const { INTENTS } = pack;
 
@@ -387,7 +491,7 @@ export async function answer(question, { language = null, force = false, study =
   const folded = fold(text).replace(/[¿?¡!.,;:«»"“”]/g, ' ').replace(/\s+/g, ' ').trim();
   const accented = text.toLowerCase().replace(/[¿?¡!.,;:«»"]/g, ' ').replace(/\s+/g, ' ').trim();
 
-  const respond = (blocks) => ({ blocks, confident: true, language: lang });
+  const respond = (blocks, next = blocks.context ?? null) => ({ blocks, confident: true, language: lang, context: next });
 
   // 1. greetings and thanks
   for (const item of pack.SMALL_TALK) {
@@ -397,6 +501,17 @@ export async function answer(question, { language = null, force = false, study =
   // 2. what can you do
   if (pack.HELP.test(folded)) {
     return respond([{ type: 'md', text: pack.capabilities(lang) }]);
+  }
+
+  // 2b. "give other definitions" — more of the entry the last answer showed
+  const words0 = folded.split(' ').filter(Boolean);
+  if ((MORE_WORD.test(folded) && SENSE_WORD.test(folded) && words0.length <= 6) || BARE_MORE.test(folded)) {
+    if (context?.kind === 'dictionary') {
+      const blocks = await dictionaryAnswer(pack, context.word, lang, { from: context.shown, count: 5 }).catch(() => null);
+      if (blocks) return respond(blocks);
+    } else if (SENSE_WORD.test(folded)) {
+      return respond([{ type: 'md', text: WHICH_WORD[lang] ?? WHICH_WORD.en }], null);
+    }
   }
 
   // 3. explicit commands
@@ -460,7 +575,7 @@ export async function answer(question, { language = null, force = false, study =
       // that just came back rather than the one that was typed.
       if (WANTS_DEFINITION.test(text) && blocks.translation && from === 'en') {
         const defined = await dictionaryAnswer(pack, blocks.translation, lang).catch(() => null);
-        if (defined) return respond([...blocks, ...defined]);
+        if (defined) return respond([...blocks, ...defined], defined.context);
       }
       if (asTopic?.score >= 100) return respond([...blocks, ...topicAnswer(asTopic.topic, lang)]);
       return respond(blocks);
@@ -518,6 +633,17 @@ export async function answer(question, { language = null, force = false, study =
 
   // 5. grammar topics
   if (!askedSomethingSpecific && ranked[0]?.score >= 6) return respond(topicAnswer(ranked[0].topic, lang));
+
+  // 5a. a tense named with no verb and no note of its own: "tell me about the
+  //     present tense". Any topic match at all still wins, so "when do I use
+  //     the subjunctive" keeps its explanation.
+  if (!askedSomethingSpecific && !(ranked[0]?.score >= 3) && (TENSE_WORD.test(folded) || words.length <= 3)) {
+    const tense = findHint(folded, pack.TENSE_HINTS);
+    if (tense && !verbNamedIn(pack, words)) {
+      const blocks = tenseAnswer(pack, tense, lang);
+      if (blocks) return respond(blocks);
+    }
+  }
 
   // 5b. "to say in Spanish" — a vocabulary question with the direction named
   //     but nothing asking for a translation, which is how most people put it.

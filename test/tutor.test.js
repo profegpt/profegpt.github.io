@@ -134,7 +134,8 @@ ok('the requested tense is the one returned',
 
 // An English word that merely ends in -er must not be mistaken for a verb.
 const notAVerb = await answer('what is the answer for the present tense');
-ok('"answer" is not conjugated as a verb', notAVerb.confident === false,
+// It may answer with the present tense itself; it must not conjugate "answer".
+ok('"answer" is not conjugated as a verb', !/\banswer\b/i.test(JSON.stringify(notAVerb.blocks.filter((b) => b.type === 'table' || b.type === 'links'))),
   text(notAVerb.blocks).slice(0, 90));
 
 // --- honest refusal --------------------------------------------------------
@@ -198,6 +199,54 @@ ok('a question with no words still gets suggestions', gibberish.length >= 2, JSO
 for (const [study, language, item] of [['it', 'en', 'conjugate mangiare'], ['es', 'es', 'conjuga salir'], ['fr', 'fr', 'conjugue partir']]) {
   const result = await answer(item, { study, language, force: true });
   ok(`the suggestion "${item}" is itself answerable`, result.confident === true);
+}
+
+// --- a tense named with no verb --------------------------------------------
+for (const [question, study, language, verb, form] of [
+  ['tell me about the present tense', 'es', 'en', 'hablar', 'hablo'],
+  ['explícame el presente', 'es', 'es', 'vivir', 'vivimos'],
+  ['parle-moi du présent', 'fr', 'fr', 'vendre', 'vends'],
+  ['tell me about the present tense', 'fr', 'en', 'finir', 'finis'],
+  ['tell me about the present tense', 'it', 'en', 'dormire', 'dormo'],
+]) {
+  const result = await answer(question, { study, language, force: true });
+  const table = result.blocks.find((block) => block.type === 'table');
+  ok(`"${question}" (${study}) is answered`, result.confident === true, text(result.blocks));
+  ok(`"${question}" (${study}) shows ${verb}`, Boolean(table?.head.includes(verb)), JSON.stringify(table?.head));
+  ok(`"${question}" (${study}) has ${form}`, JSON.stringify(table?.rows ?? []).includes(form), JSON.stringify(table?.rows));
+}
+{
+  // A topic still wins over the bare tense table.
+  const result = await answer('when do I use the subjunctive', { study: 'es', language: 'en', force: true });
+  ok('the subjunctive keeps its explanation', /###/.test(text(result.blocks)) && !result.blocks.some((b) => b.type === 'table'));
+  const hinted = await answer('conjugate tener in the present subjunctive', { study: 'es', language: 'en', force: true });
+  ok('"present subjunctive" is the subjunctive, not the indicative', /tenga/.test(text(hinted.blocks)), text(hinted.blocks));
+}
+
+// --- "give other definitions" ----------------------------------------------
+{
+  const senses = Array.from({ length: 10 }, (_, i) => ({ number: i + 1, description: `sense ${i + 1}`, synonyms: [] }));
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ word: 'banco', entries: [{ senses }], examples: {} }) });
+  try {
+    const first = await answer('what does banco mean', { study: 'es', language: 'en', force: true });
+    ok('a definition shows three senses', /sense 3/.test(text(first.blocks)) && !/sense 4/.test(text(first.blocks)), text(first.blocks));
+    ok('a definition remembers its word', first.context?.word === 'banco' && first.context.shown === 3);
+
+    const more = await answer('give other definitions', { study: 'es', language: 'en', force: true, context: first.context });
+    ok('"give other definitions" carries on from sense 4', /4\. sense 4/.test(text(more.blocks)) && !/sense 3\b/.test(text(more.blocks)), text(more.blocks));
+    ok('…and moves the context along', more.context?.shown === 8);
+
+    const rest = await answer('more', { study: 'es', language: 'en', force: true, context: more.context });
+    ok('"more" shows the last two', /sense 10/.test(text(rest.blocks)), text(rest.blocks));
+    const done = await answer('otras acepciones', { study: 'es', language: 'es', force: true, context: rest.context });
+    ok('past the end it says so', /todas las acepciones/.test(text(done.blocks)), text(done.blocks));
+
+    const cold = await answer('give other definitions', { study: 'es', language: 'en', force: true });
+    ok('with no word yet it asks which', /Which word/.test(text(cold.blocks)), text(cold.blocks));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 }
 
 if (failures.length) {
