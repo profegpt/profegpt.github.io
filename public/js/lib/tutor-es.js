@@ -152,8 +152,8 @@ export const PACK = {
   /** The one-line summary above a conjugation table. */
   verbHeadline(result, gloss, lead, language) {
     return language === 'es'
-      ? `${lead}**${result.verb}**${gloss ? ` — *${gloss}*` : ''}. Verbo terminado en -${result.class}${describeFlags(result, 'es')}.`
-      : `${lead}**${result.verb}**${gloss ? ` — *${gloss}*` : ''}. An -${result.class} verb${describeFlags(result, 'en')}.`;
+      ? `${lead}**${result.verb}**${gloss ? ` (*${gloss}*)` : ''}. Verbo terminado en -${result.class}${describeFlags(result, 'es')}.`
+      : `${lead}**${result.verb}**${gloss ? ` (*${gloss}*)` : ''}. An -${result.class} verb${describeFlags(result, 'en')}.`;
   },
 
   /** A verb hairy enough to earn a reaction. */
@@ -163,28 +163,28 @@ export const PACK = {
     return language === 'es'
       ? `Esto es lo que sé hacer, y todo sale de los datos del propio sitio:
 
-- **Conjugar** cualquier verbo — *conjuga tener en subjuntivo*
-- **Identificar formas** — *qué es «dijeron»*
-- **Buscar palabras** en el diccionario de la RAE — *qué significa sobremesa*
-- **Traducir** frases — *cómo se dice "I'm tired" en español*
+- **Conjugar** cualquier verbo: *conjuga tener en subjuntivo*
+- **Identificar formas**: *qué es «dijeron»*
+- **Buscar palabras** en el diccionario de la RAE: *qué significa sobremesa*
+- **Traducir** frases: *cómo se dice "I'm tired" en español*
 - **Explicar gramática**: ser y estar, por y para, pretérito e imperfecto, el subjuntivo, gustar, saber y conocer, los pronombres de objeto, los usos de «se», las tildes, el futuro, la «a» personal, tú y usted, los adjetivos, haber y tener, muy y mucho, el condicional.`
       : `Here's what I can do, and all of it comes from the site's own data:
 
-- **Conjugate** any verb — *conjugate tener in the subjunctive*
-- **Identify a form** — *what is "dijeron"*
-- **Look words up** in the RAE dictionary — *what does sobremesa mean*
-- **Translate** phrases — *how do you say "I'm tired" in Spanish*
+- **Conjugate** any verb: *conjugate tener in the subjunctive*
+- **Identify a form**: *what is "dijeron"*
+- **Look words up** in the RAE dictionary: *what does sobremesa mean*
+- **Translate** phrases: *how do you say "I'm tired" in Spanish*
 - **Explain grammar**: ser vs estar, por vs para, preterite vs imperfect, the subjunctive, gustar, saber vs conocer, object pronouns, the uses of "se", written accents, the future, the personal "a", tú vs usted, adjectives, haber vs tener, muy vs mucho, the conditional.`;
   },
 
   outOfScope(language, exclaim) {
     return language === 'es'
-      ? `${exclaim}Eso se me escapa. Respondo a partir de los datos del sitio —el conjugador, la RAE y un puñado de explicaciones de gramática—, así que no invento respuestas sobre lo que no conozco.
+      ? `${exclaim}Eso se me escapa. Respondo a partir de los datos del sitio (el conjugador, la RAE y un puñado de explicaciones de gramática), así que no invento respuestas sobre lo que no conozco.
 
-Preguntado de otra manera, quizá sí pueda. Prueba una de estas —o escribe **ayuda** para ver la lista completa:`
-      : `${exclaim}That one's outside what I cover. I answer from the site's own data — the conjugator, the RAE dictionary and a set of grammar explanations — so I'd rather say nothing than invent an answer.
+Preguntado de otra manera, quizá sí pueda. Prueba una de estas o escribe **ayuda** para ver la lista completa:`
+      : `${exclaim}That one's outside what I cover. I answer from the site's own data (the conjugator, the RAE dictionary and a set of grammar explanations), so I'd rather say nothing than invent an answer.
 
-Asked another way, I might be able to. Try one of these — or type **help** for the full list:`;
+Asked another way, I might be able to. Try one of these, or type **help** for the full list:`;
   },
 
   /**

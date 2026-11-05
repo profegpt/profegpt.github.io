@@ -153,8 +153,8 @@ export const PACK = {
   verbHeadline(result, gloss, lead, language) {
     const group = GROUP_NAMES[result.flags.group][language];
     return language === 'fr'
-      ? `${lead}**${result.verb}**${gloss ? ` — *${gloss}*` : ''}. Verbe en -${result.class}, ${group}${describeFlags(result, 'fr')}.`
-      : `${lead}**${result.verb}**${gloss ? ` — *${gloss}*` : ''}. A ${group} verb in -${result.class}${describeFlags(result, 'en')}.`;
+      ? `${lead}**${result.verb}**${gloss ? ` (*${gloss}*)` : ''}. Verbe en -${result.class}, ${group}${describeFlags(result, 'fr')}.`
+      : `${lead}**${result.verb}**${gloss ? ` (*${gloss}*)` : ''}. A ${group} verb in -${result.class}${describeFlags(result, 'en')}.`;
   },
 
   // The French counterpart of "irregular and stem-changing": a third-group verb
@@ -165,28 +165,28 @@ export const PACK = {
     return language === 'fr'
       ? `Voici ce que je sais faire, et tout vient des données du site lui-même :
 
-- **Conjuguer** n'importe quel verbe — *conjugue prendre au subjonctif*
-- **Identifier une forme** — *c'est quoi « vinrent »*
-- **Chercher un mot** dans le dictionnaire — *que veut dire flâner*
-- **Traduire** des phrases — *comment dit-on "I'm tired" en français*
+- **Conjuguer** n'importe quel verbe: *conjugue prendre au subjonctif*
+- **Identifier une forme**: *c'est quoi « vinrent »*
+- **Chercher un mot** dans le dictionnaire: *que veut dire flâner*
+- **Traduire** des phrases: *comment dit-on "I'm tired" en français*
 - **Expliquer la grammaire** : être et avoir, le passé composé, passé composé et imparfait, le subjonctif, le genre et les articles, l'article partitif, les pronoms d'objet, y et en, la négation, les adjectifs, le futur, le conditionnel et les phrases en « si », savoir et connaître, c'est et il est, qui que dont où, les accents, tu et vous, les verbes pronominaux, le comparatif, depuis et pendant.`
       : `Here's what I can do, and all of it comes from the site's own data:
 
-- **Conjugate** any verb — *conjugate prendre in the subjunctive*
-- **Identify a form** — *what is "vinrent"*
-- **Look words up** in the dictionary — *what does flâner mean*
-- **Translate** phrases — *how do you say "I'm tired" in French*
+- **Conjugate** any verb: *conjugate prendre in the subjunctive*
+- **Identify a form**: *what is "vinrent"*
+- **Look words up** in the dictionary: *what does flâner mean*
+- **Translate** phrases: *how do you say "I'm tired" in French*
 - **Explain grammar**: être vs avoir, the passé composé, passé composé vs imparfait, the subjunctive, gender and articles, the partitive, object pronouns, y and en, negation, adjectives, the future, the conditional and si clauses, savoir vs connaître, c'est vs il est, relative pronouns, written accents, tu vs vous, pronominal verbs, comparatives, depuis vs pendant.`;
   },
 
   outOfScope(language, exclaim) {
     return language === 'fr'
-      ? `${exclaim}Cela m'échappe. Je réponds à partir des données du site — le conjugueur, le dictionnaire et une série de fiches de grammaire —, donc je préfère ne rien dire plutôt qu'inventer.
+      ? `${exclaim}Cela m'échappe. Je réponds à partir des données du site (le conjugueur, le dictionnaire et une série de fiches de grammaire), donc je préfère ne rien dire plutôt qu'inventer.
 
-Posée autrement, je pourrai peut-être y répondre. Essayez l'une de ces formulations — ou écrivez **aide** pour voir la liste complète :`
-      : `${exclaim}That one's outside what I cover. I answer from the site's own data — the conjugator, the dictionary and a set of grammar explanations — so I'd rather say nothing than invent an answer.
+Posée autrement, je pourrai peut-être y répondre. Essayez l'une de ces formulations ou écrivez **aide** pour voir la liste complète :`
+      : `${exclaim}That one's outside what I cover. I answer from the site's own data (the conjugator, the dictionary and a set of grammar explanations), so I'd rather say nothing than invent an answer.
 
-Asked another way, I might be able to. Try one of these — or type **help** for the full list:`;
+Asked another way, I might be able to. Try one of these, or type **help** for the full list:`;
   },
 
   /** The shapes a question can be put in so the tutor can answer it. See tutor.js. */

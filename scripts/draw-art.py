@@ -44,6 +44,9 @@ BRONZE_DD = '#94501F'
 
 SAND, SAND_D, SAND_DD = '#E8C48A', '#C9A066', '#A8824E'
 
+# markers around a country picture's food, split out by Art.save()
+FOOD, FOOD_END = '<!--food-->', '<!--/food-->'
+
 
 def f(x):
     t = f'{x:.1f}'
@@ -270,14 +273,27 @@ class Art:
         L = math.dist(p, q)
         self.rect(p[0] - r, p[1] - r, L + 2 * r, 2 * r, fill, rx=r, rot=(ang, p[0], p[1]), what=what)
 
-    def save(self):
-        body = ''.join(self.out)
+    def _write(self, name, parts):
+        body = ''.join(parts)
         assert '<animate' not in body and '<script' not in body and 'href' not in body
         svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.w} {self.h}" '
                f'width="{self.w}" height="{self.h}">{body}</svg>\n')
-        with open(os.path.join(OUT, self.name), 'w', encoding='utf-8') as fh:
+        with open(os.path.join(OUT, name), 'w', encoding='utf-8') as fh:
             fh.write(svg)
         return len(svg)
+
+    def save(self):
+        out = self.out
+        if FOOD in out:
+            # A country picture is also written as its two halves on the same
+            # canvas: the landmark alone, and the food alone. The home page
+            # stacks them so it can build the landmark and fade the food.
+            a, b = out.index(FOOD), out.index(FOOD_END)
+            stem = self.name[:-4]
+            self._write(f'{stem}-landmark.svg', out[:a] + out[b + 1:])
+            self._write(f'{stem}-food.svg', [out[0]] + out[a + 1:b] + [out[-1]])
+            out = [x for x in out if x not in (FOOD, FOOD_END)]
+        return self._write(self.name, out)
 
 
 # ------------------------------------------------------------------ shared bits
@@ -673,11 +689,13 @@ def spain():
         assert 150 <= x - hw and x + hw <= 410, 'tower hangs off the facade'
 
     # Spanish wine, in front at the lower right
+    art.out.append(FOOD)
     art.push(place(424, 414, 0.86))
     art.begin_track()
     wine(art)
     obox = art.end_track()
     art.pop()
+    art.out.append(FOOD_END)
     # centre the landmark and its picture together, as one group
     art.centre((min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3])), 'basilica and wine')
     return art
@@ -810,11 +828,13 @@ def france():
     assert 370 <= height <= 395, ('Eiffel Tower should stand about 380 tall', round(height))
 
     # a croissant, in front at the lower right
+    art.out.append(FOOD)
     art.push(place(408, 446, 1.0))
     art.begin_track()
     croissant(art)
     obox = art.end_track()
     art.pop()
+    art.out.append(FOOD_END)
     # centre the landmark and its picture together, as one group
     art.centre((min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3])), 'Eiffel Tower and croissant')
     return art
@@ -881,11 +901,13 @@ def italy():
     box = art.end_track()
 
     # a bowl of pasta, in front at the lower right
+    art.out.append(FOOD)
     art.push(place(392, 416, 1.08))
     art.begin_track()
     pasta(art)
     obox = art.end_track()
     art.pop()
+    art.out.append(FOOD_END)
     # centre the landmark and its picture together, as one group
     art.centre((min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3])), 'Tower of Pisa and pasta')
     return art

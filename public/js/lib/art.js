@@ -17,6 +17,14 @@ const ART = {
   es: '/assets/art/es.svg',
   fr: '/assets/art/fr.svg',
   it: '/assets/art/it.svg',
+  // Each country picture again in two halves on the same canvas, for the
+  // home page's cards, which build the landmark and then fade the food.
+  'es-landmark': '/assets/art/es-landmark.svg',
+  'es-food': '/assets/art/es-food.svg',
+  'fr-landmark': '/assets/art/fr-landmark.svg',
+  'fr-food': '/assets/art/fr-food.svg',
+  'it-landmark': '/assets/art/it-landmark.svg',
+  'it-food': '/assets/art/it-food.svg',
   translator: '/assets/art/translator.svg',
   conjugator: '/assets/art/conjugator.svg',
   dictionary: '/assets/art/dictionary.svg',

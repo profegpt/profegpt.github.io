@@ -184,7 +184,7 @@ function conjugationAnswer(pack, verb, language, { tense = null, person = null }
       const label = pack.TENSE_LABELS[tense][language];
       blocks.push({
         type: 'md',
-        text: `**${form}** — ${pack.PERSON_LABELS[person]}, ${label} ${pack.labels.of[language]} *${result.verb}*.`,
+        text: `**${form}**: ${pack.PERSON_LABELS[person]}, ${label} ${pack.labels.of[language]} *${result.verb}*.`,
       });
       return withVerbLink(pack, blocks, result.verb, language);
     }
@@ -203,7 +203,7 @@ function conjugationAnswer(pack, verb, language, { tense = null, person = null }
       type: 'table',
       caption: pack.TENSE_LABELS[key][language],
       head: [pack.labels.person[language], pack.labels.form[language]],
-      rows: pack.PERSONS.map((p) => [pack.PERSON_LABELS[p], forms[p] || '—']),
+      rows: pack.PERSONS.map((p) => [pack.PERSON_LABELS[p], forms[p] || '-']),
     });
   }
 
@@ -250,7 +250,7 @@ async function dictionaryAnswer(pack, word, language, { from = 0, count = 3 } = 
     type: 'md',
     text: from
       ? (MORE_SENSES_HEAD[language] ?? MORE_SENSES_HEAD.en)(data.word, from + 1, from + senses.length, all.length)
-      : `${exclaim(pack, 'good')}**${data.word}**${data.entries[0]?.origin ? ` — *${data.entries[0].origin}*` : ''}`,
+      : `${exclaim(pack, 'good')}**${data.word}**${data.entries[0]?.origin ? ` (*${data.entries[0].origin}*)` : ''}`,
   }];
 
   const lines = senses.map((sense, index) => {
@@ -288,7 +288,7 @@ const MORE_SENSES_HEAD = {
 };
 
 const NO_MORE_SENSES = {
-  en: (word, n) => `That's every sense the dictionary gives for **${word}** — ${n} in all.`,
+  en: (word, n) => `That's every sense the dictionary gives for **${word}**: ${n} in all.`,
   es: (word, n) => `Esas son todas las acepciones que da el diccionario para **${word}**: ${n} en total.`,
   fr: (word, n) => `Ce sont tous les sens que donne le dictionnaire pour **${word}** : ${n} au total.`,
   it: (word, n) => `Sono tutti i significati che il dizionario dà per **${word}**: ${n} in tutto.`,
@@ -350,7 +350,7 @@ function tenseAnswer(pack, tense, language) {
     {
       type: 'table',
       head: [pack.labels.person[language], ...tables.map((result) => result.verb)],
-      rows: pack.PERSONS.map((p) => [pack.PERSON_LABELS[p], ...tables.map((result) => result.table[mood][name][p] || '—')]),
+      rows: pack.PERSONS.map((p) => [pack.PERSON_LABELS[p], ...tables.map((result) => result.table[mood][name][p] || '-')]),
     },
     {
       type: 'links',
@@ -387,7 +387,7 @@ async function translationAnswer(pack, text, from, language) {
     { type: 'md', text: `**${data.translation}**` },
     {
       type: 'md',
-      text: `_«${text}» — ${pack.labels.translatedWith[language]} ${data.engine}._`,
+      text: `_«${text}», ${pack.labels.translatedWith[language]} ${data.engine}._`,
     },
   ];
   // The array is what every caller wants; the translation rides along for the
@@ -421,7 +421,7 @@ function formLookupAnswer(pack, word, language) {
 
   const lines = matches.slice(0, 4).map((match) => {
     const who = match.person ? `${pack.PERSON_LABELS[match.person]}, ` : '';
-    return `- **${word}** — ${who}${match.label[language]} ${pack.labels.of[language]} *${match.verb}*`;
+    return `- **${word}**: ${who}${match.label[language]} ${pack.labels.of[language]} *${match.verb}*`;
   });
 
   return [
