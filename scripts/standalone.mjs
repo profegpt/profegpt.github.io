@@ -100,7 +100,11 @@ if (!boot.test(html)) throw new Error('could not find the boot settings in the p
 html = html.replace(boot, () => `window.__${NAME}__ = "__STANDALONE_BOOT__";`);
 const head = html.indexOf('<head>');
 if (head < 0) throw new Error('no <head> in the page');
-html = html.slice(0, head + 6) + SHIM + html.slice(head + 6);
+// Apps Script serves no favicon, so this copy carries the globe (public/favicon.svg) itself.
+// Base64, because a "#" colour left bare in a data: URL ends the URL there and the icon breaks.
+const globe = `data:image/svg+xml;base64,${fs.readFileSync(new URL('../public/favicon.svg', import.meta.url)).toString('base64')}`;
+const ICONS = `<link rel="icon" type="image/svg+xml" href="${globe}"><link rel="apple-touch-icon" href="${globe}">`;
+html = html.slice(0, head + 6) + ICONS + SHIM + html.slice(head + 6);
 for (const [index, script] of [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].entries()) {
   new vm.Script(script[1], { filename: `script ${index + 1}` });
 }

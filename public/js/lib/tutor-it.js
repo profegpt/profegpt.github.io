@@ -90,17 +90,17 @@ function capabilities(language) {
   return language === 'it'
     ? `Ecco cosa so fare, e tutto viene dai dati del sito stesso:
 
-- **Coniugare** qualsiasi verbo — *coniuga prendere al congiuntivo*
-- **Riconoscere una forma** — *che forma è «fecero»*
-- **Cercare una parola** nel dizionario — *cosa vuol dire sciopero*
-- **Tradurre** frasi — *come si dice "I'm tired" in italiano*
+- **Coniugare** qualsiasi verbo: *coniuga prendere al congiuntivo*
+- **Riconoscere una forma**: *che forma è «fecero»*
+- **Cercare una parola** nel dizionario: *cosa vuol dire sciopero*
+- **Tradurre** frasi: *come si dice "I'm tired" in italiano*
 - **Spiegare la grammatica**: essere e avere, il passato prossimo, passato prossimo e imperfetto, il congiuntivo, il genere e gli articoli, le preposizioni articolate, il partitivo, i pronomi diretti, indiretti e combinati, ci e ne, la negazione, gli aggettivi (bello, buono, grande), il futuro e il futuro di probabilità, il condizionale e il periodo ipotetico, sapere e conoscere, piacere, tu e Lei, i verbi riflessivi, comparativi e superlativi, da e per, doppie e accenti.`
     : `Here's what I can do, and all of it comes from the site's own data:
 
-- **Conjugate** any verb — *conjugate prendere in the subjunctive*
-- **Identify a form** — *what form is "fecero"*
-- **Look words up** in the dictionary — *what does sciopero mean*
-- **Translate** phrases — *how do you say "I'm tired" in Italian*
+- **Conjugate** any verb: *conjugate prendere in the subjunctive*
+- **Identify a form**: *what form is "fecero"*
+- **Look words up** in the dictionary: *what does sciopero mean*
+- **Translate** phrases: *how do you say "I'm tired" in Italian*
 - **Explain grammar**: essere vs avere, the passato prossimo, passato prossimo vs imperfetto, the subjunctive, gender and articles, prepositions with the article, the partitive, object pronouns (single and combined), ci and ne, negation, adjectives (bello, buono, grande), the future and the future of probability, the conditional and se clauses, sapere vs conoscere, piacere, tu vs Lei, reflexive verbs, comparatives and superlatives, da vs per, double consonants and written accents.`;
 }
 
@@ -227,8 +227,8 @@ export const PACK = {
     const group = GROUP_NAMES[groupOf(result)][language];
     const ending = endingOf(result);
     return language === 'it'
-      ? `${lead}**${result.verb}**${gloss ? ` — *${gloss}*` : ''}. Verbo in -${ending}, ${group}${describeFlags(result, 'it')}.`
-      : `${lead}**${result.verb}**${gloss ? ` — *${gloss}*` : ''}. A ${group} verb in -${ending}${describeFlags(result, 'en')}.`;
+      ? `${lead}**${result.verb}**${gloss ? ` (*${gloss}*)` : ''}. Verbo in -${ending}, ${group}${describeFlags(result, 'it')}.`
+      : `${lead}**${result.verb}**${gloss ? ` (*${gloss}*)` : ''}. A ${group} verb in -${ending}${describeFlags(result, 'en')}.`;
   },
 
   // The Italian counterpart of the French case: an irregular verb that also
@@ -249,12 +249,12 @@ export const PACK = {
 
   outOfScope(language, exclaim) {
     return language === 'it'
-      ? `${exclaim}Su questo non posso aiutarti. Rispondo soltanto con i dati del sito — il coniugatore, il dizionario e una serie di schede di grammatica — e preferisco non dire nulla piuttosto che inventare.
+      ? `${exclaim}Su questo non posso aiutarti. Rispondo soltanto con i dati del sito (il coniugatore, il dizionario e una serie di schede di grammatica) e preferisco non dire nulla piuttosto che inventare.
 
-Chiesto in un altro modo, forse posso risponderti. Prova una di queste — oppure scrivi **aiuto** per vedere l'elenco completo:`
-      : `${exclaim}That one's outside what I cover. I answer from the site's own data — the conjugator, the dictionary and a set of grammar explanations — so I'd rather say nothing than invent an answer.
+Chiesto in un altro modo, forse posso risponderti. Prova una di queste oppure scrivi **aiuto** per vedere l'elenco completo:`
+      : `${exclaim}That one's outside what I cover. I answer from the site's own data (the conjugator, the dictionary and a set of grammar explanations), so I'd rather say nothing than invent an answer.
 
-Asked another way, I might be able to. Try one of these — or type **help** for the full list:`;
+Asked another way, I might be able to. Try one of these, or type **help** for the full list:`;
   },
 
   /** The shapes a question can be put in so the tutor can answer it. See tutor.js. */

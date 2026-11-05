@@ -414,7 +414,7 @@ function verbCard(result, glosses) {
       el('p', { class: 'verbcard__gloss' }, result.definition || (gloss ? `“${gloss}”` : t('conjugator.fullTable'))),
       el('div', { class: 'verbcard__tags' }, tags)),
     el('div', { class: 'verbcard__forms' },
-      ...nonFinite.map(([label, key]) => formRow(t(label), forms[key] || '—'))));
+      ...nonFinite.map(([label, key]) => formRow(t(label), forms[key] || '-'))));
 }
 
 function formRow(label, value) {
@@ -478,7 +478,7 @@ function tenseTable(tenses, rows, moodKey, marks, caption, { PERSONS, PERSON_LAB
       tr.appendChild(el('td', {
         class: [value ? '' : 'is-empty', marks.has(`${moodKey}.${key}.${person}`) ? 'is-irregular' : ''].filter(Boolean).join(' '),
         'data-label': PERSON_LABELS[person],
-      }, value || '—'));
+      }, value || '-'));
     }
     body.appendChild(tr);
   }
@@ -503,7 +503,7 @@ function imperativeTable(imperative, marks) {
       tr.appendChild(el('td', {
         class: [value ? '' : 'is-empty', marks.has(`${moods.imperative}.${kind}.${person}`) ? 'is-irregular' : ''].filter(Boolean).join(' '),
         'data-label': labels[person],
-      }, value || '—'));
+      }, value || '-'));
     }
     body.appendChild(tr);
   }

@@ -374,7 +374,7 @@ function renderSense(sense, example, exampleSource, search) {
   const englishDef = example?.def;
   const body = el('div', {},
     tags.length ? el('div', { class: 'sense__tags' }, tags) : null,
-    el('p', { class: 'sense__def' }, englishDef || sense.description || '—'),
+    el('p', { class: 'sense__def' }, englishDef || sense.description || '-'),
     englishDef ? el('p', { class: 'sense__original' }, sense.description) : null,
     ...sense.usageNotes.map((note) => el('p', { class: 'sense__note' }, note)),
   );
