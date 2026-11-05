@@ -51,7 +51,7 @@ The ProfeGPT wordmark in the header always comes back here.
 
 Every time the page is drawn, on opening the site or coming back to it, the
 globe turns once (about a second). Rest the mouse on a language for a moment
-and a crane builds its landmark band by band, then the food fades out; leaving
+and a crane builds its landmark band by band, then the food fades in; leaving
 the card resets it. The cards stack `es-landmark.svg` and `es-food.svg` (and
 the French and Italian pairs), which `scripts/draw-art.py` writes beside each
 country picture. Both animations are skipped under reduced motion.
