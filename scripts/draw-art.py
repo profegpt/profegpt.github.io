@@ -1112,23 +1112,31 @@ def netherlands():
 # gun ports, and the four-storey tower rising behind it, a loggia on its face,
 # ribbed domes on the corner turrets.
 def nata(art):
-    """A pastel de nata: a fluted pastry cup, and the custard on top
-    scorched in dark patches."""
+    """A pastel de nata: a small cup of flaky pastry, about as tall as it
+    is wide across the rim, its sides spiralled in thin layers, and the
+    custard sitting just inside the rim, scorched in dark patches."""
     PA, PA_D, PA_L = '#E0A050', '#C4863A', '#F0BC6E'
-    CU, BURN, BURN_D = '#FFD84D', '#B8651D', '#8F4A12'
-    cup = [(-80, -58), (80, -58), (58, 0), (-58, 0)]
-    art.poly(cup, PA, r=[4, 4, 16, 16], what='pastry cup')
-    art.clip_begin(rpoly_d(cup, [4, 4, 16, 16]), cup, 'cup')
-    art.rect(22, -60, 62, 62, PA_D, what='cup shade')
-    for fx in (-52, -26, 0, 26, 52):
-        art.line([(fx * 1.18, -58), (fx * 0.92, 0)], PA_D, 4, what='flute')
+    CU, CU_D, BURN, BURN_D = '#FFD84D', '#F0C23A', '#B8651D', '#8F4A12'
+    TOP, RX, RY = -72, 66, 20
+    # the cup: a short flared cylinder, the darker shade down its right side
+    cup = [(-RX, TOP), (RX, TOP), (RX - 16, 0), (-RX + 16, 0)]
+    art.poly(cup, PA, r=[2, 2, 18, 18], what='pastry cup')
+    art.clip_begin(rpoly_d(cup, [2, 2, 18, 18]), cup, 'cup')
+    art.rect(RX * 0.3, TOP - 2, RX, -TOP + 4, PA_D, what='cup shade')
+    # the puff pastry's layers: thin curved lines winding round the cup
+    for k in range(5):
+        y = TOP + 12 + k * 12
+        art.line(arc_pts(0, y, RX - 2 - k * 2.2, 5, 10, 170, 12), PA_D, 2.6, what='pastry layer')
     art.clip_end()
-    art.ellipse(0, -58, 90, 25, PA_L, what='rim')
-    art.ellipse(0, -58, 76, 18, CU, what='custard')
-    for bx, by, rx, ry, col in ((-34, -62, 17, 7, BURN), (20, -53, 21, 7.5, BURN), (44, -66, 11, 4.5, BURN_D),
-                                (-6, -68, 9, 3.6, BURN_D), (-50, -53, 7, 3, BURN_D)):
+    # the rim and the custard inside it, a little below the rim's edge
+    art.ellipse(0, TOP, RX + 6, RY + 2, PA_L, what='rim')
+    art.ellipse(0, TOP + 2, RX - 8, RY - 5, CU, what='custard')
+    art.path(f'M{f(RX - 8)} {f(TOP + 2)}A{f(RX - 8)} {f(RY - 5)} 0 0 1 {f(-RX + 8)} {f(TOP + 2)}Z',
+             [(-RX + 8, TOP + 2), (RX - 8, TOP + 2 + RY - 5)], CU_D, what='custard shade')
+    for bx, by, rx, ry, col in ((-26, TOP - 2, 13, 5.5, BURN), (16, TOP + 6, 16, 6, BURN), (36, TOP - 4, 9, 3.8, BURN_D),
+                                (-6, TOP - 7, 8, 3, BURN_D), (-42, TOP + 6, 7, 3, BURN_D), (-10, TOP + 9, 6, 2.6, BURN)):
         art.ellipse(bx, by, rx, ry, col, what='scorch')
-    return [(-90, -83), (90, 0)]
+    return [(-RX - 6, TOP - RY - 2), (RX + 6, 0)]
 
 
 def portugal():
@@ -1224,7 +1232,7 @@ def portugal():
     # a pastel de nata, in front at the lower right
     art.out.append(FOOD)
     # a little above the tower's foot, so the tart's foot is never clipped
-    art.push(place(414, 412, 1.02))
+    art.push(place(410, 412, 1.12))
     art.begin_track()
     nata(art)
     obox = art.end_track()

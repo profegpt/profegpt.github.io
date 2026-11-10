@@ -192,7 +192,7 @@ const SITES = {
   // draw-art.py prints these three as it draws them
   de: { left: 61, right: 377, top: 65, foot: 411 },
   nl: { left: 70, right: 338, top: 62, foot: 414 },
-  pt: { left: 72, right: 358, top: 67, foot: 413 },
+  pt: { left: 79, right: 365, top: 67, foot: 413 },
 };
 
 function crane({ left, right, top, foot }) {
