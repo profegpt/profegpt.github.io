@@ -49,7 +49,7 @@ export function withoutAddedEmphasis(source, translated) {
 }
 
 /** Replace `find` in `text`, keeping the capitalisation that was already there. */
-function substitute(text, find, replacement, { progressive = null, to = null } = {}) {
+function substitute(text, find, replacement, { progressive = null, to = null, keepCase = false } = {}) {
   const pattern = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   return text.replace(pattern, (match, offset) => {
     // An auxiliary already standing in front of the slot wants the gerund, not
@@ -62,6 +62,9 @@ function substitute(text, find, replacement, { progressive = null, to = null } =
     if (to === 'pt' && chosen === progressive && /\ba\s*$/i.test(text.slice(0, offset).trimEnd())) {
       chosen = chosen.replace(/^a\s+/i, '');
     }
+    // A span found mid-sentence takes a small first letter, unless the idiom
+    // opens with a German noun: "Hals- und Beinbruch" is never "hals- und".
+    if (keepCase && !/^\p{Lu}/u.test(match)) return chosen;
     return /^\p{Ll}/u.test(match) ? chosen.charAt(0).toLowerCase() + chosen.slice(1) : chosen;
   });
 }
@@ -338,7 +341,11 @@ async function restoreIdioms(source, translated, from, to) {
     if (alreadyIdiomatic(literal, idiom.say, idiom.core)) continue;
     if (normalise(literal) === normalise(idiom.say)) continue;
 
-    result = substitute(result, literal, idiom.say, { progressive: idiom.progressive, to });
+    result = substitute(result, literal, idiom.say, {
+      progressive: idiom.progressive,
+      to,
+      keepCase: to === 'de' && /^\p{Lu}/u.test(idiom.citation ?? ''),
+    });
   }
 
   return { text: result, notes };

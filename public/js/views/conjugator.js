@@ -2,10 +2,12 @@ import { el, icon, ICONS, clear, debounce, fold, getJson } from '../lib/dom.js';
 import * as spanish from '../lib/conjugator.js';
 import * as french from '../lib/conjugator-fr.js';
 import * as italian from '../lib/conjugator-it.js';
+import * as german from '../lib/conjugator-de.js';
 import * as portuguese from '../lib/conjugator-pt.js';
 import * as spanishVerbs from '../data/verbs.js';
 import * as frenchVerbs from '../data/verbs-fr.js';
 import * as italianVerbs from '../data/verbs-it.js';
+import * as germanVerbs from '../data/verbs-de.js';
 import * as portugueseVerbs from '../data/verbs-pt.js';
 import { lang, t } from '../lib/i18n.js';
 import { studyLang } from '../lib/study.js';
@@ -167,6 +169,46 @@ export const ENGINES = {
     // (c → ch, gi → g) come from the engine already worded for display.
     stemChangeLabels: { isc: '-isc-' },
     // As for French, there is no authority with an API, so the engine is the table.
+    authoritative: false,
+  },
+
+  de: {
+    ...german,
+    ...germanVerbs,
+    moods: { indicative: 'indikativ', subjunctive: 'konjunktiv', imperative: 'imperativ', forms: 'formen' },
+    imperativeKinds: [['affirmativ', 'Bejaht', 'do it'], ['negativ', 'Verneint', "don't do it"]],
+    imperativePersons: [['du', 'du'], ['wir', 'wir'], ['ihr', 'ihr'], ['sie', 'Sie']],
+    // The future is built with werden, but it is filed with the simple tenses
+    // the way a German grammar lists it: Präsens, Präteritum, Futur I.
+    indicativeSimple: [
+      ['praesens', 'Präsens', 'present'],
+      ['praeteritum', 'Präteritum', 'simple past'],
+      ['futur1', 'Futur I', 'future'],
+    ],
+    indicativeCompound: [
+      ['perfekt', 'Perfekt', 'present perfect'],
+      ['plusquamperfekt', 'Plusquamperfekt', 'past perfect'],
+      ['futur2', 'Futur II', 'future perfect'],
+    ],
+    subjunctiveSimple: [
+      ['konjunktiv1', 'Konjunktiv I', 'subjunctive I, reported speech'],
+      ['konjunktiv2', 'Konjunktiv II', 'subjunctive II, unreal'],
+      ['wuerde', 'Konjunktiv II mit würde', 'conditional with würde'],
+    ],
+    subjunctiveCompound: [
+      ['konjunktiv1Perfekt', 'Konjunktiv I Perfekt', 'subjunctive I, past'],
+      ['konjunktiv2Plusquamperfekt', 'Konjunktiv II Plusquamperfekt', 'subjunctive II, past'],
+    ],
+    nonFinite: [
+      ['conjugator.gerund', 'partizip1'],
+      ['conjugator.participle', 'partizip2'],
+      ['conjugator.compoundInf', 'infinitivPerfekt'],
+      ['conjugator.compoundGer', 'zuInfinitiv'],
+    ],
+    stemChangeLabels: german.STEM_CHANGE_LABELS,
+    // German nouns keep their capital, so a tense name does too when it is the
+    // smaller of the two names in a row.
+    capitalised: true,
     authoritative: false,
   },
 

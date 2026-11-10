@@ -316,8 +316,8 @@ after one gives "il est en train de en train de pleuvoir". The Italian pattern
 lists only the forms of *stare*, and leaves out *state*, which is just as often
 the participle of *essere*.
 
-There is one table per language — 27 Spanish, 29 French, 36 Italian, 35
-Portuguese — rather
+There is one table per language — 27 Spanish, 29 French, 36 Italian, 34
+German, 35 Portuguese — rather
 than one table with extra columns, because the sets barely overlap: the idioms a
 translator fumbles going into Spanish are not the ones it fumbles going into
 French, and half of each list has no counterpart in the others. French gets
@@ -684,6 +684,71 @@ DeepL, and nothing beneath it — when DeepL cannot answer, the page says the
 translator is unavailable. Pronunciation goes to ElevenLabs with the language
 code `it`.
 
+## The German side
+
+`/de` is ProfeGPT as a German site. What changes:
+
+| | |
+| --- | --- |
+| the interface choice | *Deutsch* or *English* |
+| the translator | German ↔ English through DeepL, with 34 German idioms |
+| the conjugator | German tables, and the three tabs become **weak / strong / mixed** |
+| the dictionary | the German Wiktionary, credited where its licence requires it |
+| the tutor | 23 German grammar notes, German verb forms, answers in German |
+| the picture | the Brandenburg Gate, with a pretzel |
+
+### The German conjugator
+
+`public/js/lib/conjugator-de.js`, with its data in `public/js/data/verbs-de.js`.
+German does not sort its verbs by ending, so the tabs are its own three classes,
+**schwach, stark, gemischt** (machen, geben, bringen), named through
+`CLASS_LABELS` where the Romance engines name an ending. The rules: weak endings
+with the *e* put in after *t*, *d* and consonant + *m/n* (arbeitest, öffnet) but
+not where a strong verb changes its vowel (hält, lädt); the present vowel change
+of *du* and *er* (fährst, gibst, liest, nimmst); *-eln* and *-ern* (ich sammle,
+wir sammeln); the mixed verbs; the modals and *wissen*; *sein, haben, werden,
+tun*; Konjunktiv II with its umlaut (käme, ginge) and Duden's forms where two
+exist (stünde, hülfe); the weak Konjunktiv II, which is the Präteritum; and
+**separable prefixes**, which come off and go to the end (*stehe auf, bin
+aufgestanden, aufzustehen*) and are a chip on the verb card, against the
+inseparable ones (*be-, ent-, ver-* …) and the dual ones decided by list.
+Strong and mixed forms are inherited by prefixed derivatives (verstehen ←
+stehen, ankommen ← kommen, with the auxiliary following the particle, not the
+prefix). Only the anomalous verbs are flagged irregular; a strong verb's class
+chip already says so, and its ablaut cells are highlighted.
+
+A German noun is never written small, so the page keeps the capital on a tense
+name even where it is the smaller of the two in a row (Präteritum under *simple
+past*). `npm test` checks about 430 reference forms, and the engine was compared
+cell by cell against Wiktionary's Flexion tables for 173 verbs.
+
+### Where German definitions come from
+
+The **German Wiktionary** (de.wiktionary.org, CC BY-SA), read as wikitext by
+`server/dictionary-de.js`. Two German things shape the lookup. **Case**: the
+route lowercases every query and German nouns are capitalised titles, so both
+spellings are asked for in one request and the one that is a word of its own
+wins (*essen* the verb; *Fliege*, since lowercase *fliege* is only a form).
+**Umlauts and ß**: *madchen*, *maedchen* and *Mädchen* are the same word to a
+student, as are *strasse* and *Straße*, so the restoration covers the *ae/oe/ue*
+and *ss* spellings as well as missing diacritics, under the same narrow rule as
+the other sides. The German project calls itself plain "Wiktionary"; its source
+key is `wiktionary-de`, because the page reads `wiktionary` as the Spanish
+side's stand-in notice.
+
+### The German translator
+
+DeepL, and nothing beneath it. Two things the Romance sides did not need. German
+puts the verb second in a main clause and last in a subordinate one, so the
+check that DeepL has already produced an idiom (the signature of its citation
+form) fails for most German entries; every German entry therefore names its
+**core**, the run of words that never moves or inflects (*ein Vermögen*, *Nagel
+auf den Kopf*), and that is what is looked for. And a German idiom that opens
+with a noun keeps its capital wherever it lands in a sentence (*Hals- und
+Beinbruch*). Wikipedia's names are checked on the English title rather than the
+German one, since a German title capitalises every noun and so says nothing
+about whether it names something.
+
 ## The Portuguese side
 
 `/pt` is ProfeGPT as a Portuguese site, built the way the French and Italian
@@ -875,7 +940,7 @@ server/
   accents.js            puts back the accents a student did not type
   dictionary-fr.js   ·fr a free dictionary, parsed from wikitext
   dictionary-it.js   ·it the Wikizionario, parsed the same way into the same shape
-  dictionary-de.js   ·de the German Wiktionary, likewise
+  dictionary-de.js   ·de the German Wiktionary, likewise: both cases, umlauts and ß
   dictionary-nl.js   ·nl WikiWoordenboek, likewise
   dictionary-pt.js   ·pt the Wikcionário, likewise
   env.js                reads .env without a dependency
@@ -899,6 +964,8 @@ public/
     lib/conjugator-fr.js ·fr the French one: two stems, two auxiliaries
     lib/conjugator-it.js ·it the Italian one: -isc-, the 1-3-3 passato remoto,
                              reflexive pronouns in the forms
+    lib/conjugator-de.js ·de the German one: weak, strong and mixed, separable
+                             prefixes, two auxiliaries
     lib/conjugator-pt.js ·pt the Portuguese one: the personal infinitive,
                              double participles, Portugal's forms
     lib/art.js          the drawings, by name — one place for the paths
@@ -908,6 +975,7 @@ public/
     lib/tutor-es.js     what the router needs to know about Spanish
     lib/tutor-fr.js  ·fr the same, for French
     lib/tutor-it.js  ·it the same, for Italian
+    lib/tutor-de.js  ·de the same, for German
     lib/tutor-pt.js  ·pt the same, for Portuguese
     lib/chat-session.js the conversation, held outside the view so navigating
                         away cannot interrupt an answer
@@ -916,10 +984,12 @@ public/
     data/grammar.js     22 grammar explanations, Spanish and English
     data/grammar-fr.js ·fr 23 more, French and English
     data/grammar-it.js ·it 20 more, Italian and English
+    data/grammar-de.js ·de 23 more, German and English
     data/grammar-pt.js ·pt 23 more, Portuguese and English
     data/verbs.js       stem changes, irregulars, the search index
     data/verbs-fr.js ·fr irregulars, the -er spelling exceptions, 232 verbs
     data/verbs-it.js ·it -isc- verbs, irregulars, essere verbs, 292 verbs
+    data/verbs-de.js ·de irregulars, prefixes, sein verbs, 408 verbs
     data/verbs-pt.js ·pt stem changes, irregulars, short participles, 371 verbs
     views/home.js       the home page: the language boxes
     views/translator.js a language's front page: hero, translator, search
@@ -929,6 +999,7 @@ test/
   conjugator-fr.test.js ·fr 163 checked against the Bescherelle paradigms
   conjugator-it.test.js ·it 272 checked against the Treccani and Zanichelli
                                paradigms
+  conjugator-de.test.js ·de 1660, of which about 430 reference forms
   conjugator-pt.test.js ·pt 965, of which 467 reference forms, Portugal's
   conjugator-view.test.js 1123 that the page's tense lists match every engine,
                                and that every verb in every index conjugates
@@ -937,6 +1008,7 @@ test/
                                the rephrasings offered when it declines
   tutor-fr.test.js      ·fr  70 that the French pack drives the same router
   tutor-it.test.js      ·it  89 that the Italian pack does too
+  tutor-de.test.js      ·de 276 that the German pack does too
   tutor-pt.test.js      ·pt 213 that the Portuguese pack does too
   corpus.test.js            24 checks on sentence ranking and gloss extraction
   speech.test.js            17 on what may be spoken and what is refused
@@ -984,13 +1056,13 @@ scripts/
 archive/wallpapers/     the old city photographs, kept but never served
 ```
 
-`npm test` runs all 4,120 across 20 suites, offline, in a couple of seconds.
+`npm test` runs all 6,964 across 22 suites, offline, in a couple of seconds.
 
 ## The conjugation engine
 
 There is one per language: `public/js/lib/conjugator.js` for Spanish,
-`conjugator-fr.js` for French, `conjugator-it.js` for Italian and
-`conjugator-pt.js` for Portuguese — see *[The French
+`conjugator-fr.js` for French, `conjugator-it.js` for Italian,
+`conjugator-de.js` for German and `conjugator-pt.js` for Portuguese — see *[The French
 conjugator](#the-french-conjugator)*, *[The Italian
 conjugator](#the-italian-conjugator)* and *[The Portuguese
 conjugator](#the-portuguese-conjugator)* for the others. All build paradigms

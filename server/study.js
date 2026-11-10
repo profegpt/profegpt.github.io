@@ -8,7 +8,7 @@
  * and the one whose dictionary is an authority.
  */
 
-export const STUDY_LANGUAGES = ['es', 'fr', 'it', 'pt'];
+export const STUDY_LANGUAGES = ['es', 'fr', 'it', 'de', 'pt'];
 
 /** @returns {'es'|'fr'|'it'|'de'|'nl'|'pt'} */
 export function studyOf(value) {

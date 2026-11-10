@@ -899,6 +899,212 @@ const PORTUGUESE = {
   },
 };
 
+const zwei = (de, en) => ({ de, en });
+
+const GERMAN = {
+  nav: {
+    translator: zwei('Übersetzer', 'Translator'),
+    conjugation: zwei('Konjugation', 'Conjugation'),
+    dictionary: zwei('Wörterbuch', 'Dictionary'),
+    chat: zwei('Chat', 'Chat'),
+    langLabel: zwei('Sprache der Seite', 'Site language'),
+  },
+
+  meta: {
+    home: zwei('ProfeGPT', 'ProfeGPT'),
+    skip: zwei('Zum Inhalt springen', 'Skip to content'),
+    footer: zwei('Definitionen aus dem', 'definitions from the'),
+    copyright: zwei('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    footerDict: zwei('Wiktionary', 'German Wiktionary'),
+    footerHref: zwei('https://de.wiktionary.org', 'https://de.wiktionary.org'),
+    footerCredit: zwei(' (CC BY-SA)', ' (CC BY-SA)'),
+  },
+
+  hero: {
+    sub: zwei(
+      'Übersetze vom Deutschen ins Englische und vom Englischen ins Deutsche. Konjugiere jedes Verb. Schlag ein Wort nach und frag den Tutor.',
+      'Translate from German to English and English to German. Conjugate any verb. Look words up and ask the tutor.',
+    ),
+    ctaTranslate: zwei('Probier den Übersetzer', 'Try the translator'),
+    ctaChat: zwei('Sprich mit ProfeGPT', 'Talk to ProfeGPT'),
+  },
+
+  translator: {
+    unavailableTitle: zwei('Der Übersetzer ist nicht verfügbar.', 'The translator is unavailable.'),
+    unavailable: zwei(
+      'Dieser Satz konnte gerade nicht übersetzt werden. Versuch es in ein paar Minuten noch einmal; das Wörterbuch und der Konjugator funktionieren inzwischen weiter.',
+      'This sentence could not be translated just now. Try again in a little while. The dictionary and the conjugator still work in the meantime.'),
+    eyebrow: zwei('Übersetzer', 'Translator'),
+    title: zwei('Übersetzer', 'Translator'),
+    lead: zwei(
+      'Schreib und übersetze sofort. Der Knopf in der Mitte tauscht die Sprachen.',
+      'Type and translate instantly. The middle button swaps the languages.',
+    ),
+    button: zwei('Übersetzen', 'Translate'),
+    clear: zwei('Löschen', 'Clear'),
+    listen: zwei('Übersetzung anhören', 'Hear the translation'),
+    copy: zwei('Kopieren', 'Copy'),
+    copied: zwei('Kopiert!', 'Copied'),
+    copyFailed: zwei('Hat nicht geklappt', 'Could not copy'),
+    ready: zwei('Bereit', 'Ready'),
+    working: zwei('wird übersetzt…', 'translating…'),
+    done: zwei('Übersetzt', 'Translated'),
+    sourceLabel: zwei('Ausgangstext', 'Source text'),
+    swap: zwei('Deutsch und Englisch tauschen', 'Swap German and English'),
+    swapTitle: zwei('Sprachen tauschen', 'Swap languages'),
+    studyName: zwei('Deutsch', 'Deutsch'),
+    englishName: zwei('English', 'English'),
+    placeholderStudy: zwei('Schreib etwas auf Deutsch…', 'Schreib etwas auf Deutsch…'),
+    placeholderEn: zwei('Type something in English…', 'Type something in English…'),
+    outStudy: zwei('Die Übersetzung erscheint hier.', 'Die Übersetzung erscheint hier.'),
+    outEn: zwei('The translation will appear here.', 'The translation will appear here.'),
+    engine: zwei('übersetzt mit {engine}', 'translated with {engine}'),
+  },
+
+  finder: {
+    eyebrow: zwei('Wörterbuch', 'Dictionary'),
+    title: zwei('Schlag ein Wort nach', 'Look up a word'),
+    lead: zwei(
+      'Definitionen aus dem Wiktionary, mit Synonymen und Beispielen.',
+      'Definitions from the German Wiktionary, with synonyms and examples.',
+    ),
+    button: zwei('Suchen', 'Search'),
+    tryWith: zwei('Probier mal', 'Try'),
+    label: zwei('Such ein Wort im Wörterbuch', 'Search for a word in the dictionary'),
+    samples: zwei('Fernweh,gemütlich,Feierabend,Kummerspeck,Schadenfreude,verschlimmbessern,Ohrwurm,Zeitgeist', 'Fernweh,gemütlich,Feierabend,Kummerspeck,Schadenfreude,verschlimmbessern,Ohrwurm,Zeitgeist'),
+  },
+
+  features: {
+    conjugation: zwei('Konjugation', 'Conjugation'),
+    conjugationBody: zwei(
+      'Der Konjugator kennt alle Zeiten und alle Verben.',
+      'The conjugator has every tense and every verb.',
+    ),
+    dictionary: zwei('Wörterbuch', 'Dictionary'),
+    dictionaryBody: zwei(
+      'Das Wiktionary, mit Synonymen und Beispielen.',
+      'The German Wiktionary, with synonyms and examples.',
+    ),
+    chat: zwei('Chat', 'Chat'),
+    chatBody: zwei(
+      'Ein Tutor, der mit den Daten der Seite antwortet.',
+      'A tutor that answers from the site’s own data.'),
+  },
+
+  conjugator: {
+    eyebrow: zwei('Konjugation', 'Conjugation'),
+    title: zwei('Alle Zeiten, alle Verben', 'Every tense, every verb'),
+    lead: zwei(
+      'Fang mit einem regelmäßigen Musterverb an oder such ein Verb. Unregelmäßige Formen sind hervorgehoben.',
+      'Start from a regular model or search for a verb. Irregular forms are highlighted.',
+    ),
+    tab: zwei('{ending}', '{ending}'),
+    search: zwei('Such ein Verb', 'Search a verb'),
+    searchLabel: zwei('Such ein Verb', 'Search for a verb'),
+    highlight: zwei('Unregelmäßige Formen hervorheben', 'Highlight irregulars'),
+    notAVerb: zwei('Dieses Verb kenne ich nicht', "I don't recognise that verb"),
+    indicative: zwei('Indikativ', 'Indicative'),
+    subjunctive: zwei('Konjunktiv', 'Subjunctive'),
+    imperative: zwei('Imperativ', 'Imperative'),
+    simple: zwei('Einfache Zeiten', 'Simple tenses'),
+    compound: zwei('Zusammengesetzte Zeiten', 'Compound tenses'),
+    affirmative: zwei('Bejahend', 'Affirmative'),
+    negative: zwei('Verneint', 'Negative'),
+    gerund: zwei('Partizip I', 'present participle'),
+    participle: zwei('Partizip II', 'past participle'),
+    compoundInf: zwei('Infinitiv Perfekt', 'perfect infinitive'),
+    compoundGer: zwei('Infinitiv mit zu', 'infinitive with zu'),
+    fullTable: zwei('Vollständige Konjugation', 'Full conjugation'),
+    verbClass: zwei('{ending}', '{ending}'),
+    irregular: zwei('unregelmäßig', 'irregular'),
+    stemChange: zwei('Vokalwechsel {change}', 'vowel change {change}'),
+    spelling: zwei('Schreibung {change}', 'spelling {change}'),
+    likeVerb: zwei('konjugiert wie {verb}', 'conjugated like {verb}'),
+    pronominal: zwei('reflexiv: mich, dich, sich', 'reflexive: mich, dich, sich'),
+    voseo: zwei('{form}', '{form}'),
+    fromRae: zwei('Formen aus dem Wörterbuch', 'forms from the dictionary'),
+    generated: zwei('erzeugte Formen', 'generated forms'),
+    auxiliary: zwei('Hilfsverb {aux}', 'auxiliary {aux}'),
+    separable: zwei('trennbar: {prefix}', 'separable: {prefix}'),
+  },
+
+  dictionary: {
+    eyebrow: zwei('Wörterbuch', 'Dictionary'),
+    title: zwei('Was das Wörterbuch sagt', 'What the dictionary says'),
+    lead: zwei(
+      'Jede Bedeutung aus dem Wiktionary, mit Synonymen und einem Beispiel.',
+      'Every sense from the German Wiktionary, with synonyms and an example.',
+    ),
+    search: zwei('Such ein Wort', 'Search a word'),
+    button: zwei('Suchen', 'Search'),
+    emptyTitle: zwei('Gib ein Wort ein', 'Type a word'),
+    emptyBody: zwei(
+      'Probier Fernweh, gemütlich, Feierabend oder irgendein Wort, das dir aufgefallen ist.',
+      'Try Fernweh, gemütlich, Feierabend, or any word that has caught your eye.',
+    ),
+    looking: zwei('Ich schlage nach…', 'Looking it up…'),
+    noResults: zwei('Keine Treffer', 'No results'),
+    didYouMean: zwei('Meintest du?', 'Did you mean?'),
+    corrected: zwei('Ergebnisse für „{to}“. Bei „{from}“ fehlt der Umlaut oder das ß.', 'Showing “{to}”. “{from}” is missing its umlaut or ß.'),
+    seeOnRae: zwei('auf de.wiktionary.org ansehen ↗', 'view on de.wiktionary.org ↗'),
+    synonyms: zwei('Synonyme', 'Synonyms'),
+    antonyms: zwei('Gegenwörter', 'Antonyms'),
+    locutions: zwei('Redewendungen und Ausdrücke', 'Phrases and expressions'),
+    inUse: zwei('Im Gebrauch', 'In use'),
+    seeEntry: zwei('Eintrag ansehen ↗', 'view the entry ↗'),
+    notRae: zwei(
+      'Das Wörterbuch ist im Moment nicht erreichbar.',
+      'The dictionary is unavailable right now.',
+    ),
+    speak: zwei('Wort anhören', 'Hear the word'),
+    speakFailed: zwei('Konnte nicht ausgesprochen werden.', 'Could not pronounce that.'),
+    speakSpent: zwei('Die Aussprachen für diesen Monat sind aufgebraucht.', 'This month’s pronunciations are used up.'),
+    templateNote: zwei(
+      'Beispiel nach Muster. Einen echten Satz mit diesem Wort gibt es noch nicht.',
+      'Template example. There is no real sentence with this word yet.'),
+  },
+
+  chat: {
+    title: zwei('Frag ProfeGPT', 'Ask ProfeGPT'),
+    lead: zwei(
+      'Konjugationen, Definitionen, Übersetzungen und Erklärungen zur Grammatik.',
+      'Conjugations, definitions, translations and grammar explanations.',
+    ),
+    placeholder: zwei('Frag, was du willst…', 'Ask whatever you like…'),
+    messageLabel: zwei('Nachricht', 'Message'),
+    send: zwei('Senden', 'Send'),
+    you: zwei('DU', 'YOU'),
+    groundedOnly: zwei(
+      'Antworten aus dem Konjugator, dem Wörterbuch, dem Übersetzer und den Grammatiknotizen, ganz ohne KI',
+      'Answers from the conjugator, the dictionary, the translator and the grammar notes, with no AI'),
+    failed: zwei('Ich konnte nicht antworten: {error}', "I couldn't answer: {error}"),
+    starters: zwei(
+      'sein und haben|konjugiere gehen im Konjunktiv|was bedeutet Fernweh|welche Form ist „ging“|wie sagt man "I\'m tired" auf Deutsch',
+      'sein und haben|konjugiere gehen im Konjunktiv|was bedeutet Fernweh|welche Form ist „ging“|wie sagt man "I\'m tired" auf Deutsch',
+    ),
+  },
+
+  home: {
+    title: zwei('ProfeGPT', 'ProfeGPT'),
+    lead: zwei(
+      'Ein Übersetzer, Konjugationstabellen, ein Wörterbuch und ein Tutor für jede Sprache. Such dir eine aus.',
+      'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
+    choose: zwei('Wähl eine Sprache', 'Choose a language'),
+    enter: zwei('Los', 'Enter'),
+    soon: zwei('Weitere Sprachen', 'More languages'),
+    soonBody: zwei('Demnächst.', 'Coming soon.'),
+    back: zwei('Start', 'Home'),
+  },
+
+  settings: {
+    label: zwei('Einstellungen', 'Settings'),
+    appearance: zwei('Darstellung', 'Appearance'),
+    light: zwei('Heller Modus', 'Light mode'),
+    dark: zwei('Dunkler Modus', 'Dark mode'),
+    classroom: zwei('Klasse', 'Classroom'),
+  },
+};
+
 export const STRINGS = {
-  es: SPANISH, fr: FRENCH, it: ITALIAN, pt: PORTUGUESE,
+  es: SPANISH, fr: FRENCH, it: ITALIAN, de: GERMAN, pt: PORTUGUESE,
 };

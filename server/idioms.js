@@ -861,9 +861,265 @@ const PT_IDIOMS = [
   },
 ];
 
-const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS, pt: PT_IDIOMS };
+/**
+ * German. As with the other three tables, each pairing is an idiom a German
+ * speaker would actually reach for, not a gloss; where a well-known English
+ * idiom has no true counterpart it is left out rather than matched with a
+ * near miss.
+ *
+ * `core` is the part of the idiom that never moves or inflects. German puts
+ * the verb second in a main clause and last in a subordinate clause or an
+ * infinitive, so "everything after the first word" and "the last two words"
+ * of the citation form both miss *das kostete ein Vermögen* and *weil es ein
+ * Vermögen kostet*. The core is matched instead (see idiomSignature).
+ */
+const DE_IDIOMS = [
+  {
+    en: ['cost an arm and a leg', 'costs an arm and a leg', 'cost me an arm and a leg'],
+    de: 'ein Vermögen kosten',
+    say: { en: 'it cost an arm and a leg', de: 'es hat ein Vermögen gekostet' },
+    core: 'ein vermögen',
+    meaning: { en: 'to be extremely expensive', de: 'sehr teuer sein' },
+  },
+  {
+    // Said to a performer before going on, like "break a leg"; the reply is
+    // "danke" or nothing, there is no superstition against thanking.
+    en: ['break a leg'],
+    de: 'Hals- und Beinbruch!',
+    say: { en: 'break a leg', de: 'Hals- und Beinbruch!' },
+    core: 'hals und beinbruch',
+    meaning: { en: 'good luck (said to a performer)', de: 'viel Glück (zu jemandem vor einem Auftritt)' },
+  },
+  {
+    en: ['raining cats and dogs', 'rain cats and dogs', 'rains cats and dogs'],
+    de: 'in Strömen regnen',
+    say: { en: "it's raining cats and dogs", de: 'es regnet in Strömen' },
+    core: 'in strömen',
+    meaning: { en: 'to rain very heavily', de: 'sehr stark regnen' },
+  },
+  {
+    en: ['kick the bucket', 'kicked the bucket'],
+    de: 'den Löffel abgeben',
+    say: { en: 'to kick the bucket', de: 'den Löffel abgeben' },
+    core: 'den löffel',
+    meaning: { en: 'to die', de: 'sterben' },
+  },
+  {
+    en: ['piece of cake', 'as easy as pie'],
+    de: 'ein Kinderspiel',
+    say: { en: 'a piece of cake', de: 'ein Kinderspiel' },
+    core: 'kinderspiel',
+    meaning: { en: 'very easy', de: 'sehr leicht' },
+  },
+  {
+    en: ['pull your leg', 'pull my leg', 'pulling my leg', 'pulling your leg', "pull someone's leg"],
+    de: 'jemanden auf den Arm nehmen',
+    say: { en: 'to pull someone’s leg', de: 'jemanden auf den Arm nehmen' },
+    core: 'auf den arm',
+    meaning: { en: 'to tease someone', de: 'jemanden zum Spaß hereinlegen' },
+  },
+  {
+    en: ['once in a blue moon'],
+    de: 'alle Jubeljahre',
+    say: { en: 'once in a blue moon', de: 'alle Jubeljahre' },
+    core: 'alle jubeljahre',
+    meaning: { en: 'very rarely', de: 'sehr selten' },
+  },
+  {
+    en: ['kill two birds with one stone'],
+    de: 'zwei Fliegen mit einer Klappe schlagen',
+    say: { en: 'kill two birds with one stone', de: 'zwei Fliegen mit einer Klappe schlagen' },
+    core: 'zwei fliegen mit einer klappe',
+    meaning: { en: 'to solve two problems at once', de: 'zwei Dinge auf einmal erledigen' },
+  },
+  {
+    en: ['speak of the devil'],
+    de: 'wenn man vom Teufel spricht',
+    say: { en: 'speak of the devil', de: 'wenn man vom Teufel spricht' },
+    core: 'vom teufel',
+    meaning: { en: 'said when someone appears just as you mention them', de: 'sagt man, wenn jemand auftaucht, von dem gerade die Rede war' },
+  },
+  {
+    en: ['hit the nail on the head'],
+    de: 'den Nagel auf den Kopf treffen',
+    say: { en: 'hit the nail on the head', de: 'den Nagel auf den Kopf treffen' },
+    core: 'nagel auf den kopf',
+    meaning: { en: 'to be exactly right', de: 'genau das Richtige sagen' },
+  },
+  {
+    en: ['the last straw', 'the final straw'],
+    de: 'das Fass zum Überlaufen bringen',
+    say: { en: 'the last straw', de: 'das bringt das Fass zum Überlaufen' },
+    core: 'fass zum überlaufen',
+    meaning: { en: 'the small thing that finally makes it unbearable', de: 'die Kleinigkeit, die alles unerträglich macht' },
+  },
+  {
+    en: ['let the cat out of the bag', 'spill the beans', 'spilled the beans'],
+    de: 'die Katze aus dem Sack lassen',
+    say: { en: 'to let the cat out of the bag', de: 'die Katze aus dem Sack lassen' },
+    core: 'katze aus dem sack',
+    meaning: { en: 'to give away a secret', de: 'ein Geheimnis verraten' },
+  },
+  {
+    en: ['throw in the towel', 'threw in the towel'],
+    de: 'das Handtuch werfen',
+    say: { en: 'to throw in the towel', de: 'das Handtuch werfen' },
+    core: 'das handtuch',
+    meaning: { en: 'to give up', de: 'aufgeben' },
+  },
+  {
+    en: ['put my foot in it', 'put his foot in it', 'put your foot in it', 'put her foot in it'],
+    de: 'ins Fettnäpfchen treten',
+    say: { en: 'to put your foot in it', de: 'ins Fettnäpfchen treten' },
+    core: 'ins fettnäpfchen',
+    meaning: { en: 'to say something tactless', de: 'etwas Taktloses sagen' },
+  },
+  {
+    en: ['head in the clouds'],
+    de: 'den Kopf in den Wolken haben',
+    say: { en: 'to have your head in the clouds', de: 'den Kopf in den Wolken haben' },
+    core: 'kopf in den wolken',
+    meaning: { en: 'to be daydreaming', de: 'verträumt und unaufmerksam sein' },
+  },
+  {
+    en: ['better late than never'],
+    de: 'besser spät als nie',
+    say: { en: 'better late than never', de: 'besser spät als nie' },
+    core: 'spät als nie',
+    meaning: { en: 'late is preferable to not at all', de: 'lieber zu spät als gar nicht' },
+  },
+  {
+    en: ['easier said than done'],
+    de: 'leichter gesagt als getan',
+    say: { en: 'easier said than done', de: 'leichter gesagt als getan' },
+    core: 'gesagt als getan',
+    meaning: { en: 'harder to do than to describe', de: 'schwerer zu tun, als es klingt' },
+  },
+  {
+    en: ['fed up', 'sick of it', 'had enough'],
+    de: 'die Nase voll haben',
+    say: { en: 'to be fed up', de: 'die Nase voll haben' },
+    core: 'die nase voll',
+    meaning: { en: 'to have had enough', de: 'etwas satthaben' },
+  },
+  {
+    en: ['be all ears', 'i am all ears', "i'm all ears"],
+    de: 'ganz Ohr sein',
+    say: { en: 'to be all ears', de: 'ich bin ganz Ohr' },
+    core: 'ganz ohr',
+    meaning: { en: 'to be listening eagerly', de: 'sehr aufmerksam zuhören' },
+  },
+  {
+    en: ['thick as thieves'],
+    de: 'wie Pech und Schwefel zusammenhalten',
+    say: { en: 'to be thick as thieves', de: 'wie Pech und Schwefel zusammenhalten' },
+    core: 'pech und schwefel',
+    meaning: { en: 'to be extremely close', de: 'unzertrennlich sein' },
+  },
+  {
+    en: ['not mince words', "doesn't mince words", 'mince words'],
+    de: 'kein Blatt vor den Mund nehmen',
+    say: { en: 'to not mince words', de: 'kein Blatt vor den Mund nehmen' },
+    core: 'blatt vor den mund',
+    meaning: { en: 'to speak bluntly', de: 'offen und direkt reden' },
+  },
+  {
+    en: ["it's all greek to me", 'all greek to me'],
+    de: 'nur Bahnhof verstehen',
+    say: { en: "it's all Greek to me", de: 'ich verstehe nur Bahnhof' },
+    core: 'nur bahnhof',
+    meaning: { en: 'I cannot understand a word of it', de: 'ich verstehe gar nichts' },
+  },
+  {
+    en: ['sleep like a log', 'slept like a log'],
+    de: 'schlafen wie ein Murmeltier',
+    say: { en: 'to sleep like a log', de: 'schlafen wie ein Murmeltier' },
+    core: 'wie ein murmeltier',
+    meaning: { en: 'to sleep very deeply', de: 'sehr tief schlafen' },
+  },
+  {
+    en: ['green thumb', 'green fingers'],
+    de: 'einen grünen Daumen haben',
+    say: { en: 'to have a green thumb', de: 'einen grünen Daumen haben' },
+    core: 'grünen daumen',
+    meaning: { en: 'to be good with plants', de: 'gut mit Pflanzen umgehen können' },
+  },
+  {
+    en: ['make a mountain out of a molehill'],
+    de: 'aus einer Mücke einen Elefanten machen',
+    say: { en: 'to make a mountain out of a molehill', de: 'aus einer Mücke einen Elefanten machen' },
+    core: 'aus einer mücke',
+    meaning: { en: 'to make far too much of something small', de: 'eine Kleinigkeit maßlos aufbauschen' },
+  },
+  {
+    en: ['not my cup of tea'],
+    de: 'nicht mein Bier',
+    say: { en: "it's not my cup of tea", de: 'das ist nicht mein Bier' },
+    core: 'mein bier',
+    meaning: { en: 'not something I like or care about', de: 'nichts, was mich interessiert oder angeht' },
+  },
+  {
+    en: ["can't see the wood for the trees", "can't see the forest for the trees", 'see the wood for the trees', 'see the forest for the trees'],
+    de: 'den Wald vor lauter Bäumen nicht sehen',
+    say: { en: "to not see the wood for the trees", de: 'den Wald vor lauter Bäumen nicht sehen' },
+    core: 'wald vor lauter bäumen',
+    meaning: { en: 'to miss the whole for the details', de: 'vor lauter Einzelheiten das Ganze nicht erkennen' },
+  },
+  {
+    en: ['fingers crossed', 'keep my fingers crossed', 'keep your fingers crossed', 'cross my fingers', 'cross your fingers'],
+    de: 'die Daumen drücken',
+    say: { en: 'to keep your fingers crossed', de: 'ich drücke dir die Daumen' },
+    core: 'die daumen',
+    meaning: { en: 'to wish someone luck', de: 'jemandem Glück wünschen' },
+  },
+  {
+    en: ['a blessing in disguise'],
+    de: 'Glück im Unglück',
+    say: { en: 'a blessing in disguise', de: 'Glück im Unglück' },
+    core: 'glück im unglück',
+    meaning: { en: 'a misfortune that turns out well', de: 'ein Unglück, das noch glimpflich ausgeht' },
+  },
+  {
+    en: ['out of the frying pan into the fire'],
+    de: 'vom Regen in die Traufe kommen',
+    say: { en: 'out of the frying pan into the fire', de: 'vom Regen in die Traufe' },
+    core: 'regen in die traufe',
+    meaning: { en: 'to escape one trouble into a worse one', de: 'aus einer schlechten Lage in eine schlimmere geraten' },
+  },
+  {
+    en: ['in the same boat'],
+    de: 'im selben Boot sitzen',
+    say: { en: 'to be in the same boat', de: 'im selben Boot sitzen' },
+    core: 'selben boot',
+    meaning: { en: 'to be in the same difficult position', de: 'in derselben schwierigen Lage sein' },
+  },
+  {
+    en: ['have a frog in my throat', 'a frog in my throat', 'frog in his throat', 'frog in her throat'],
+    de: 'einen Frosch im Hals haben',
+    say: { en: 'to have a frog in one’s throat', de: 'einen Frosch im Hals haben' },
+    core: 'frosch im hals',
+    meaning: { en: 'to be hoarse', de: 'heiser sein' },
+  },
+  {
+    en: ['like a bull in a china shop', 'a bull in a china shop'],
+    de: 'wie ein Elefant im Porzellanladen',
+    say: { en: 'like a bull in a china shop', de: 'wie ein Elefant im Porzellanladen' },
+    core: 'elefant im porzellanladen',
+    meaning: { en: 'clumsy and tactless', de: 'ungeschickt und taktlos' },
+  },
+  {
+    en: ['bury your head in the sand', 'bury my head in the sand', 'bury his head in the sand', 'head in the sand'],
+    de: 'den Kopf in den Sand stecken',
+    say: { en: 'to bury your head in the sand', de: 'den Kopf in den Sand stecken' },
+    core: 'in den sand',
+    meaning: { en: 'to refuse to face a problem', de: 'ein Problem nicht wahrhaben wollen' },
+  },
+];
 
-const fold = (text) => String(text).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS, de: DE_IDIOMS, pt: PT_IDIOMS };
+
+// ß is not a letter NFD can take apart, and a student types ss for it anyway.
+const fold = (text) => String(text).toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/['’]/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**
@@ -916,6 +1172,9 @@ export function findIdioms(text, from, to) {
       source: item.entry.say[from],
       core: item.entry.core ?? null,
       noteOnly: Boolean(item.noteOnly),
+      // The citation form in the target language, for substitute(): a German
+      // idiom that opens with a noun keeps its capital wherever it lands.
+      citation: item.entry[to] ?? null,
     });
     if (found.length >= 2) break;
   }

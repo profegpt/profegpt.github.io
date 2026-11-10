@@ -744,6 +744,9 @@ a.chip:hover { color: var(--brand-dark); }
 table.conj { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; font-size: 16px; }
 table.conj th, table.conj td { padding: 11px 12px; text-align: left; border-bottom: 2px solid var(--line); overflow-wrap: break-word; }
 table.conj tr:last-child th, table.conj tr:last-child td { border-bottom: 0; }
+/* The tense column gets a little more than its share, so that a long German
+   name (Plusquamperfekt, Zusammengesetzte Zeiten) is not broken mid-word. */
+table.conj thead th:first-child { width: 18%; }
 table.conj thead th {
   background: var(--panel-soft);
   font-size: 13px;

@@ -19,7 +19,7 @@
 
 import { withBase, withoutBase } from './site.js';
 
-export const STUDY_LANGUAGES = ['es', 'fr', 'it', 'pt'];
+export const STUDY_LANGUAGES = ['es', 'fr', 'it', 'de', 'pt'];
 
 /** The default, and the one the home page has selected when it opens. */
 export const DEFAULT_STUDY = 'es';

@@ -136,6 +136,31 @@ for (const [translated, say, expected, why] of [
     alreadyIdiomatic(translated, say) === expected);
 }
 
+// --- German -----------------------------------------------------------------
+found = findIdioms('the tickets cost an arm and a leg', 'en', 'de');
+ok('an English idiom pairs with the German one', found[0]?.say === 'es hat ein Vermögen gekostet', found[0]?.say);
+ok('and carries its core, the words that never move', found[0]?.core === 'ein vermögen', found[0]?.core);
+found = findIdioms('ich verstehe nur Bahnhof', 'de', 'en');
+ok('a German idiom is recognised', found[0]?.say === "it's all Greek to me", found[0]?.say);
+ok('German matching ignores umlauts', findIdioms('Es regnet in Stromen', 'de', 'en').length === 1);
+ok('plain German has no idioms', findIdioms('der Hund schläft im Garten', 'de', 'en').length === 0);
+ok('the Spanish table is not used for German', findIdioms('llover a cántaros', 'de', 'en').length === 0);
+found = findIdioms('dat kost een rib uit mijn lijf', 'de', 'en');
+ok('nor the Dutch one', found.length === 0);
+ok('ß folds to ss', alreadyIdiomatic('er heisst Max', 'er heißt Max'));
+
+for (const [translated, say, core, expected, why] of [
+  ['Das kostete ein Vermögen.', 'es hat ein Vermögen gekostet', 'ein vermögen', true, 'German, main clause, other tense'],
+  ['weil es ein Vermögen kostet', 'es hat ein Vermögen gekostet', 'ein vermögen', true, 'German, verb last'],
+  ['Es kostete einen Arm und ein Bein.', 'es hat ein Vermögen gekostet', 'ein vermögen', false, 'German, word for word'],
+  ['Du hast den Nagel auf den Kopf getroffen.', 'den Nagel auf den Kopf treffen', 'nagel auf den kopf', true, 'German, participle at the end'],
+  ['Er hat den Eimer getreten.', 'den Löffel abgeben', 'den löffel', false, 'German, word for word'],
+  ['Das Schaf steht im Garten.', 'nun kommt der Aap aus dem Ärmel', 'aap', false, 'the core is matched on word boundaries'],
+]) {
+  ok(`"${translated}" ${expected ? 'is' : 'is not'} already idiomatic (${why})`,
+    alreadyIdiomatic(translated, say, core) === expected);
+}
+
 // --- Portuguese -------------------------------------------------------------
 found = findIdioms('it cost me an arm and a leg', 'en', 'pt');
 ok('an English idiom pairs with the Portuguese one', found[0]?.say === 'custou os olhos da cara', found[0]?.say);
