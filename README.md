@@ -65,7 +65,7 @@ Every language's front page shows a word of the day between the hero and the
 translator, and the home page shows the words of the three priority
 languages, Spanish, French and German, in turn under the site's name, with a
 chip per language to pick one by hand. The words are hand-picked in
-`public/js/data/words.js`, two dozen a language, each chosen for having
+`public/js/data/words.js`, a hundred a language, each chosen for having
 something behind it: a borrowing, a picture inside the word, a bit of history.
 The Spanish card alone carries a button that tells the story (*ojalá* is an
 Arabic prayer, *siesta* is the Roman sixth hour, *murciélago* a little blind
@@ -1101,7 +1101,7 @@ scripts/
 archive/wallpapers/     the old city photographs, kept but never served
 ```
 
-`npm test` runs all 10,019 across 25 suites, offline, in a couple of seconds.
+`npm test` runs all 12,489 across 25 suites, offline, in a couple of seconds.
 
 ## The conjugation engine
 
