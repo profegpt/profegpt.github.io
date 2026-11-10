@@ -32,6 +32,24 @@ const MESSAGES = {
     spent: 'Le pronunce di questo mese sono esaurite.',
     failed: 'Impossibile pronunciare in questo momento.',
   },
+  de: {
+    off: 'Die Aussprache ist nicht eingerichtet.',
+    notAWord: 'Es werden nur einzelne Wörter ausgesprochen.',
+    spent: 'Die Aussprachen für diesen Monat sind aufgebraucht.',
+    failed: 'Die Aussprache ist im Moment nicht möglich.',
+  },
+  nl: {
+    off: 'De uitspraak is niet ingesteld.',
+    notAWord: 'Alleen losse woorden worden uitgesproken.',
+    spent: 'De uitspraken van deze maand zijn op.',
+    failed: 'Uitspreken lukt op dit moment niet.',
+  },
+  pt: {
+    off: 'A pronúncia não está configurada.',
+    notAWord: 'Só se pronunciam palavras isoladas.',
+    spent: 'As pronúncias deste mês esgotaram-se.',
+    failed: 'Não foi possível pronunciar neste momento.',
+  },
 };
 
 /** The same guard the dictionary uses, minus the space: one word, in letters. */

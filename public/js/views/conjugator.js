@@ -2,19 +2,27 @@ import { el, icon, ICONS, clear, debounce, fold, getJson } from '../lib/dom.js';
 import * as spanish from '../lib/conjugator.js';
 import * as french from '../lib/conjugator-fr.js';
 import * as italian from '../lib/conjugator-it.js';
+import * as portuguese from '../lib/conjugator-pt.js';
 import * as spanishVerbs from '../data/verbs.js';
 import * as frenchVerbs from '../data/verbs-fr.js';
 import * as italianVerbs from '../data/verbs-it.js';
+import * as portugueseVerbs from '../data/verbs-pt.js';
 import { lang, t } from '../lib/i18n.js';
 import { studyLang } from '../lib/study.js';
 
 /**
  * Everything the page needs to render a paradigm, per language.
  *
- * The two engines produce the same *shape* — moods holding tenses holding
+ * The engines produce the same *shape* — moods holding tenses holding
  * persons — but not the same names, so the tense lists, the mood keys and the
  * non-finite forms are all data here rather than literals in the rendering
- * code. That is the whole difference between the two sides of this page.
+ * code. That is the whole difference between the sides of this page.
+ *
+ * Three things only some languages have, each optional here: German and Dutch
+ * name their verb classes (weak, strong) where the Romance sides name an
+ * ending, so their engines export CLASS_LABELS; German writes its tense names
+ * with a capital wherever they stand (`capitalised`); and Portuguese has a
+ * conjugated infinitive, which is a mood of its own (`extraMoods`).
  *
  * Exported for the tests, which check that every tense named here exists in the
  * table the engine actually builds — a typo would otherwise show as a silently
@@ -161,9 +169,68 @@ export const ENGINES = {
     // As for French, there is no authority with an API, so the engine is the table.
     authoritative: false,
   },
+
+  pt: {
+    ...portuguese,
+    ...portugueseVerbs,
+    moods: { indicative: 'indicativo', subjunctive: 'conjuntivo', imperative: 'imperativo', forms: 'formas' },
+    imperativeKinds: [['afirmativo', 'Afirmativo', 'do it'], ['negativo', 'Negativo', "don't do it"]],
+    imperativePersons: [['tu', 'tu'], ['voce', 'você'], ['nos', 'nós'], ['vos', 'vós'], ['voces', 'vocês']],
+    indicativeSimple: [
+      ['presente', 'Presente', 'present'],
+      ['preteritoPerfeito', 'Pretérito perfeito', 'preterite'],
+      ['preteritoImperfeito', 'Pretérito imperfeito', 'imperfect'],
+      ['maisQuePerfeito', 'Pretérito mais-que-perfeito', 'pluperfect, literary'],
+      ['futuro', 'Futuro', 'future'],
+      ['condicional', 'Condicional', 'conditional'],
+    ],
+    // "Tenho falado" is not the English present perfect: it is something done
+    // again and again lately, and the hint says so rather than mislead.
+    indicativeCompound: [
+      ['perfeitoComposto', 'Pretérito perfeito composto', 'have been doing lately'],
+      ['maisQuePerfeitoComposto', 'Mais-que-perfeito composto', 'past perfect'],
+      ['futuroComposto', 'Futuro composto', 'future perfect'],
+      ['condicionalComposto', 'Condicional composto', 'conditional perfect'],
+    ],
+    subjunctiveSimple: [
+      ['presente', 'Presente', 'present'],
+      ['imperfeito', 'Pretérito imperfeito', 'imperfect'],
+      ['futuro', 'Futuro', 'future'],
+    ],
+    subjunctiveCompound: [
+      ['perfeito', 'Pretérito perfeito', 'present perfect'],
+      ['maisQuePerfeito', 'Pretérito mais-que-perfeito', 'past perfect'],
+      ['futuroComposto', 'Futuro composto', 'future perfect'],
+    ],
+    // The infinitive that takes endings (para falarmos): no other side has
+    // one, so it is a mood of its own after the subjunctive.
+    extraMoods: [
+      { key: 'infinitivo', title: 'conjugator.personalInfinitive', rows: [['pessoal', 'Infinitivo pessoal', 'personal infinitive']] },
+    ],
+    nonFinite: [
+      ['conjugator.gerund', 'gerundio'],
+      ['conjugator.participle', 'participio'],
+      ['conjugator.compoundInf', 'infinitivoComposto'],
+      ['conjugator.compoundGer', 'gerundioComposto'],
+    ],
+    stemChangeLabels: portuguese.STEM_CHANGE_LABELS,
+    // No Portuguese authority publishes an API either, so the engine is the table.
+    authoritative: false,
+  },
 };
 
 const engine = () => ENGINES[studyLang()];
+
+/**
+ * A verb class, as the label of its tab or the chip on a verb's card. German
+ * and Dutch classes have names of their own; everywhere else the class is an
+ * ending and the sentence around it comes from the string table.
+ */
+function className(code, role) {
+  const named = engine().CLASS_LABELS?.[code]?.[role];
+  if (named) return named[lang()] ?? named.en;
+  return t(role === 'tab' ? 'conjugator.tab' : 'conjugator.verbClass', { ending: code });
+}
 
 export function renderConjugator(main) {
   const {
@@ -192,7 +259,7 @@ export function renderConjugator(main) {
       type: 'button',
       role: 'tab',
       onclick: () => { searchInput.value = ''; clear(suggestions); show(value, mode); },
-    }, t('conjugator.tab', { ending: mode }));
+    }, className(mode, 'tab'));
     tabs.appendChild(button);
     return [mode, button];
   });
@@ -390,7 +457,7 @@ function verbCard(result, glosses) {
   const gloss = glosses.get(result.verb);
   const tags = [];
 
-  tags.push(el('span', { class: 'chip' }, t('conjugator.verbClass', { ending: result.class })));
+  tags.push(el('span', { class: 'chip' }, className(result.class, 'chip')));
   if (result.flags.irregular) tags.push(el('span', { class: 'chip chip--warn' }, t('conjugator.irregular')));
   if (result.flags.stemChange) {
     tags.push(el('span', { class: 'chip chip--es' },
@@ -398,6 +465,8 @@ function verbCard(result, glosses) {
   }
   if (result.flags.ortho) tags.push(el('span', { class: 'chip' }, t('conjugator.spelling', { change: result.flags.ortho })));
   if (result.flags.derivedFrom) tags.push(el('span', { class: 'chip' }, t('conjugator.likeVerb', { verb: result.flags.derivedFrom })));
+  // A German or Dutch prefix that comes off and goes to the end of the clause.
+  if (result.flags.separable) tags.push(el('span', { class: 'chip' }, t('conjugator.separable', { prefix: result.flags.separable })));
   if (result.pronominal) tags.push(el('span', { class: 'chip' }, t('conjugator.pronominal')));
   if (result.voseo) tags.push(el('span', { class: 'chip' }, t('conjugator.voseo', { form: result.voseo.tu })));
   // Which auxiliary a French or Italian verb takes is half of learning its compound
@@ -423,7 +492,7 @@ function formRow(label, value) {
 
 function tables(result, highlight, { irregularCells, PERSONS, PERSON_LABELS }) {
   const {
-    moods, indicativeSimple, indicativeCompound, subjunctiveSimple, subjunctiveCompound,
+    moods, indicativeSimple, indicativeCompound, subjunctiveSimple, subjunctiveCompound, extraMoods = [],
   } = engine();
 
   const marks = irregularCells(result.verb, result.table);
@@ -439,13 +508,19 @@ function tables(result, highlight, { irregularCells, PERSONS, PERSON_LABELS }) {
       tenseTable(result.table[moods.subjunctive], subjunctiveSimple, moods.subjunctive, marks, t('conjugator.simple'), columns),
       tenseTable(result.table[moods.subjunctive], subjunctiveCompound, moods.subjunctive, marks, t('conjugator.compound'), columns),
     ]),
+    ...extraMoods.map((extra) => mood(t(extra.title), [
+      tenseTable(result.table[extra.key], extra.rows, extra.key, marks, t('conjugator.simple'), columns),
+    ])),
     mood(t('conjugator.imperative'), [imperativeTable(result.table[moods.imperative], marks)]),
   );
   return wrap;
 }
 
+/** A mood and its tables. A table with no rows is left out, and so is a mood left with none. */
 function mood(title, children) {
-  return el('section', { class: 'mood' }, el('h2', { class: 'mood__title' }, title), ...children);
+  const tablesShown = children.filter(Boolean);
+  if (!tablesShown.length) return '';
+  return el('section', { class: 'mood' }, el('h2', { class: 'mood__title' }, title), ...tablesShown);
 }
 
 const upperFirst = (text) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -458,10 +533,15 @@ const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
  */
 function tenseNames(label, hint) {
   const [main, sub] = lang() === 'en' ? [hint, label] : [label, hint];
-  return [upperFirst(main), lowerFirst(sub)];
+  // German is the exception to the second rule: Präteritum is a noun, and a
+  // German noun is never written small.
+  const keep = engine().capitalised && sub === label;
+  return [upperFirst(main), keep ? sub : lowerFirst(sub)];
 }
 
 function tenseTable(tenses, rows, moodKey, marks, caption, { PERSONS, PERSON_LABELS }) {
+  // Dutch has no compound subjunctive, and a heading over nothing is worse than no table.
+  if (!rows.some(([key]) => tenses?.[key])) return null;
   const head = el('tr', {}, el('th', { scope: 'col' }, caption));
   for (const person of PERSONS) {
     head.appendChild(el('th', { scope: 'col' }, PERSON_LABELS[person]));

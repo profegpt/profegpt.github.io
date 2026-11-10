@@ -913,6 +913,337 @@ def italy():
     return art
 
 
+# ------------------------------------------------------------------ Germany
+# The Brandenburg Gate: six Doric columns on a low step, the entablature with
+# its frieze, the attic, and the Quadriga on top in weathered copper. The
+# passages between the columns are left open, as they are.
+STONE_L, STONE, STONE_D, STONE_DD = '#F2DDAE', '#E3C78E', '#C9A96B', '#A98A52'
+COPPER, COPPER_D = '#62B8A6', '#43988A'
+
+
+def pretzel(art):
+    """A fat knotted pretzel: one strand from the left foot up through the
+    knot, round the right lobe, along the belly, round the left lobe and
+    back down through the knot, with a darker lip under every strand and a
+    scatter of salt."""
+    P, P_D, SALT = '#C77B30', '#9C5A1C', '#FFF5D6'
+    a = [(-46, -26), (30, -124)]
+    b = bezier((30, -124), (45, -152), (100, -130), (98, -80))
+    c = bezier((98, -80), (97, -32), (50, -16), (0, -16))
+    d = bezier((0, -16), (-50, -16), (-97, -32), (-98, -80))
+    e = bezier((-98, -80), (-100, -130), (-45, -152), (-30, -124))
+    strand = a + b + c + d + e + [(46, -26)]
+    art.line([(x, y + 6) for x, y in strand], P_D, 24, what='pretzel lip')
+    art.line(strand, P, 24, what='pretzel')
+    for x, y, rot in ((-72, -118, 30), (-97, -70, 80), (-60, -24, -20), (0, -16, 0), (62, -25, 20),
+                      (96, -66, -80), (70, -120, -30), (-14, -64, 55), (18, -58, -55)):
+        art.rect(x - 4.5, y - 2.5, 9, 5, SALT, rx=2.5, rot=(rot, x, y), what='salt')
+    return [(-112, -150), (112, 2)]
+
+
+def germany():
+    art = Art('de.svg', 560, 480)
+    cx, foot = 226, 420
+    art.begin_track()
+
+    def block(x, y, w, h, rx=0, col=STONE, dark=STONE_D, share=0.22, what='block'):
+        """A stone block with the darker shade down its right side."""
+        art.rect(x, y, w, h, col, rx=rx, what=what)
+        sw = w * share
+        art.rect(x + w - sw, y, sw, h, dark, rx=rx, what=what + ' shade')
+        if rx:
+            art.rect(x + w - sw, y, min(rx, sw), h, dark, what=what + ' shade')
+
+    # the six columns, the middle passage a little wider than the others
+    COL_T, COL_B = 268, foot - 10
+    for off in (-130, -80, -30, 30, 80, 130):
+        x = cx + off
+        art.rect(x - 11, COL_T, 22, COL_B - COL_T, STONE, what='column')
+        art.rect(x + 2, COL_T, 9, COL_B - COL_T, STONE_D, what='column shade')
+        art.rect(x - 15, COL_B - 9, 30, 10, STONE_D, rx=4, what='column foot')
+        art.rect(x - 15, COL_T - 2, 30, 9, STONE_L, rx=4, what='capital')
+    # the step they stand on
+    block(cx - 158, foot - 10, 316, 12, rx=5, col=STONE_D, dark=STONE_DD, what='step')
+    # entablature: architrave, the frieze with its row of metopes, the cornice
+    block(cx - 150, 236, 300, 34, what='entablature')
+    art.rect(cx - 150, 246, 300, 11, STONE_D, what='frieze')
+    for k in range(14):
+        art.rect(cx - 141 + k * 21, 248.5, 9, 6, STONE_DD, rx=2, what='metope')
+    block(cx - 158, 227, 316, 11, rx=5, col=STONE_L, dark=STONE, what='cornice')
+    assert COL_T <= 236 + 34 + 1, 'the columns do not reach the entablature'
+    # the attic with its relief panel, and the steps up to the plinth
+    block(cx - 122, 190, 244, 38, what='attic')
+    art.rect(cx - 92, 199, 150, 20, STONE_D, rx=4, what='relief')
+    block(cx - 134, 182, 268, 9, rx=4, col=STONE_L, dark=STONE, what='attic cornice')
+    block(cx - 56, 164, 112, 19, rx=4, what='plinth')
+    PL = 164
+    # the Quadriga: Victoria and her staff behind, four horses abreast in front
+    art.rect(cx + 15, PL - 78, 4, 70, COPPER_D, rx=2, what='staff')
+    art.circle(cx + 17, PL - 80, 8, COPPER, what='wreath')
+    art.circle(cx + 17, PL - 80, 3.5, COPPER_D, what='wreath eye')
+    art.poly([(cx - 12, PL - 8), (cx - 6, PL - 50), (cx + 6, PL - 50), (cx + 12, PL - 8)], COPPER_D, r=4, what='Victoria')
+    art.circle(cx, PL - 56, 7, COPPER_D, what='Victoria head')
+    for off in (-36, -12, 12, 36):
+        x = cx + off
+        for lx in (-5.5, 2):
+            art.rect(x + lx, PL - 12, 3.5, 12, COPPER_D, rx=1.5, what='horse leg')
+        art.rect(x - 9, PL - 34, 18, 24, COPPER, rx=8, what='horse')
+        art.ellipse(x, PL - 40, 6, 9.5, COPPER, what='horse head')
+        art.poly([(x - 5.5, PL - 45), (x - 3, PL - 54), (x - 0.5, PL - 46)], COPPER, r=1, what='ear')
+        art.poly([(x + 0.5, PL - 46), (x + 3, PL - 54), (x + 5.5, PL - 45)], COPPER, r=1, what='ear')
+        art.rect(x + 3, PL - 34, 6, 24, COPPER_D, rx=3, what='horse shade')
+    box = art.end_track()
+    assert (box[2] - box[0]) / (foot - PL) > 1.2, 'the gate should be wider than its stone is tall'
+
+    # a pretzel, in front at the lower right
+    art.out.append(FOOD)
+    art.push(place(414, 424, 0.84))
+    art.begin_track()
+    pretzel(art)
+    obox = art.end_track()
+    art.pop()
+    art.out.append(FOOD_END)
+    group = (min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3]))
+    art.centre(group, 'Brandenburg Gate and pretzel')
+    art.site = site_of(art, box, group)
+    return art
+
+
+# ------------------------------------------------------------------ the Netherlands
+# A brick tower mill: a tapering body on a stone plinth, a gallery round its
+# waist, a dark cap, and four lattice sails standing in an X.
+def cheese(art):
+    """A wheel of Gouda lying flat, its top face a shade paler, and a wedge
+    cut from it standing in front with its paler inside showing."""
+    R, R_D, TOP, IN, IN_D = '#FFB100', '#E69500', '#FFC94D', '#FFE08A', '#F5C84B'
+    art.rect(-104, -72, 168, 72, R, rx=26, what='cheese wheel')
+    art.rect(14, -72, 50, 72, R_D, rx=26, what='wheel shade')
+    art.rect(14, -72, 22, 72, R_D, what='wheel shade')
+    art.ellipse(-20, -70, 84, 21, TOP, what='wheel top')
+    wedge = [(-4, 0), (104, 0), (104, -62)]
+    art.poly(wedge, IN, r=[10, 6, 6], what='wedge')
+    art.rect(92, -62, 14, 62, R, rx=6, what='wedge rind')
+    art.rect(99, -62, 7, 62, R_D, rx=3.5, what='wedge rind shade')
+    for hx, hy, r in ((44, -11, 5.5), (70, -26, 6.5), (76, -8, 4)):
+        art.circle(hx, hy, r, IN_D, what='hole')
+    return [(-104, -91), (106, 0)]
+
+
+def netherlands():
+    art = Art('nl.svg', 560, 480)
+    cx, foot = 214, 420
+    BRICK, BRICK_D = '#C0704A', '#A25A3A'
+    WOOD, WOOD_D = '#6E4B2A', '#573A1F'
+    CAP, CAP_D = '#5B4636', '#463527'
+    art.begin_track()
+
+    TOP, HW_B, HW_T = 214, 64, 36
+    body = [(cx - HW_B, foot - 8), (cx - HW_T, TOP), (cx + HW_T, TOP), (cx + HW_B, foot - 8)]
+    art.poly(body, BRICK, what='mill body')
+    art.poly(clip_x(body, cx + 16), BRICK_D, what='mill body shade')
+    art.rect(cx - 72, foot - 12, 144, 12, '#D9CDB8', rx=5, what='plinth')
+    art.rect(cx + 16, foot - 12, 56, 12, '#BFB29A', rx=5, what='plinth shade')
+    art.rect(cx + 16, foot - 12, 8, 12, '#BFB29A', what='plinth shade')
+
+    def hw(y):
+        return HW_B + (HW_T - HW_B) * (foot - 8 - y) / (foot - 8 - TOP)
+
+    # the door and two windows, each in a pale frame
+    def opening(x, y, w, h):
+        art.path(f'M{f(x - w / 2 - 4)} {f(y)}V{f(y - h + w / 2)}A{f(w / 2 + 4)} {f(w / 2 + 4)} 0 0 1 {f(x + w / 2 + 4)} {f(y - h + w / 2)}V{f(y)}Z',
+                 [(x - w / 2 - 4, y - h - 4), (x + w / 2 + 4, y)], CREAM, what='frame')
+        art.path(f'M{f(x - w / 2)} {f(y)}V{f(y - h + w / 2)}A{f(w / 2)} {f(w / 2)} 0 0 1 {f(x + w / 2)} {f(y - h + w / 2)}V{f(y)}Z',
+                 [(x - w / 2, y - h), (x + w / 2, y)], WOOD, what='opening')
+        assert cx - hw(y - h) < x - w / 2 - 4 and x + w / 2 + 4 < cx + hw(y - h), 'opening off the mill'
+    opening(cx, foot - 12, 26, 44)
+    opening(cx - 4, 276, 16, 26)
+    opening(cx + 22, 366, 14, 22)
+
+    # the gallery: struts, the deck, and a railing
+    GY = 312
+    for sx in (-1, 1):
+        art.line([(cx + sx * 76, GY + 6), (cx + sx * (hw(GY + 40) - 2), GY + 40)], SAND_DD, 5, what='strut')
+    art.rect(cx - 84, GY, 168, 10, SAND, rx=5, what='gallery deck')
+    art.rect(cx + 30, GY, 54, 10, SAND_D, rx=5, what='deck shade')
+    for k in range(8):
+        art.rect(cx - 80 + k * 22.3, GY - 20, 4, 21, SAND_D, rx=2, what='rail post')
+    art.rect(cx - 84, GY - 24, 168, 6, SAND, rx=3, what='rail')
+    assert hw(GY) < 84, 'the gallery does not stand out from the body'
+
+    # the cap
+    cap = [(cx - 46, TOP + 6), (cx - 38, TOP - 24), (cx, TOP - 40), (cx + 38, TOP - 24), (cx + 46, TOP + 6)]
+    art.poly(cap, CAP, r=[5, 14, 20, 14, 5], what='cap')
+    art.clip_begin(rpoly_d(cap, [5, 14, 20, 14, 5]), cap, 'cap')
+    art.rect(cx + 14, TOP - 44, 40, 54, CAP_D, what='cap shade')
+    art.clip_end()
+
+    # four sails in an X about the hub: a spar, and the lattice along one side of it
+    hx, hy = cx, TOP - 12
+    L = 156
+    for ang in (32, 122, 212, 302):
+        art.push(rotate(ang, hx, hy))
+        art.rect(hx + 3, hy - L + 4, 30, L - 40, CREAM, rx=3, what='sail')
+        for k in range(1, 6):
+            yy = hy - L + 4 + k * (L - 40) / 6
+            art.rect(hx + 3, yy - 1.5, 30, 3, CREAM_ARCH, what='sail bar')
+        art.rect(hx + 16.5, hy - L + 4, 3, L - 40, CREAM_ARCH, what='sail bar')
+        art.rect(hx - 3.5, hy - L, 7, L, WOOD, rx=3.5, what='spar')
+        art.pop()
+    art.circle(hx, hy, 10, WOOD_D, what='hub')
+    art.circle(hx, hy, 4.5, GOLD, what='hub pin')
+    box = art.end_track()
+
+    # a wheel of cheese, in front at the lower right
+    art.out.append(FOOD)
+    art.push(place(402, 424, 0.92))
+    art.begin_track()
+    cheese(art)
+    obox = art.end_track()
+    art.pop()
+    art.out.append(FOOD_END)
+    group = (min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3]))
+    art.centre(group, 'windmill and cheese')
+    art.site = site_of(art, box, group)
+    return art
+
+
+# ------------------------------------------------------------------ Portugal
+# The Tower of Belem from the river: the low bastion with its battlements and
+# gun ports, and the four-storey tower rising behind it, a loggia on its face,
+# ribbed domes on the corner turrets.
+def nata(art):
+    """A pastel de nata: a fluted pastry cup, and the custard on top
+    scorched in dark patches."""
+    PA, PA_D, PA_L = '#E0A050', '#C4863A', '#F0BC6E'
+    CU, BURN, BURN_D = '#FFD84D', '#B8651D', '#8F4A12'
+    cup = [(-80, -58), (80, -58), (58, 0), (-58, 0)]
+    art.poly(cup, PA, r=[4, 4, 16, 16], what='pastry cup')
+    art.clip_begin(rpoly_d(cup, [4, 4, 16, 16]), cup, 'cup')
+    art.rect(22, -60, 62, 62, PA_D, what='cup shade')
+    for fx in (-52, -26, 0, 26, 52):
+        art.line([(fx * 1.18, -58), (fx * 0.92, 0)], PA_D, 4, what='flute')
+    art.clip_end()
+    art.ellipse(0, -58, 90, 25, PA_L, what='rim')
+    art.ellipse(0, -58, 76, 18, CU, what='custard')
+    for bx, by, rx, ry, col in ((-34, -62, 17, 7, BURN), (20, -53, 21, 7.5, BURN), (44, -66, 11, 4.5, BURN_D),
+                                (-6, -68, 9, 3.6, BURN_D), (-50, -53, 7, 3, BURN_D)):
+        art.ellipse(bx, by, rx, ry, col, what='scorch')
+    return [(-90, -83), (90, 0)]
+
+
+def portugal():
+    art = Art('pt.svg', 560, 480)
+    cx, foot = 250, 420
+    art.begin_track()
+
+    def dome(x, y, r):
+        """A ribbed melon dome standing on (x, y), a ball on its tip."""
+        art.path(f'M{f(x - r)} {f(y)}A{f(r)} {f(r * 1.15)} 0 0 1 {f(x + r)} {f(y)}Z',
+                 [(x - r, y - r * 1.15), (x + r, y)], CREAM, what='dome')
+        art.path(f'M{f(x + r * 0.3)} {f(y - r * 1.1)}A{f(r)} {f(r * 1.15)} 0 0 1 {f(x + r)} {f(y)}H{f(x + r * 0.3)}Z',
+                 [(x + r * 0.3, y - r * 1.15), (x + r, y)], CREAM_D, what='dome shade')
+        art.circle(x, y - r * 1.15 - 2, 3.2, CREAM_ARCH, what='dome ball')
+
+    def turret(x, y, w=22, h=26):
+        """A corner turret hanging at (x, y): a short drum under a dome."""
+        art.rect(x - w / 2, y - h, w, h + 8, CREAM, rx=4, what='turret')
+        art.rect(x + w * 0.1, y - h, w * 0.4, h + 8, CREAM_D, rx=4, what='turret shade')
+        art.rect(x - w / 2 - 2, y - h - 3, w + 4, 6, CREAM_D, rx=3, what='turret band')
+        art.rect(x - 2, y - h + 8, 4, 10, CREAM_ARCH_D, rx=2, what='turret slit')
+        dome(x, y - h - 2, w / 2 + 1)
+
+    def merlons(x0, x1, y, n, w=12, h=13):
+        """Battlements along the top of a wall, each with its small shield."""
+        step = (x1 - x0 - w) / (n - 1)
+        for k in range(n):
+            mx = x0 + k * step
+            dark = mx > shade_x
+            art.rect(mx, y - h, w, h + 3, CREAM_D if dark else CREAM, rx=3, what='merlon')
+            art.circle(mx + w / 2, y - h / 2 + 1, 2.4, CREAM_ARCH if not dark else CREAM_ARCH_D, what='shield')
+
+    def arch(x, y, w, h, col):
+        art.path(f'M{f(x - w / 2)} {f(y)}V{f(y - h + w / 2)}A{f(w / 2)} {f(w / 2)} 0 0 1 {f(x + w / 2)} {f(y - h + w / 2)}V{f(y)}Z',
+                 [(x - w / 2, y - h), (x + w / 2, y)], col, what='arch')
+
+    def ledge(x0, x1, y, h=7):
+        art.rect(x0 - 5, y - h / 2, x1 - x0 + 10, h, CREAM, rx=h / 2, what='ledge')
+        if x1 > shade_x:
+            art.rect(shade_x, y - h / 2, x1 - shade_x + 5, h, CREAM_D, rx=h / 2, what='ledge shade')
+            art.rect(shade_x, y - h / 2, h / 2, h, CREAM_D, what='ledge shade')
+
+    # the tower, behind
+    TL, TR, TT = cx - 6, cx + 112, 158
+    shade_x = TR - 44
+    # the top storey, set back, with its own battlements and turrets
+    UL, UR, UT = TL + 22, TR - 22, 104
+    art.rect(UL, UT, UR - UL, TT - UT + 4, CREAM, what='top storey')
+    art.rect(shade_x, UT, UR - shade_x, TT - UT + 4, CREAM_D, what='top storey shade')
+    merlons(UL, UR, UT, 5, w=11, h=11)
+    arch((UL + UR) / 2 - 14, 146, 12, 24, CREAM_ARCH)
+    turret(UL, UT + 6, w=16, h=18)
+    turret(UR, UT + 6, w=16, h=18)
+    assert UT < TT, 'the top storey floats'
+    # the main shaft
+    art.rect(TL, TT, TR - TL, foot - TT, CREAM, what='tower')
+    art.rect(shade_x, TT, TR - shade_x, foot - TT, CREAM_D, what='tower shade')
+    merlons(TL, TR, TT, 7)
+    for ly in (214, 276):
+        ledge(TL, TR, ly)
+    # windows of the third storey, and the royal arms between them
+    for wx in (TL + 28, TR - 28):
+        arch(wx, 262, 16, 30, CREAM_ARCH if wx < shade_x else CREAM_ARCH_D)
+    art.circle((TL + TR) / 2, 240, 7, CREAM_ARCH, what='arms')
+    # the loggia on the second storey: a roof, five arches, a balustrade
+    LL, LR = TL + 12, TR - 12
+    art.poly([(LL - 6, 296), (LL + 6, 284), (LR - 6, 284), (LR + 6, 296)], CREAM_ARCH, r=3, what='loggia roof')
+    art.rect(LL, 296, LR - LL, 36, CREAM, what='loggia')
+    art.rect(shade_x, 296, LR - shade_x, 36, CREAM_D, what='loggia shade')
+    for k in range(5):
+        ax = LL + 12 + k * (LR - LL - 24) / 4
+        arch(ax, 326, 11, 24, CREAM_ARCH if ax < shade_x else CREAM_ARCH_D)
+    art.rect(LL - 5, 326, LR - LL + 10, 10, CREAM_D, rx=4, what='balustrade')
+    art.rect(shade_x, 326, LR - shade_x + 5, 10, CREAM_ARCH, rx=4, what='balustrade shade')
+    art.rect(shade_x, 326, 5, 10, CREAM_ARCH, what='balustrade shade')
+    turret(TL, TT + 8)
+    turret(TR, TT + 8)
+
+    # the bastion, in front and to the left
+    BL, BR, BT = cx - 150, cx + 40, 346
+    art.rect(BL, BT, BR - BL, foot - BT, CREAM, rx=5, what='bastion')
+    art.rect(BL, foot - 12, BR - BL, 12, CREAM_D, rx=5, what='bastion foot')
+    shade_keep, shade_x = shade_x, BR + 1
+    merlons(BL + 16, BR - 6, BT, 9)
+    ledge(BL, BR, BT + 20)
+    for k in range(5):
+        arch(BL + 30 + k * 36, foot - 22, 15, 22, CREAM_ARCH)
+    turret(BL + 2, BT + 8)
+    shade_x = shade_keep
+    assert BT > TT and BR > TL, 'the bastion does not stand against the tower'
+    box = art.end_track()
+
+    # a pastel de nata, in front at the lower right
+    art.out.append(FOOD)
+    art.push(place(414, 424, 1.02))
+    art.begin_track()
+    nata(art)
+    obox = art.end_track()
+    art.pop()
+    art.out.append(FOOD_END)
+    group = (min(box[0], obox[0]), min(box[1], obox[1]), max(box[2], obox[2]), max(box[3], obox[3]))
+    art.centre(group, 'Tower of Belem and pastel de nata')
+    art.site = site_of(art, box, group)
+    return art
+
+
+def site_of(art, box, group):
+    """Where a landmark stands on its canvas once the picture is centred:
+    left, right, top, foot. The home page's crane is placed from these
+    (SITES in public/js/views/home.js)."""
+    dx = art.w / 2 - (group[0] + group[2]) / 2
+    dy = art.h / 2 - (group[1] + group[3]) / 2
+    return {'left': round(box[0] + dx), 'right': round(box[2] + dx), 'top': round(box[1] + dy), 'foot': round(box[3] + dy)}
+
+
 # ------------------------------------------------------------------ feature icons (96)
 def card_lip(art, x, y, w, h, rx, fill, dark, lip=4):
     art.rect(x, y + lip, w, h, dark, rx=rx)
@@ -1030,10 +1361,13 @@ def soon():
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for fn in (logo, hero, lambda: hero(dark=True), spain, france, italy, translator, conjugator, dictionary, chat, soon):
+    for fn in (logo, hero, lambda: hero(dark=True), spain, france, italy, germany, netherlands, portugal,
+               translator, conjugator, dictionary, chat, soon):
         art = fn()
         n = art.save()
         print(f'{art.name:18s} {n:6d} bytes')
+        if getattr(art, 'site', None):
+            print(f'{"":18s} stands at {art.site}')
         if art.w >= 400:
             assert n < 25000, (art.name, 'too big')
     # the favicon is the logo, byte for byte

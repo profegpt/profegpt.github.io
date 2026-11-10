@@ -603,17 +603,281 @@ const IT_IDIOMS = [
   },
 ];
 
-const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS };
+/**
+ * Portuguese. European Portuguese throughout, as the site's Spanish is Spain's:
+ * *chover a potes*, *acertar na mouche*, *estar com os azeites*. Each pairing is
+ * an idiom a Portuguese speaker would actually reach for, not a gloss; where a
+ * well-known English idiom has no true counterpart it is left out rather than
+ * matched with a near miss.
+ *
+ * Two things shape the `say` forms beyond what the Italian table needed.
+ *
+ * Where the Portuguese idiom is *estar* or *ter* plus a complement (*estar com
+ * os azeites*, *ter muita lata*), the English phrasings are complement-shaped
+ * too (*in a foul mood*, *a lot of nerve*) and `say.pt` is just the complement,
+ * so that the verb DeepL already wrote (*está*, *tens*, *acordou*) stays and
+ * only the literal tail is swapped: "Ele está de mau humor" → "Ele está com os
+ * azeites". A complement also survives inflection, which an infinitive does not,
+ * so `alreadyIdiomatic` recognises *fala pelos cotovelos* as readily as *falar
+ * pelos cotovelos*.
+ *
+ * The European progressive is *estar a* + infinitive ("está a chover a potes"),
+ * so a `progressive` form opens with *a*. When the engine has already written
+ * the *a* ("está a" + literal infinitive), the infinitive alone is what fits the
+ * slot; see AUXILIARY.pt and the note on it in wantsProgressive.
+ */
+const PT_IDIOMS = [
+  {
+    en: ['cost an arm and a leg', 'costs an arm and a leg', 'cost me an arm and a leg'],
+    pt: 'custar os olhos da cara',
+    say: { en: 'it cost an arm and a leg', pt: 'custou os olhos da cara' },
+    meaning: { en: 'to be extremely expensive', pt: 'ser caríssimo' },
+  },
+  {
+    // What is said to an actor before the curtain goes up, in Portugal as in
+    // Spain; "boa sorte" is the thing one does not say.
+    en: ['break a leg'],
+    pt: 'muita merda!',
+    say: { en: 'break a leg', pt: 'muita merda!' },
+    meaning: { en: 'good luck (said to a performer)', pt: 'boa sorte (a um ator, antes de entrar em cena)' },
+  },
+  {
+    en: ['test me', 'put me to the test'],
+    pt: 'pôr à prova',
+    say: { en: 'test me', pt: 'põe-me à prova' },
+    meaning: { en: 'go on, try me', pt: 'experimenta, a ver se consigo' },
+  },
+  {
+    en: ['raining cats and dogs', 'rain cats and dogs', 'rains cats and dogs'],
+    pt: 'chover a potes',
+    say: { en: "it's raining cats and dogs", pt: 'chove a potes' },
+    // For "está a chover …", which is how Portugal says it is raining right now.
+    progressive: { pt: 'a chover a potes' },
+    meaning: { en: 'to rain very heavily', pt: 'chover muitíssimo' },
+  },
+  {
+    en: ['kick the bucket', 'kicked the bucket'],
+    pt: 'bater as botas',
+    say: { en: 'to kick the bucket', pt: 'bater as botas' },
+    meaning: { en: 'to die', pt: 'morrer' },
+  },
+  {
+    // With its article, so that "um pedaço de bolo" is swapped whole and the
+    // sentence does not end up with two articles. Portugal's own word for it,
+    // "é canja", is in the note rather than the table: "canja" is also just
+    // chicken soup, and a one-word idiom would fire on every bowl of it.
+    en: ['a piece of cake', 'as easy as pie'],
+    pt: 'uma brincadeira de crianças',
+    say: { en: 'a piece of cake', pt: 'uma brincadeira de crianças' },
+    meaning: { en: 'very easy (in Portugal also "é canja")', pt: 'muito fácil (também se diz «é canja»)' },
+  },
+  {
+    // "my leg" only: the Portuguese fuses the person in (com a minha cara, com a
+    // tua cara), so one entry cannot cover every owner of the leg.
+    en: ['pulling my leg', 'pull my leg', 'pulled my leg'],
+    pt: 'gozar com a cara de alguém',
+    say: { en: 'to pull my leg', pt: 'gozar com a minha cara' },
+    progressive: { pt: 'a gozar com a minha cara' },
+    meaning: { en: 'to tease me, to joke at my expense', pt: 'brincar comigo, fazer troça de mim' },
+  },
+  {
+    en: ['once in a blue moon'],
+    pt: 'quando o rei faz anos',
+    say: { en: 'once in a blue moon', pt: 'quando o rei faz anos' },
+    meaning: { en: 'very rarely', pt: 'muito raramente' },
+  },
+  {
+    en: ['kill two birds with one stone'],
+    pt: 'matar dois coelhos de uma cajadada',
+    say: { en: 'kill two birds with one stone', pt: 'matar dois coelhos de uma cajadada' },
+    meaning: { en: 'to solve two problems at once', pt: 'resolver duas coisas de uma só vez' },
+  },
+  {
+    en: ['when pigs fly'],
+    pt: 'quando as galinhas tiverem dentes',
+    say: { en: 'when pigs fly', pt: 'quando as galinhas tiverem dentes' },
+    meaning: { en: 'never', pt: 'nunca' },
+  },
+  {
+    en: ['speak of the devil'],
+    pt: 'falar no diabo',
+    say: { en: 'speak of the devil', pt: 'fala-se no diabo' },
+    meaning: { en: 'said when someone appears just as you mention them', pt: 'diz-se quando aparece a pessoa de quem se falava' },
+  },
+  {
+    en: ['the last straw', 'the final straw'],
+    pt: 'a gota de água que faz transbordar o copo',
+    say: { en: 'the last straw', pt: 'a gota de água que faz transbordar o copo' },
+    meaning: { en: 'the small thing that finally makes it unbearable', pt: 'o pormenor que torna a situação insuportável' },
+  },
+  {
+    en: ['throw in the towel', 'threw in the towel'],
+    pt: 'atirar a toalha ao chão',
+    say: { en: 'to throw in the towel', pt: 'atirar a toalha ao chão' },
+    meaning: { en: 'to give up', pt: 'desistir' },
+  },
+  {
+    en: ['put my foot in it', 'put his foot in it', 'put her foot in it', 'put your foot in it', 'put my foot in my mouth'],
+    pt: 'meter a pata na poça',
+    say: { en: 'to put your foot in it', pt: 'meter a pata na poça' },
+    meaning: { en: 'to say something tactless', pt: 'dizer uma coisa inoportuna, cometer uma gafe' },
+  },
+  {
+    en: ['hit the nail on the head'],
+    pt: 'acertar na mouche',
+    say: { en: 'hit the nail on the head', pt: 'acertar na mouche' },
+    meaning: { en: 'to be exactly right', pt: 'acertar em cheio' },
+  },
+  {
+    // Clause for clause: "it's all greek to me" is a whole sentence, and so is
+    // the Portuguese, so the swap keeps the verb count right.
+    en: ["it's all greek to me", 'it is all greek to me', "that's all greek to me", 'this is all greek to me'],
+    pt: 'para mim é chinês',
+    say: { en: "it's all Greek to me", pt: 'para mim é chinês' },
+    meaning: { en: 'I cannot understand a word of it', pt: 'não percebo nada daquilo' },
+  },
+  {
+    en: ['walking on eggshells', 'walk on eggshells'],
+    pt: 'andar a pisar ovos',
+    say: { en: 'to walk on eggshells', pt: 'pisar ovos' },
+    progressive: { pt: 'a pisar ovos' },
+    meaning: { en: 'to proceed very cautiously', pt: 'agir com muita cautela' },
+  },
+  {
+    en: ['make a mountain out of a molehill', 'making a mountain out of a molehill'],
+    pt: 'fazer uma tempestade num copo de água',
+    say: { en: 'to make a mountain out of a molehill', pt: 'fazer uma tempestade num copo de água' },
+    progressive: { pt: 'a fazer uma tempestade num copo de água' },
+    meaning: { en: 'to make far too much of something small', pt: 'exagerar uma coisa sem importância' },
+  },
+  {
+    // Adverbial for adverbial: "ela fala dezanove à dúzia" → "ela fala pelos
+    // cotovelos", with DeepL's own verb left standing.
+    en: ['nineteen to the dozen', 'ten to the dozen'],
+    pt: 'falar pelos cotovelos',
+    say: { en: 'nineteen to the dozen', pt: 'pelos cotovelos' },
+    meaning: { en: 'talking a great deal, without stopping (falar pelos cotovelos)', pt: 'falar muito, sem parar' },
+  },
+  {
+    en: ["you've got a lot of nerve", 'you have a lot of nerve', "you've got some nerve", 'you have some nerve',
+      "you've got a nerve", 'you have a nerve'],
+    pt: 'ter muita lata',
+    say: { en: "you've got a lot of nerve", pt: 'tens muita lata' },
+    meaning: { en: 'what a cheek, how dare you', pt: 'que descaramento, que atrevimento' },
+  },
+  {
+    en: ['in a foul mood'],
+    pt: 'estar com os azeites',
+    say: { en: 'in a foul mood', pt: 'com os azeites' },
+    meaning: { en: 'in a bad temper, irritable (estar com os azeites)', pt: 'mal-disposto, irritado' },
+  },
+  {
+    en: ['on the wrong side of the bed', 'on the wrong side of bed'],
+    pt: 'acordar com os pés de fora',
+    say: { en: 'on the wrong side of the bed', pt: 'com os pés de fora' },
+    meaning: { en: 'in a bad mood from the moment of waking (acordar com os pés de fora)', pt: 'de mau humor desde que acordou' },
+  },
+  {
+    en: ['rest on your laurels', 'rest on my laurels', 'rest on his laurels', 'rest on her laurels',
+      'rest on our laurels', 'rest on their laurels'],
+    pt: 'ficar à sombra da bananeira',
+    say: { en: 'to rest on your laurels', pt: 'ficar à sombra da bananeira' },
+    meaning: { en: 'to sit back and stop making an effort', pt: 'deixar de se esforçar, confiando no que já se conseguiu' },
+  },
+  {
+    // "Ficou a ver navios", "deixaram-no a ver navios": the complement fits
+    // after whichever verb the engine chose.
+    en: ['high and dry'],
+    pt: 'ficar a ver navios',
+    say: { en: 'high and dry', pt: 'a ver navios' },
+    meaning: { en: 'left with nothing, let down (ficar a ver navios)', pt: 'sem aquilo que se esperava, desamparado' },
+  },
+  {
+    en: ['spill the beans', 'spilled the beans', 'spilt the beans', 'let the cat out of the bag'],
+    pt: 'dar com a língua nos dentes',
+    say: { en: 'to spill the beans', pt: 'dar com a língua nos dentes' },
+    meaning: { en: 'to give away a secret', pt: 'revelar um segredo' },
+  },
+  {
+    en: ['not mince words', "doesn't mince words", "don't mince words", 'mince words'],
+    pt: 'não ter papas na língua',
+    say: { en: 'to not mince words', pt: 'não ter papas na língua' },
+    meaning: { en: 'to speak bluntly', pt: 'falar com toda a franqueza' },
+  },
+  {
+    en: ['turn a blind eye', 'turned a blind eye', 'turns a blind eye'],
+    pt: 'fazer vista grossa',
+    say: { en: 'to turn a blind eye', pt: 'fazer vista grossa' },
+    meaning: { en: 'to pretend not to notice', pt: 'fingir que não se vê' },
+  },
+  {
+    en: ['turn a deaf ear', 'turned a deaf ear', 'turns a deaf ear'],
+    pt: 'fazer ouvidos de mercador',
+    say: { en: 'to turn a deaf ear', pt: 'fazer ouvidos de mercador' },
+    meaning: { en: 'to refuse to listen', pt: 'fingir que não se ouve' },
+  },
+  {
+    en: ['i smell a rat', 'something smells fishy'],
+    pt: 'cheirar a esturro',
+    say: { en: 'I smell a rat', pt: 'cheira-me a esturro' },
+    meaning: { en: 'something about this is suspicious', pt: 'há aqui qualquer coisa suspeita' },
+  },
+  {
+    en: ['in a pickle', 'in a tight spot'],
+    pt: 'estar em maus lençóis',
+    say: { en: 'in a pickle', pt: 'em maus lençóis' },
+    meaning: { en: 'in a difficult situation (estar em maus lençóis)', pt: 'numa situação difícil' },
+  },
+  {
+    en: ['hit the roof', 'hit the ceiling', 'fly off the handle', 'flew off the handle'],
+    pt: 'ir aos arames',
+    say: { en: 'to hit the roof', pt: 'ir aos arames' },
+    meaning: { en: 'to lose your temper completely', pt: 'perder a cabeça, enfurecer-se' },
+  },
+  {
+    en: ["don't hold your breath", 'do not hold your breath'],
+    pt: 'tirar o cavalinho da chuva',
+    say: { en: "don't hold your breath", pt: 'tira o cavalinho da chuva' },
+    meaning: { en: 'give up hoping for it, it is not going to happen', pt: 'desiste dessa ideia, isso não vai acontecer' },
+  },
+  {
+    en: ['once bitten, twice shy'],
+    pt: 'gato escaldado de água fria tem medo',
+    say: { en: 'once bitten, twice shy', pt: 'gato escaldado de água fria tem medo' },
+    meaning: { en: 'a bad experience makes you wary ever after', pt: 'quem já se queimou uma vez passa a ter cuidado' },
+  },
+  {
+    en: ["i couldn't care less", 'i could not care less'],
+    pt: 'estar-se nas tintas',
+    say: { en: "I couldn't care less", pt: 'estou-me nas tintas' },
+    meaning: { en: 'it is all the same to me, I do not care', pt: 'não quero saber, é-me indiferente' },
+  },
+  {
+    en: ['the grass is always greener on the other side of the fence', 'the grass is always greener on the other side',
+      'the grass is always greener'],
+    pt: 'a galinha da vizinha é sempre melhor do que a minha',
+    say: { en: 'the grass is always greener on the other side', pt: 'a galinha da vizinha é sempre melhor do que a minha' },
+    meaning: { en: "other people's lot always looks better than your own", pt: 'o que os outros têm parece sempre melhor do que o nosso' },
+  },
+];
+
+const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS, pt: PT_IDIOMS };
 
 const fold = (text) => String(text).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/['’]/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
-/** Longest phrasings first, so "cost me an arm and a leg" beats "cost an arm and a leg". */
+/**
+ * Longest phrasings first, so "cost me an arm and a leg" beats "cost an arm
+ * and a leg". An entry's `core` (below) is indexed too, so a Dutch sentence
+ * with the idiom conjugated still gets its note; a hit on the core alone is
+ * marked, because a fragment is nothing to paste a translation over.
+ */
 function buildIndex(table, study) {
   return table.flatMap((entry) => [
     ...entry.en.map((phrase) => ({ phrase, from: 'en', entry })),
     { phrase: entry[study], from: study, entry },
     { phrase: entry.say[study], from: study, entry },
+    ...(entry.core ? [{ phrase: entry.core, from: study, entry, noteOnly: true }] : []),
   ]).map((item) => ({ ...item, folded: fold(item.phrase) }))
     .sort((a, b) => b.folded.length - a.folded.length);
 }
@@ -650,6 +914,8 @@ export function findIdioms(text, from, to) {
       progressive: item.entry.progressive?.[to] ?? null,
       meaning: item.entry.meaning,
       source: item.entry.say[from],
+      core: item.entry.core ?? null,
+      noteOnly: Boolean(item.noteOnly),
     });
     if (found.length >= 2) break;
   }
@@ -689,8 +955,14 @@ export function idiomSignature(phrase) {
  * pasted over a correctly inflected one and the grammar breaks. The first
  * costs nothing, so the doubt goes that way.
  */
-export function alreadyIdiomatic(text, say) {
+export function alreadyIdiomatic(text, say, core = null) {
   const haystack = fold(text);
+  // German and Dutch move the verb: second in a main clause, last in a
+  // subordinate one, split in two when a prefix comes off (kneep een oogje
+  // dicht). Neither signature survives that, so their entries name the run
+  // of words that never moves and never inflects, and that is what is looked
+  // for, on word boundaries: "aap" is inside "schaap".
+  if (core) return ` ${haystack} `.includes(` ${fold(core)} `);
   return idiomSignature(say).some((signature) => signature && haystack.includes(signature));
 }
 
@@ -713,6 +985,12 @@ const AUXILIARY = {
   // keeps "questa" from reading as "sta". "State" is left out because it is
   // just as often the participle of *essere* ("siete state brave").
   it: /\b(sto|stai|sta|stiamo|stanno|stavo|stavi|stava|stavamo|stavate|stavano)\s*$/i,
+  // Portuguese builds it with estar, and in Portugal with *a* and the
+  // infinitive: "está a chover a potes". The accents are required on purpose,
+  // because unaccented *esta* is the demonstrative. The *a* is optional here
+  // and handled in substitute(): where the engine has already written it, the
+  // slot wants the infinitive alone.
+  pt: /\b(estou|estás|está|estamos|estais|estão|estava|estavas|estávamos|estáveis|estavam|estive|estiveste|esteve|estivemos|estiveram|estar)(\s+a)?\s*$/i,
 };
 
 /** Whether `before` ends in an auxiliary that the idiom must agree with. */
@@ -721,7 +999,7 @@ export function wantsProgressive(before, to) {
   return Boolean(pattern && pattern.test(String(before ?? '').trimEnd()));
 }
 
-export const IDIOM_COUNT = ES_IDIOMS.length + FR_IDIOMS.length + IT_IDIOMS.length;
+export const IDIOM_COUNT = Object.values(TABLES).reduce((sum, table) => sum + table.length, 0);
 
 /** Per language, for the tests and the README. */
-export const IDIOM_COUNTS = { es: ES_IDIOMS.length, fr: FR_IDIOMS.length, it: IT_IDIOMS.length };
+export const IDIOM_COUNTS = Object.fromEntries(Object.entries(TABLES).map(([study, table]) => [study, table.length]));

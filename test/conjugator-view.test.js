@@ -28,13 +28,15 @@ for (const [study, engine] of Object.entries(ENGINES)) {
   }
 
   const sample = conjugate(valueOf(Object.values(MODEL_VERBS)[0]));
-  const irregular = conjugate({ fr: 'être', it: 'essere', es: 'ser' }[study]);
+  const irregular = conjugate({ fr: 'être', it: 'essere', es: 'ser', de: 'sein', nl: 'zijn', pt: 'ser' }[study]);
 
   const lists = [
     [moods.indicative, engine.indicativeSimple, 'indicative simple'],
     [moods.indicative, engine.indicativeCompound, 'indicative compound'],
     [moods.subjunctive, engine.subjunctiveSimple, 'subjunctive simple'],
     [moods.subjunctive, engine.subjunctiveCompound, 'subjunctive compound'],
+    // A mood only one language has: the Portuguese personal infinitive.
+    ...(engine.extraMoods ?? []).map((extra) => [extra.key, extra.rows, `extra mood ${extra.key}`]),
   ];
 
   const listed = new Set();
@@ -48,7 +50,7 @@ for (const [study, engine] of Object.entries(ENGINES)) {
   }
 
   // Nothing the engine builds should be missing from the page.
-  for (const mood of [moods.indicative, moods.subjunctive]) {
+  for (const mood of [moods.indicative, moods.subjunctive, ...(engine.extraMoods ?? []).map((extra) => extra.key)]) {
     for (const tense of Object.keys(sample.table[mood])) {
       ok(`${study}: ${mood}.${tense} is shown somewhere`, listed.has(`${mood}.${tense}`),
         'the engine builds it but no tense list names it');
@@ -75,6 +77,21 @@ for (const [study, engine] of Object.entries(ENGINES)) {
     ok(`${study}: non-finite ${key} exists`, Boolean(sample.table[moods.forms][key]),
       `missing from ${sample.verb}`);
     ok(`${study}: non-finite ${key} has a label key`, label.startsWith('conjugator.'));
+  }
+
+  // Where classes have names rather than endings (weak, strong), every class
+  // a verb can report needs its name, or the card shows a raw code.
+  if (engine.CLASS_LABELS) {
+    for (const mode of Object.keys(MODEL_VERBS)) {
+      ok(`${study}: class ${mode} has a tab label`,
+        Boolean(engine.CLASS_LABELS[mode]?.tab?.[study]) && Boolean(engine.CLASS_LABELS[mode]?.tab?.en));
+    }
+    for (const [verb] of engine.COMMON_VERBS) {
+      const result = conjugate(verb);
+      if (!result.ok) continue;
+      ok(`${study}: class "${result.class}" of ${verb} has a chip label`,
+        Boolean(engine.CLASS_LABELS[result.class]?.chip?.[study]) && Boolean(engine.CLASS_LABELS[result.class]?.chip?.en));
+    }
   }
 
   // Every verb in the search index has to conjugate — a tab or a suggestion

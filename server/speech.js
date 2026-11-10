@@ -43,7 +43,7 @@ const DEFAULT_VOICE = 'Xb7hH8MSUJpSbSDYk0k2';
 const MODEL = 'eleven_turbo_v2_5';
 
 /** What to tell the engine each side of the site is in. */
-const SPEECH_LANGUAGE = { es: 'es', fr: 'fr', it: 'it', en: 'en' };
+const SPEECH_LANGUAGE = { es: 'es', fr: 'fr', it: 'it', de: 'de', nl: 'nl', pt: 'pt', en: 'en' };
 
 /** 64 kbps mono is ample for one spoken word and a quarter the bytes. */
 const FORMAT = 'mp3_44100_64';

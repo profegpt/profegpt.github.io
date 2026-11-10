@@ -54,9 +54,14 @@ function substitute(text, find, replacement, { progressive = null, to = null } =
   return text.replace(pattern, (match, offset) => {
     // An auxiliary already standing in front of the slot wants the gerund, not
     // a finite clause — "está lloviendo a cántaros", never "está llueve".
-    const chosen = progressive && wantsProgressive(text.slice(0, offset), to)
+    let chosen = progressive && wantsProgressive(text.slice(0, offset), to)
       ? progressive
       : replacement;
+    // A Portuguese progressive form opens with its *a* ("a chover a potes");
+    // when the engine has already written "está a", the infinitive alone fits.
+    if (to === 'pt' && chosen === progressive && /\ba\s*$/i.test(text.slice(0, offset).trimEnd())) {
+      chosen = chosen.replace(/^a\s+/i, '');
+    }
     return /^\p{Ll}/u.test(match) ? chosen.charAt(0).toLowerCase() + chosen.slice(1) : chosen;
   });
 }
@@ -100,6 +105,19 @@ const EDGE_WORDS = new Set([
   'des', 'du', 'et', 'ou', 'ne', 'pas', 'mon', 'ma', 'mes', 'son', 'sa', 'ses', 'ce', 'cette',
   'il', 'lo', 'gli', 'le', 'uno', 'di', 'della', 'nel', 'e', 'non', 'che', 'per', 'io', 'lui',
   'lei', 'noi', 'voi', 'loro', 'sono', 'sei', 'è', 'siamo', 'era', 'mio', 'mia', 'suo', 'sua',
+  // German, Dutch and Portuguese. A few are left out on purpose because they
+  // are also English words a name ends in: German *war* and *hat* would cost
+  // "Cold War" and "Red Hat" their names.
+  'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'einer', 'und',
+  'oder', 'im', 'am', 'auf', 'zu', 'zum', 'zur', 'von', 'vom', 'mit', 'für', 'aus', 'bei',
+  'nach', 'ist', 'sind', 'nicht', 'kein', 'keine', 'sehr', 'ich', 'du', 'er', 'sie', 'wir',
+  'ihr', 'mein', 'meine', 'dein', 'sein', 'seine', 'dass',
+  'het', 'een', 'op', 'aan', 'van', 'voor', 'met', 'naar', 'bij', 'uit', 'ben', 'heb',
+  'heeft', 'zijn', 'niet', 'geen', 'ik', 'jij', 'je', 'hij', 'zij', 'ze', 'wij', 'jullie',
+  'mijn', 'jouw', 'onze', 'dat', 'dit', 'deze', 'te', 'om', 'als',
+  'os', 'um', 'uma', 'uns', 'umas', 'da', 'das', 'dos', 'em', 'na', 'nas', 'nos', 'com',
+  'foi', 'é', 'são', 'muito', 'seu', 'ao', 'à', 'eu', 'ele', 'ela', 'nós', 'eles', 'elas',
+  'você', 'estou', 'sou', 'és', 'não', 'meu', 'minha', 'este', 'esta', 'esse', 'essa',
 ]);
 
 /**
@@ -186,8 +204,12 @@ async function officialNames(phrases, from, to) {
     // A missing page is not a name at all; a page with no langlink is a name
     // the other language has never given itself a word for, so nothing to put in.
     if (page?.missing !== undefined) continue;
-    if (!isProperName(page.title)) continue;
-    pages.set(page.title, page?.langlinks?.[0]?.['*'] ?? null);
+    const link = page?.langlinks?.[0]?.['*'] ?? null;
+    // German capitalises every noun, so a German title says nothing about
+    // whether it names something: "Soziale Arbeit" is social work. The title
+    // at the other end of the link is asked instead.
+    if (!isProperName(NOUNS_CAPITALISED.has(from) ? link ?? '' : page.title)) continue;
+    pages.set(page.title, link);
   }
 
   for (const phrase of phrases) {
@@ -208,6 +230,8 @@ async function officialNames(phrases, from, to) {
  * and without this check "history class" is an article too, and a sentence
  * about one comes back talking about social studies.
  */
+const NOUNS_CAPITALISED = new Set(['de']);
+
 function isProperName(title) {
   return (String(title).match(/\b\p{Lu}[\p{L}]*/gu) || []).length >= 2;
 }
@@ -299,8 +323,11 @@ async function restoreIdioms(source, translated, from, to) {
   for (const idiom of idioms) {
     notes.push({ source: idiom.source, target: idiom.say, meaning: idiom.meaning });
 
+    // Found by its core alone, with the verb somewhere else in the sentence:
+    // the note is right, but there is no whole phrase to translate and swap.
+    if (idiom.noteOnly) continue;
     // DeepL already said it idiomatically — leave its grammar alone.
-    if (alreadyIdiomatic(result, idiom.say)) continue;
+    if (alreadyIdiomatic(result, idiom.say, idiom.core)) continue;
 
     // Trimmed: a span that comes back with a leading space will not match the
     // same words inside the sentence, and the repair silently does nothing.
@@ -308,7 +335,7 @@ async function restoreIdioms(source, translated, from, to) {
     const span = await deepl(idiom.phrase, from, to).catch(() => null);
     const literal = span && withoutAddedEmphasis(idiom.phrase, span.text).trim();
     if (!literal) continue;
-    if (alreadyIdiomatic(literal, idiom.say)) continue;
+    if (alreadyIdiomatic(literal, idiom.say, idiom.core)) continue;
     if (normalise(literal) === normalise(idiom.say)) continue;
 
     result = substitute(result, literal, idiom.say, { progressive: idiom.progressive, to });

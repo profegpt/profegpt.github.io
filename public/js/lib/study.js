@@ -1,9 +1,9 @@
 /**
  * The language the site is *about*.
  *
- * ProfeGPT is one site with a side per language — Spanish, French, Italian —
- * each with the same pages and the same engines, pointed at
- * a different language. Everything that reads as content (verb forms,
+ * ProfeGPT is one site with a side per language — Spanish, French, Italian,
+ * German, Dutch, Portuguese — each with the same pages and the same engines,
+ * pointed at a different language. Everything that reads as content (verb forms,
  * dictionary headwords, grammar notes, the tutor's answers) comes from
  * whichever pack this returns.
  *
@@ -19,7 +19,7 @@
 
 import { withBase, withoutBase } from './site.js';
 
-export const STUDY_LANGUAGES = ['es', 'fr', 'it'];
+export const STUDY_LANGUAGES = ['es', 'fr', 'it', 'pt'];
 
 /** The default, and the one the home page has selected when it opens. */
 export const DEFAULT_STUDY = 'es';
@@ -53,7 +53,7 @@ let current = valid(inBrowser ? studyFromPath(window.location.pathname) : null);
 // script has run — so it is set again here, from the address as it now stands.
 if (inBrowser && document.documentElement) document.documentElement.dataset.study = current;
 
-/** @returns {'es'|'fr'|'it'} */
+/** @returns {'es'|'fr'|'it'|'de'|'nl'|'pt'} */
 export function studyLang() {
   return current;
 }

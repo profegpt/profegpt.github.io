@@ -22,6 +22,9 @@ const CORPUS_LANGUAGES = {
   es: { tatoeba: 'spa', wiktionary: 'es' },
   fr: { tatoeba: 'fra', wiktionary: 'fr' },
   it: { tatoeba: 'ita', wiktionary: 'it' },
+  de: { tatoeba: 'deu', wiktionary: 'de' },
+  nl: { tatoeba: 'nld', wiktionary: 'nl' },
+  pt: { tatoeba: 'por', wiktionary: 'pt' },
 };
 
 const TATOEBA = 'https://tatoeba.org/en/api_v0/search';

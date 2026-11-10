@@ -8,9 +8,9 @@
  * and the one whose dictionary is an authority.
  */
 
-export const STUDY_LANGUAGES = ['es', 'fr', 'it'];
+export const STUDY_LANGUAGES = ['es', 'fr', 'it', 'pt'];
 
-/** @returns {'es'|'fr'|'it'} */
+/** @returns {'es'|'fr'|'it'|'de'|'nl'|'pt'} */
 export function studyOf(value) {
   return STUDY_LANGUAGES.includes(value) ? value : 'es';
 }

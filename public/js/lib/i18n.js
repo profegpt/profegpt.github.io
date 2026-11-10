@@ -78,6 +78,7 @@ export function pick(pair) {
 const two = (es, en) => ({ es, en });
 const deux = (fr, en) => ({ fr, en });
 const due = (it, en) => ({ it, en });
+// German, Dutch and Portuguese each build their table with a helper of their own below.
 
 const SPANISH = {
   nav: {
@@ -692,4 +693,212 @@ const ITALIAN = {
   },
 };
 
-export const STRINGS = { es: SPANISH, fr: FRENCH, it: ITALIAN };
+const dois = (pt, en) => ({ pt, en });
+
+const PORTUGUESE = {
+  nav: {
+    translator: dois('Tradutor', 'Translator'),
+    conjugation: dois('Conjugação', 'Conjugation'),
+    dictionary: dois('Dicionário', 'Dictionary'),
+    chat: dois('Chat', 'Chat'),
+    langLabel: dois('Língua do site', 'Site language'),
+  },
+
+  meta: {
+    home: dois('ProfeGPT', 'ProfeGPT'),
+    skip: dois('Saltar para o conteúdo', 'Skip to content'),
+    footer: dois('definições do', 'definitions from the'),
+    copyright: dois('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    footerDict: dois('Wikcionário', 'Wikcionário'),
+    footerHref: dois('https://pt.wiktionary.org', 'https://pt.wiktionary.org'),
+    footerCredit: dois(' (CC BY-SA)', ' (CC BY-SA)'),
+  },
+
+  hero: {
+    sub: dois(
+      'Traduz do português para o inglês e do inglês para o português. Conjuga qualquer verbo. Procura uma palavra e pergunta ao tutor.',
+      'Translate from Portuguese to English and English to Portuguese. Conjugate any verb. Look words up and ask the tutor.',
+    ),
+    ctaTranslate: dois('Experimenta o tradutor', 'Try the translator'),
+    ctaChat: dois('Fala com o ProfeGPT', 'Talk to ProfeGPT'),
+  },
+
+  translator: {
+    unavailableTitle: dois('O tradutor não está disponível.', 'The translator is unavailable.'),
+    unavailable: dois(
+      'Não foi possível traduzir esta frase neste momento. Tenta outra vez daqui a pouco; entretanto, o dicionário e o conjugador continuam a funcionar.',
+      'This sentence could not be translated just now. Try again in a little while. The dictionary and the conjugator still work in the meantime.'),
+    eyebrow: dois('Tradutor', 'Translator'),
+    title: dois('Tradutor', 'Translator'),
+    lead: dois(
+      'Escreve e traduz na hora. O botão do meio troca as línguas.',
+      'Type and translate instantly. The middle button swaps the languages.',
+    ),
+    button: dois('Traduzir', 'Translate'),
+    clear: dois('Limpar', 'Clear'),
+    listen: dois('Ouvir a tradução', 'Hear the translation'),
+    copy: dois('Copiar', 'Copy'),
+    copied: dois('Copiado!', 'Copied'),
+    copyFailed: dois('Não deu para copiar', 'Could not copy'),
+    ready: dois('Pronto', 'Ready'),
+    working: dois('a traduzir…', 'translating…'),
+    done: dois('Traduzido', 'Translated'),
+    sourceLabel: dois('Texto original', 'Source text'),
+    swap: dois('Trocar português e inglês', 'Swap Portuguese and English'),
+    swapTitle: dois('Trocar as línguas', 'Swap languages'),
+    studyName: dois('Português', 'Português'),
+    englishName: dois('English', 'English'),
+    placeholderStudy: dois('Escreve alguma coisa em português…', 'Escreve alguma coisa em português…'),
+    placeholderEn: dois('Type something in English…', 'Type something in English…'),
+    outStudy: dois('A tradução aparece aqui.', 'A tradução aparece aqui.'),
+    outEn: dois('The translation will appear here.', 'The translation will appear here.'),
+    engine: dois('traduzido com {engine}', 'translated with {engine}'),
+  },
+
+  finder: {
+    eyebrow: dois('Dicionário', 'Dictionary'),
+    title: dois('Procura uma palavra', 'Look up a word'),
+    lead: dois(
+      'Definições do Wikcionário, com sinónimos e exemplos.',
+      'Definitions from the Wikcionário, with synonyms and examples.',
+    ),
+    button: dois('Procurar', 'Search'),
+    tryWith: dois('Experimenta', 'Try'),
+    label: dois('Procurar uma palavra no dicionário', 'Search for a word in the dictionary'),
+    samples: dois('saudade,desenrascar,desabafar,madrugada,pirilampo,petiscar,aconchego,alfacinha', 'saudade,desenrascar,desabafar,madrugada,pirilampo,petiscar,aconchego,alfacinha'),
+  },
+
+  features: {
+    conjugation: dois('Conjugação', 'Conjugation'),
+    conjugationBody: dois(
+      'O conjugador tem todos os tempos e todos os verbos.',
+      'The conjugator has every tense and every verb.',
+    ),
+    dictionary: dois('Dicionário', 'Dictionary'),
+    dictionaryBody: dois(
+      'O Wikcionário, com sinónimos e exemplos.',
+      'The Wikcionário, with synonyms and examples.',
+    ),
+    chat: dois('Chat', 'Chat'),
+    chatBody: dois(
+      'Um tutor que responde com os dados do próprio site.',
+      'A tutor that answers from the site’s own data.'),
+  },
+
+  conjugator: {
+    eyebrow: dois('Conjugação', 'Conjugation'),
+    title: dois('Todos os tempos, todos os verbos', 'Every tense, every verb'),
+    lead: dois(
+      'Parte de um modelo regular ou procura um verbo. As formas irregulares aparecem destacadas.',
+      'Start from a regular model or search for a verb. Irregular forms are highlighted.',
+    ),
+    tab: dois('verbos em -{ending}', '-{ending} verbs'),
+    search: dois('Procurar um verbo', 'Search a verb'),
+    searchLabel: dois('Procurar um verbo', 'Search for a verb'),
+    highlight: dois('Destacar as formas irregulares', 'Highlight irregulars'),
+    notAVerb: dois('Não reconheço esse verbo', "I don't recognise that verb"),
+    indicative: dois('Indicativo', 'Indicative'),
+    subjunctive: dois('Conjuntivo', 'Subjunctive'),
+    imperative: dois('Imperativo', 'Imperative'),
+    simple: dois('Tempos simples', 'Simple tenses'),
+    compound: dois('Tempos compostos', 'Compound tenses'),
+    affirmative: dois('Afirmativo', 'Affirmative'),
+    negative: dois('Negativo', 'Negative'),
+    gerund: dois('gerúndio', 'gerund'),
+    participle: dois('particípio', 'past participle'),
+    compoundInf: dois('infinitivo composto', 'perfect infinitive'),
+    compoundGer: dois('gerúndio composto', 'perfect gerund'),
+    personalInfinitive: dois('Infinitivo pessoal', 'Personal infinitive'),
+    fullTable: dois('Conjugação completa', 'Full conjugation'),
+    verbClass: dois('verbo em -{ending}', '-{ending} verb'),
+    irregular: dois('irregular', 'irregular'),
+    stemChange: dois('alteração do radical {change}', 'stem change {change}'),
+    spelling: dois('ortografia {change}', 'spelling {change}'),
+    likeVerb: dois('conjuga-se como {verb}', 'conjugated like {verb}'),
+    pronominal: dois('pronominal: me, te, se', 'pronominal: me, te, se'),
+    voseo: dois('{form}', '{form}'),
+    fromRae: dois('formas do dicionário', 'forms from the dictionary'),
+    generated: dois('formas geradas', 'generated forms'),
+    auxiliary: dois('auxiliar {aux}', 'auxiliary {aux}'),
+  },
+
+  dictionary: {
+    eyebrow: dois('Dicionário', 'Dictionary'),
+    title: dois('O que diz o dicionário', 'What the dictionary says'),
+    lead: dois(
+      'Todos os sentidos do Wikcionário, com sinónimos e um exemplo.',
+      'Every sense from the Wikcionário, with synonyms and an example.',
+    ),
+    search: dois('Procurar uma palavra', 'Search a word'),
+    button: dois('Procurar', 'Search'),
+    emptyTitle: dois('Escreve uma palavra', 'Type a word'),
+    emptyBody: dois(
+      'Experimenta saudade, desenrascar, madrugada, ou qualquer palavra que te tenha despertado a curiosidade.',
+      'Try saudade, desenrascar, madrugada, or any word that has caught your eye.',
+    ),
+    looking: dois('A consultar o dicionário…', 'Looking it up…'),
+    noResults: dois('Sem resultados', 'No results'),
+    didYouMean: dois('Querias dizer?', 'Did you mean?'),
+    corrected: dois('Resultados para «{to}». A «{from}» falta o acento.', 'Showing “{to}”. “{from}” is missing its accent.'),
+    seeOnRae: dois('ver em pt.wiktionary.org ↗', 'view on pt.wiktionary.org ↗'),
+    synonyms: dois('Sinónimos', 'Synonyms'),
+    antonyms: dois('Antónimos', 'Antonyms'),
+    locutions: dois('Locuções e expressões', 'Phrases and expressions'),
+    inUse: dois('Em contexto', 'In use'),
+    seeEntry: dois('ver a entrada ↗', 'view the entry ↗'),
+    notRae: dois(
+      'O dicionário não está disponível neste momento.',
+      'The dictionary is unavailable right now.',
+    ),
+    speak: dois('Ouvir a palavra', 'Hear the word'),
+    speakFailed: dois('Não foi possível pronunciá-la.', 'Could not pronounce that.'),
+    speakSpent: dois('As pronúncias deste mês esgotaram-se.', 'This month’s pronunciations are used up.'),
+    templateNote: dois(
+      'Exemplo de modelo. Ainda não há uma frase real com esta palavra.',
+      'Template example. There is no real sentence with this word yet.'),
+  },
+
+  chat: {
+    title: dois('Pergunta ao ProfeGPT', 'Ask ProfeGPT'),
+    lead: dois(
+      'Conjugações, definições, traduções e explicações de gramática.',
+      'Conjugations, definitions, translations and grammar explanations.',
+    ),
+    placeholder: dois('Pergunta o que quiseres…', 'Ask whatever you like…'),
+    messageLabel: dois('Mensagem', 'Message'),
+    send: dois('Enviar', 'Send'),
+    you: dois('TU', 'YOU'),
+    groundedOnly: dois(
+      'Respostas do conjugador, do dicionário, do tradutor e das notas de gramática, sem qualquer IA',
+      'Answers from the conjugator, the dictionary, the translator and the grammar notes, with no AI'),
+    failed: dois('Não consegui responder: {error}', "I couldn't answer: {error}"),
+    starters: dois(
+      'ser e estar|conjuga fazer no conjuntivo|o que significa saudade|que forma é «fizeram»|como se diz "I\'m tired" em português',
+      'ser e estar|conjuga fazer no conjuntivo|o que significa saudade|que forma é «fizeram»|como se diz "I\'m tired" em português',
+    ),
+  },
+
+  home: {
+    title: dois('ProfeGPT', 'ProfeGPT'),
+    lead: dois(
+      'Um tradutor, as conjugações, um dicionário e um tutor para cada língua. Escolhe uma para começar.',
+      'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
+    choose: dois('Escolhe uma língua', 'Choose a language'),
+    enter: dois('Entrar', 'Enter'),
+    soon: dois('Outras línguas', 'More languages'),
+    soonBody: dois('Em breve.', 'Coming soon.'),
+    back: dois('Início', 'Home'),
+  },
+
+  settings: {
+    label: dois('Definições', 'Settings'),
+    appearance: dois('Aspeto', 'Appearance'),
+    light: dois('Modo claro', 'Light mode'),
+    dark: dois('Modo escuro', 'Dark mode'),
+    classroom: dois('Turma', 'Classroom'),
+  },
+};
+
+export const STRINGS = {
+  es: SPANISH, fr: FRENCH, it: ITALIAN, pt: PORTUGUESE,
+};

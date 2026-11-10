@@ -190,6 +190,9 @@
     es: 'Aviso: esta versión aún no tiene claves de API, así que el traductor y la pronunciación están desactivados por ahora. La web completa está en ',
     fr: 'À noter : cette version n’a pas encore de clés d’API ; le traducteur et la prononciation sont désactivés pour l’instant. Le site complet est sur ',
     it: 'Nota: questa versione non ha ancora chiavi API, quindi il traduttore e la pronuncia per ora sono disattivati. Il sito completo è su ',
+    de: 'Hinweis: Diese Version hat noch keine API-Schlüssel, deshalb sind der Übersetzer und die Aussprache vorerst ausgeschaltet. Die vollständige Seite findest du auf ',
+    nl: 'Let op: deze versie heeft nog geen API-sleutels, dus de vertaler en de uitspraak staan voorlopig uit. De volledige site staat op ',
+    pt: 'Nota: esta versão ainda não tem chaves de API, por isso o tradutor e a pronúncia estão desligados por agora. O site completo está em ',
     en: 'Note: this version has no API keys yet, so the translator and pronunciation are off for now. The full site is at ',
   };
   const WEBSITE = 'https://profegpt.github.io';
@@ -229,6 +232,9 @@
     es: { title: 'Usa profegpt.web.app', body: 'La versión web.app es más rápida, funciona en todas las cuentas y computadoras y recibe las novedades primero.', go: 'Abrir profegpt.web.app', stay: 'Quedarme aquí' },
     fr: { title: 'Utilise profegpt.web.app', body: 'La version web.app est plus rapide, fonctionne sur tous les comptes et tous les ordinateurs et reçoit les nouveautés en premier.', go: 'Ouvrir profegpt.web.app', stay: 'Rester ici' },
     it: { title: 'Usa profegpt.web.app', body: 'La versione web.app è più veloce, funziona su ogni account e computer e riceve le novità per prima.', go: 'Apri profegpt.web.app', stay: 'Resta qui' },
+    de: { title: 'Nimm profegpt.web.app', body: 'Die web.app-Version ist schneller, läuft mit jedem Konto und auf jedem Computer und bekommt Neuerungen zuerst.', go: 'profegpt.web.app öffnen', stay: 'Hier bleiben' },
+    nl: { title: 'Gebruik profegpt.web.app', body: 'De web.app-versie is sneller, werkt met elk account en op elke computer en krijgt nieuwe dingen het eerst.', go: 'Open profegpt.web.app', stay: 'Hier blijven' },
+    pt: { title: 'Usa profegpt.web.app', body: 'A versão web.app é mais rápida, funciona em todas as contas e computadores e recebe as novidades primeiro.', go: 'Abrir profegpt.web.app', stay: 'Ficar aqui' },
     en: { title: 'Use profegpt.web.app', body: 'The web.app version is faster, works on every account and computer, and gets updates first.', go: 'Open profegpt.web.app', stay: 'Stay here' },
   };
 

@@ -17,6 +17,9 @@ const ART = {
   es: '/assets/art/es.svg',
   fr: '/assets/art/fr.svg',
   it: '/assets/art/it.svg',
+  de: '/assets/art/de.svg',
+  nl: '/assets/art/nl.svg',
+  pt: '/assets/art/pt.svg',
   // Each country picture again in two halves on the same canvas, for the
   // home page's cards, which build the landmark and then fade the food.
   'es-landmark': '/assets/art/es-landmark.svg',
@@ -25,6 +28,12 @@ const ART = {
   'fr-food': '/assets/art/fr-food.svg',
   'it-landmark': '/assets/art/it-landmark.svg',
   'it-food': '/assets/art/it-food.svg',
+  'de-landmark': '/assets/art/de-landmark.svg',
+  'de-food': '/assets/art/de-food.svg',
+  'nl-landmark': '/assets/art/nl-landmark.svg',
+  'nl-food': '/assets/art/nl-food.svg',
+  'pt-landmark': '/assets/art/pt-landmark.svg',
+  'pt-food': '/assets/art/pt-food.svg',
   translator: '/assets/art/translator.svg',
   conjugator: '/assets/art/conjugator.svg',
   dictionary: '/assets/art/dictionary.svg',

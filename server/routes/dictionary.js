@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { ATTRIBUTION, tatoebaExamples, wiktionaryGloss } from '../corpus.js';
 import { fetchWiktionnaire, WIKTIONNAIRE_CREDIT } from '../dictionary-fr.js';
 import { fetchWikizionario, WIKIZIONARIO_CREDIT } from '../dictionary-it.js';
+import { fetchWiktionaryDe, WIKTIONARY_DE_CREDIT } from '../dictionary-de.js';
+import { fetchWikiWoordenboek, WIKIWOORDENBOEK_CREDIT } from '../dictionary-nl.js';
+import { fetchWikcionario, WIKCIONARIO_CREDIT } from '../dictionary-pt.js';
 import { accentedForm } from '../accents.js';
 import { studyOf } from '../study.js';
 
@@ -10,10 +13,10 @@ export const router = Router();
 /**
  * The dictionaries this route can answer from.
  *
- * Spanish has the RAE, which is the authority and says so. French and Italian
+ * Spanish has the RAE, which is the authority and says so. The other languages
  * have no equivalent that can be queried, so each language's own Wiktionary
  * answers instead and is credited where its licence requires it.
- * See server/dictionary-fr.js and server/dictionary-it.js.
+ * See server/dictionary-fr.js, -it.js, -de.js, -nl.js and -pt.js.
  */
 const MESSAGES = {
   es: {
@@ -33,6 +36,24 @@ const MESSAGES = {
     notFound: (word) => `«${word}» non compare nel dizionario.`,
     failed: (detail) => `Impossibile consultare il dizionario: ${detail}`,
     notAWord: 'Cerca una parola: solo lettere, senza simboli.',
+  },
+  de: {
+    missing: 'Das gesuchte Wort fehlt.',
+    notFound: (word) => `„${word}“ steht nicht im Wörterbuch.`,
+    failed: (detail) => `Das Wörterbuch konnte nicht abgefragt werden: ${detail}`,
+    notAWord: 'Such nach einem Wort: nur Buchstaben, keine Symbole.',
+  },
+  nl: {
+    missing: 'Het woord om op te zoeken ontbreekt.',
+    notFound: (word) => `“${word}” staat niet in het woordenboek.`,
+    failed: (detail) => `Het woordenboek kon niet worden geraadpleegd: ${detail}`,
+    notAWord: 'Zoek een woord: alleen letters, geen symbolen.',
+  },
+  pt: {
+    missing: 'Falta a palavra a procurar.',
+    notFound: (word) => `«${word}» não consta do dicionário.`,
+    failed: (detail) => `Não foi possível consultar o dicionário: ${detail}`,
+    notAWord: 'Procura uma palavra: só letras, sem símbolos.',
   },
 };
 
@@ -153,6 +174,50 @@ export async function fetchRae(word, attempt = 0) {
  */
 function templateExample(word, sense, study) {
   const feminine = sense.gender === 'feminine';
+  // German, Dutch and Portuguese frames avoid the article too: German case
+  // endings and the Dutch de/het choice depend on the word as much as its gender.
+  if (study === 'de') {
+    switch (sense.category) {
+      case 'verb':
+        return { text: `Morgen wollen wir es noch einmal ${word}.`, en: '' };
+      case 'adjective':
+        return { text: `Dieses Detail finde ich ziemlich ${word}.`, en: '' };
+      case 'adverb':
+        return { text: `Er hat es ${word} gemacht, wie immer.`, en: '' };
+      case 'noun':
+        return { text: `Beim Abendessen haben wir lange über „${word}“ gesprochen.`, en: '' };
+      default:
+        return { text: `Hier ist ein Beispiel mit „${word}“.`, en: '' };
+    }
+  }
+  if (study === 'nl') {
+    switch (sense.category) {
+      case 'verb':
+        return { text: `Morgen gaan we het nog een keer ${word}.`, en: '' };
+      case 'adjective':
+        return { text: `Dit detail vind ik best ${word}.`, en: '' };
+      case 'adverb':
+        return { text: `Hij deed het ${word}, zoals altijd.`, en: '' };
+      case 'noun':
+        return { text: `Tijdens het eten hadden we het lang over “${word}”.`, en: '' };
+      default:
+        return { text: `Hier is een voorbeeld met “${word}”.`, en: '' };
+    }
+  }
+  if (study === 'pt') {
+    switch (sense.category) {
+      case 'verb':
+        return { text: `Amanhã vamos ${word} outra vez.`, en: '' };
+      case 'adjective':
+        return { text: `Esse pormenor parece-me bastante ${word}.`, en: '' };
+      case 'adverb':
+        return { text: `Fê-lo ${word}, como sempre.`, en: '' };
+      case 'noun':
+        return { text: `Ao jantar falámos muito de «${word}».`, en: '' };
+      default:
+        return { text: `Aqui tens um exemplo com «${word}».`, en: '' };
+    }
+  }
   if (study === 'it') {
     switch (sense.category) {
       case 'verb':
@@ -232,8 +297,10 @@ async function enrich(word, senses, english, study) {
 }
 
 /**
- * The French and Italian entries: each language's own Wiktionary, read into
+ * Every entry but the Spanish one: each language's own Wiktionary, read into
  * the RAE's shape so the page and the tutor never learn which one answered.
+ * The German project calls itself plain "Wiktionary"; its source key is not,
+ * because the page reads 'wiktionary' as the Spanish side's stand-in notice.
  */
 const WIKIS = {
   fr: {
@@ -241,6 +308,15 @@ const WIKIS = {
   },
   it: {
     fetch: fetchWikizionario, source: 'wikizionario', name: 'Wikizionario', host: 'it.wiktionary.org', credit: WIKIZIONARIO_CREDIT,
+  },
+  de: {
+    fetch: fetchWiktionaryDe, source: 'wiktionary-de', name: 'Wiktionary', host: 'de.wiktionary.org', credit: WIKTIONARY_DE_CREDIT,
+  },
+  nl: {
+    fetch: fetchWikiWoordenboek, source: 'wikiwoordenboek', name: 'WikiWoordenboek', host: 'nl.wiktionary.org', credit: WIKIWOORDENBOEK_CREDIT,
+  },
+  pt: {
+    fetch: fetchWikcionario, source: 'wikcionario', name: 'Wikcionário', host: 'pt.wiktionary.org', credit: WIKCIONARIO_CREDIT,
   },
 };
 

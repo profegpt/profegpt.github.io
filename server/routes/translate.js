@@ -56,6 +56,9 @@ router.post('/', async (req, res) => {
       error: {
         fr: 'Le traducteur n’est pas disponible pour le moment. Réessayez plus tard.',
         it: 'Il traduttore non è disponibile in questo momento. Riprova più tardi.',
+        de: 'Der Übersetzer ist im Moment nicht verfügbar. Versuch es später noch einmal.',
+        nl: 'De vertaler is op dit moment niet beschikbaar. Probeer het later opnieuw.',
+        pt: 'O tradutor não está disponível neste momento. Tenta novamente mais tarde.',
         es: 'El traductor no está disponible en este momento. Inténtalo más tarde.',
       }[study],
       // Why DeepL declined — no key, quota spent, the service down. Not shown

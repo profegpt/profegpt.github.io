@@ -9,8 +9,8 @@
  *
  * The routing here is language-neutral. Everything specific to a language —
  * which engine to call, which words signal an intent, what the tutor says in
- * its own voice — comes from a pack: lib/tutor-es.js, lib/tutor-fr.js or
- * lib/tutor-it.js. The sides therefore share one set of decisions rather than drifting apart,
+ * its own voice — comes from a pack: lib/tutor-es.js, lib/tutor-fr.js,
+ * lib/tutor-it.js, lib/tutor-de.js, lib/tutor-nl.js or lib/tutor-pt.js. The sides therefore share one set of decisions rather than drifting apart,
  * which matters because the interesting behaviour is all in the routing.
  *
  * Every answer is a list of blocks the chat view knows how to render:
@@ -22,10 +22,11 @@
 import { PACK as ES } from './tutor-es.js';
 import { PACK as FR } from './tutor-fr.js';
 import { PACK as IT } from './tutor-it.js';
+import { PACK as PT } from './tutor-pt.js';
 import { page, studyLang } from './study.js';
 import { fold, getJson, postJson } from './dom.js';
 
-const PACKS = { es: ES, fr: FR, it: IT };
+const PACKS = { es: ES, fr: FR, it: IT, pt: PT };
 
 /** The pack for the language the site is currently about. */
 function activePack(override = null) {
@@ -285,6 +286,9 @@ const MORE_SENSES_HEAD = {
   es: (word, a, b, n) => `Más acepciones de **${word}** (${a}–${b} de ${n}):`,
   fr: (word, a, b, n) => `D’autres sens de **${word}** (${a}–${b} sur ${n}) :`,
   it: (word, a, b, n) => `Altri significati di **${word}** (${a}–${b} di ${n}):`,
+  de: (word, a, b, n) => `Weitere Bedeutungen von **${word}** (${a}–${b} von ${n}):`,
+  nl: (word, a, b, n) => `Andere betekenissen van **${word}** (${a}–${b} van ${n}):`,
+  pt: (word, a, b, n) => `Outros sentidos de **${word}** (${a}–${b} de ${n}):`,
 };
 
 const NO_MORE_SENSES = {
@@ -292,6 +296,9 @@ const NO_MORE_SENSES = {
   es: (word, n) => `Esas son todas las acepciones que da el diccionario para **${word}**: ${n} en total.`,
   fr: (word, n) => `Ce sont tous les sens que donne le dictionnaire pour **${word}** : ${n} au total.`,
   it: (word, n) => `Sono tutti i significati che il dizionario dà per **${word}**: ${n} in tutto.`,
+  de: (word, n) => `Das sind alle Bedeutungen, die das Wörterbuch für **${word}** nennt: insgesamt ${n}.`,
+  nl: (word, n) => `Dat zijn alle betekenissen die het woordenboek voor **${word}** geeft: ${n} in totaal.`,
+  pt: (word, n) => `São todos os sentidos que o dicionário dá para **${word}**: ${n} ao todo.`,
 };
 
 const MORE_SENSES_ASK = {
@@ -299,6 +306,9 @@ const MORE_SENSES_ASK = {
   es: 'dame otras acepciones',
   fr: 'donne d’autres définitions',
   it: 'dammi altri significati',
+  de: 'gib mir weitere Bedeutungen',
+  nl: 'geef andere betekenissen',
+  pt: 'dá-me outros significados',
 };
 
 /** "give other definitions" with no word on the table yet. */
@@ -307,6 +317,9 @@ const WHICH_WORD = {
   es: '¿De qué palabra? Pregúntame primero *qué significa …* y luego por sus otras acepciones.',
   fr: 'Quel mot ? Demande-moi d’abord *que veut dire …*, puis ses autres sens.',
   it: 'Quale parola? Chiedimi prima *cosa significa …*, e poi gli altri significati.',
+  de: 'Welches Wort? Frag mich zuerst *was bedeutet …* und dann nach den weiteren Bedeutungen.',
+  nl: 'Welk woord? Vraag me eerst *wat betekent …* en daarna naar de andere betekenissen.',
+  pt: 'Que palavra? Pergunta-me primeiro *o que significa …* e depois pelos outros sentidos.',
 };
 
 /**
@@ -314,9 +327,9 @@ const WHICH_WORD = {
  * needed — "other" alone is too common a word — unless the question is
  * nothing but "more".
  */
-const MORE_WORD = /\b(other|others|more|another|else|rest|next|otra|otras|otro|otros|mas|autre|autres|plus|suite|altre|altri|altro|ancora)\b/;
-const SENSE_WORD = /\b(definitions?|meanings?|senses?|definicion|definiciones|acepcion|acepciones|significados?|sens|definizion[ei]|significat[oi])\b/;
-const BARE_MORE = /^(?:(?:give|show|tell)(?: me)? )?(?:more|other ones|others|the rest|mas|otra|otras|plus|encore|suite|altro|altri|ancora)$/;
+const MORE_WORD = /\b(other|others|more|another|else|rest|next|otra|otras|otro|otros|mas|autre|autres|plus|suite|altre|altri|altro|ancora|weitere|weiteren|andere|anderen|mehr|noch|meer|nog|overige|outro|outra|outros|outras|mais|resto)\b/;
+const SENSE_WORD = /\b(definitions?|meanings?|senses?|definicion|definiciones|acepcion|acepciones|significados?|sens|definizion[ei]|significat[oi]|bedeutung|bedeutungen|definitionen|betekenis|betekenissen|definities?|sentidos?|definicao|definicoes|acecao|acecoes)\b/;
+const BARE_MORE = /^(?:(?:give|show|tell)(?: me)? )?(?:more|other ones|others|the rest|mas|otra|otras|plus|encore|suite|altro|altri|ancora|mehr|noch mehr|weiter|weitere|meer|nog meer|verder|mais|outros|outras|o resto)$/;
 
 // ---------------------------------------------------------------------------
 // a tense named on its own
@@ -328,13 +341,16 @@ const BARE_MORE = /^(?:(?:give|show|tell)(?: me)? )?(?:more|other ones|others|th
  * itself on the language's model regular verbs — data, not prose, and so
  * every tense in every language is covered without anything being written.
  */
-const TENSE_WORD = /\b(tense|tenses|tiempo|tiempos|temps|tempo|tempi)\b/;
+const TENSE_WORD = /\b(tense|tenses|tiempo|tiempos|temps|tempo|tempi|tempos|zeit|zeitform|zeitformen|tempus|tijd|tijden)\b/;
 
 const TENSE_LEAD = {
   en: 'Here it is on three regular model verbs. For any other verb, ask me to conjugate it.',
   es: 'Así queda en tres verbos regulares modelo. Para cualquier otro verbo, pídeme que lo conjugue.',
   fr: 'Le voici sur trois verbes réguliers modèles. Pour tout autre verbe, demande-moi de le conjuguer.',
   it: 'Eccolo su tre verbi regolari modello. Per qualsiasi altro verbo, chiedimi di coniugarlo.',
+  de: 'Hier ist sie an drei Musterverben. Für jedes andere Verb bitte mich einfach, es zu konjugieren.',
+  nl: 'Hier staat hij bij drie modelwerkwoorden. Vraag me voor elk ander werkwoord om het te vervoegen.',
+  pt: 'Aqui está em três verbos regulares modelo. Para qualquer outro verbo, pede-me que o conjugue.',
 };
 
 function tenseAnswer(pack, tense, language) {
@@ -370,6 +386,9 @@ const TRANSLATOR_DOWN = {
   es: 'El traductor no está disponible en este momento, así que prefiero no adivinar. Inténtalo de nuevo dentro de un rato.',
   fr: 'Le traducteur n’est pas disponible pour le moment, alors je préfère ne pas deviner. Réessaie dans un moment.',
   it: 'Il traduttore non è disponibile in questo momento, quindi preferisco non tirare a indovinare. Riprova tra poco.',
+  de: 'Der Übersetzer ist im Moment nicht verfügbar, deshalb rate ich lieber nicht. Versuch es gleich noch einmal.',
+  nl: 'De vertaler is op dit moment niet beschikbaar, dus ik gok liever niet. Probeer het straks nog eens.',
+  pt: 'O tradutor não está disponível neste momento, por isso prefiro não adivinhar. Tenta outra vez daqui a pouco.',
   en: 'The translator is unavailable right now, so I’d rather not guess. Try again in a little while.',
 };
 
@@ -405,15 +424,15 @@ async function translationAnswer(pack, text, from, language) {
  * rendered into Spanish. The language marker is cut wherever it appears, and so
  * is a tacked-on request for a definition.
  */
-const LANGUAGE_TAIL = /\s+(?:in|into|en|al|au)\s+(?:spanish|espa[nñ]ol|english|ingl[eé]s|french|fran[cç]ais|italian|italiano|inglese)\b.*$/i;
-const EXTRA_REQUEST = /\s*(?:[,;]|\band\b|\by\b|\bet\b|\be\b)\s*(?:also\s+)?(?:give|show|tell|with|include|add)?\s*(?:me\s+)?(?:the\s+|a\s+|its\s+|it's\s+)?(?:definition|meaning|significado|definici[oó]n|d[eé]finition|sens|definizione|significato)\b.*$/i;
+const LANGUAGE_TAIL = /\s+(?:in het|in|into|en|al|au|auf|ins|em|para)\s+(?:spanish|espa[nñ]ol|english|ingl[eéê]s|french|fran[cç]ais|italian|italiano|inglese|german|deutsche?|englische?|dutch|nederlands|engels|portuguese|portugu[eê]s)\b.*$/i;
+const EXTRA_REQUEST = /\s*(?:[,;]|\band\b|\by\b|\bet\b|\be\b|\bund\b|\ben\b)\s*(?:also\s+)?(?:give|show|tell|with|include|add)?\s*(?:me\s+)?(?:the\s+|a\s+|its\s+|it's\s+)?(?:definition|meaning|significado|definici[oó]n|d[eé]finition|sens|definizione|significato|bedeutung|betekenis|definitie|defini[cç][aã]o)\b.*$/i;
 
 function translationPhrase(raw) {
   return String(raw ?? '').replace(LANGUAGE_TAIL, '').replace(EXTRA_REQUEST, '').trim();
 }
 
 /** Whether the question also asked what the word means. */
-const WANTS_DEFINITION = /\b(definition|define|meaning|significado|definici[oó]n|significa|d[eé]finition|sens|definizione|significato)\b/i;
+const WANTS_DEFINITION = /\b(definition|define|meaning|significado|definici[oó]n|significa|d[eé]finition|sens|definizione|significato|bedeutung|bedeutet|betekenis|betekent|definitie|defini[cç][aã]o)\b/i;
 
 function formLookupAnswer(pack, word, language) {
   const matches = getFormIndex(pack.code).get(fold(word));
@@ -754,6 +773,16 @@ const FILLER = new Set([
   // Italian
   'cosa', 'che', 'perché', 'perche', 'il', 'lo', 'gli', 'uno', 'di', 'è', 'e', 'non', 'vuol',
   'vuole', 'puoi', 'quale', 'mi', 'ti', 'si',
+  // German
+  'was', 'wie', 'warum', 'wann', 'wo', 'wer', 'der', 'die', 'das', 'ein', 'eine', 'und', 'oder',
+  'ist', 'sind', 'ich', 'du', 'mir', 'mich', 'bedeutet', 'heißt', 'heisst', 'sagt', 'man', 'auf',
+  'kannst', 'welche', 'welcher', 'welches', 'bitte', 'wort',
+  // Dutch
+  'wat', 'hoe', 'waarom', 'wanneer', 'waar', 'wie', 'het', 'een', 'ik', 'je', 'jij', 'betekent',
+  'zeg', 'zegt', 'kun', 'kan', 'welke', 'woord', 'alsjeblieft',
+  // Portuguese
+  'os', 'as', 'um', 'uma', 'porque', 'quando', 'onde', 'quem', 'do', 'da', 'em', 'é', 'diz',
+  'podes', 'qual', 'palavra',
 ]);
 
 /**

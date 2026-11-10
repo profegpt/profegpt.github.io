@@ -136,6 +136,42 @@ for (const [translated, say, expected, why] of [
     alreadyIdiomatic(translated, say) === expected);
 }
 
+// --- Portuguese -------------------------------------------------------------
+found = findIdioms('it cost me an arm and a leg', 'en', 'pt');
+ok('an English idiom pairs with the Portuguese one', found[0]?.say === 'custou os olhos da cara', found[0]?.say);
+ok('and carries its meaning in Portuguese', /caríssimo/.test(found[0]?.meaning?.pt ?? ''));
+found = findIdioms("it's raining cats and dogs", 'en', 'pt');
+ok('the rain idiom has a Portuguese progressive form, with its a', found[0]?.progressive === 'a chover a potes', found[0]?.progressive);
+found = findIdioms('ela fala pelos cotovelos', 'pt', 'en');
+ok('a Portuguese idiom is recognised', found[0]?.say === 'nineteen to the dozen', found[0]?.say);
+ok('Portuguese matching ignores accents', findIdioms('esta a chover a potes', 'pt', 'en').length === 1);
+ok('plain Portuguese has no idioms', findIdioms('o cão dorme no jardim', 'pt', 'en').length === 0);
+ok('chicken soup is not the idiom', findIdioms('comi canja de galinha', 'pt', 'en').length === 0);
+ok('the Italian table is not used for Portuguese', findIdioms('piove a catinelle', 'pt', 'en').length === 0);
+
+for (const [before, expected, why] of [
+  ['está', true, 'estar, third person'],
+  ['está a', true, 'with the European a already written'],
+  ['Estava', true, 'imperfect, any case'],
+  ['esta', false, 'the demonstrative, no accent'],
+  ['nesta', false, '"esta" inside another word'],
+  ['é', false, 'ser is not the progressive auxiliary'],
+]) {
+  ok(`"${before}" ${expected ? 'wants' : 'does not want'} the Portuguese progressive (${why})`,
+    wantsProgressive(before, 'pt') === expected);
+}
+
+for (const [translated, say, expected, why] of [
+  ['Está a chover a potes', 'chove a potes', true, 'Portuguese, progressive'],
+  ['Está a chover cães e gatos', 'chove a potes', false, 'Portuguese, word for word'],
+  ['Custou-me os olhos da cara', 'custou os olhos da cara', true, 'Portuguese, with a clitic'],
+  ['Ela não tem papas na língua', 'não ter papas na língua', true, 'Portuguese, conjugated'],
+  ['Ela está de mau humor', 'com os azeites', false, 'Portuguese, word for word'],
+]) {
+  ok(`"${translated}" ${expected ? 'is' : 'is not'} already idiomatic (${why})`,
+    alreadyIdiomatic(translated, say) === expected);
+}
+
 if (failures.length) {
   console.error(`\n✗ ${failures.length} of ${checked} idiom checks failed:\n`);
   for (const failure of failures) console.error(`  ${failure}`);

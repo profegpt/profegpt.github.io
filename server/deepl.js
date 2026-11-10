@@ -1,5 +1,5 @@
 /**
- * DeepL: the site's translator, for all three languages, and the only one.
+ * DeepL: the site's translator, for every language, and the only one.
  *
  * Accurate, dedicated, and answering to a published contract. The free tier is
  * 500,000 characters a month, which a class typing sentences will not come
@@ -13,10 +13,13 @@ import { throttle, USER_AGENT } from './throttle.js';
 const ENDPOINT = 'https://api-free.deepl.com/v2/translate';
 
 /** DeepL's own codes. */
-const CODES = { en: 'EN', es: 'ES', fr: 'FR', it: 'IT' };
+const CODES = { en: 'EN', es: 'ES', fr: 'FR', it: 'IT', de: 'DE', nl: 'NL', pt: 'PT' };
 
-/** Target codes are regional where DeepL insists on it. */
-const TARGETS = { en: 'EN-GB', es: 'ES', fr: 'FR', it: 'IT' };
+/**
+ * Target codes are regional where DeepL insists on it. Portuguese is Portugal's,
+ * as the site's Spanish is Spain's; 'PT-BR' here is all it takes to change that.
+ */
+const TARGETS = { en: 'EN-GB', es: 'ES', fr: 'FR', it: 'IT', de: 'DE', nl: 'NL', pt: 'PT-PT' };
 
 /**
  * Only a free key is used. A Pro key is billed per character, and the site

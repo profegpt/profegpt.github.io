@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProfeGPT</title>
-  <meta name="description" content="Spanish, French and Italian: a translator, full conjugation tables, a dictionary and a tutor for each." />
+  <meta name="description" content="Spanish, French, Italian, German, Dutch and Portuguese: a translator, full conjugation tables, a dictionary and a tutor for each." />
   <meta name="theme-color" content="#ffffff" />
   <!-- The ?v= is a cache-buster. Browsers keep a favicon far longer than the
        page, so bump it whenever the logo changes. -->
@@ -23,7 +23,8 @@
     // Runs before the first paint so the page never flashes the wrong palette.
     (function () {
       // The chrome is either English or whichever language the site is about.
-      // The subject is the first part of the address — /es, /fr, /it — and the
+      // The subject is the first part of the address — /es, /fr, /it, /de, /nl,
+      // /pt — and the
       // bare / is the home page, which opens on Spanish. It goes on the root
       // element here because language-specific styling is chosen in CSS and has to be
       // right before the first paint.
@@ -34,7 +35,7 @@
       var path = window.location.pathname;
       if (base && path.indexOf(base) === 0) path = path.slice(base.length) || '/';
       var first = path.split('/')[1];
-      var study = first === 'fr' || first === 'it' ? first : 'es';
+      var study = ['fr', 'it', 'pt'].indexOf(first) !== -1 ? first : 'es';
       document.documentElement.dataset.study = study;
       if (path === '/' || path === '') {
         document.documentElement.classList.add('is-home');

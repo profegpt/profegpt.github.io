@@ -6,8 +6,8 @@ import { DEFAULT_STUDY, page, setStudyLang, studyLang } from '../lib/study.js';
 /**
  * The home page: the site's name, and the languages it can be about.
  *
- * It is a level above every language — /es, /fr and /it each have their own
- * front page with the translator on it — so it is deliberately small. A title,
+ * It is a level above every language — /es, /fr, /it, /de, /nl and /pt each
+ * have their own front page with the translator on it — so it is deliberately small. A title,
  * the choice, and a way in.
  *
  * Choosing a card does not go anywhere by itself. It previews: the page's own
@@ -24,6 +24,7 @@ const LANGUAGES = [
   { code: 'es', name: 'Español', english: 'Spanish' },
   { code: 'fr', name: 'Français', english: 'French' },
   { code: 'it', name: 'Italiano', english: 'Italian' },
+  { code: 'pt', name: 'Português', english: 'Portuguese' },
 ];
 
 export function renderHome(main) {
@@ -123,11 +124,22 @@ export function renderHome(main) {
     if (event.target.closest?.('input, textarea, .settings')) return;
 
     const index = LANGUAGES.findIndex((language) => language.code === studyLang());
-    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+    const count = LANGUAGES.length;
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
     if (step) {
       event.preventDefault();
-      const next = LANGUAGES[(index + step + LANGUAGES.length) % LANGUAGES.length];
-      select(next.code, { focus: true });
+      select(LANGUAGES[(index + step + count) % count].code, { focus: true });
+      return;
+    }
+    // The boxes stand in rows, so up and down move a row rather than one box.
+    // Below the last full row the nearest thing underneath is the last box.
+    const row = { ArrowDown: 1, ArrowUp: -1 }[event.key];
+    if (row) {
+      event.preventDefault();
+      const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      let next = index + row * columns;
+      if (next >= count && Math.floor(index / columns) < Math.floor((count - 1) / columns)) next = count - 1;
+      if (next >= 0 && next < count) select(LANGUAGES[next].code, { focus: true });
       return;
     }
     if (event.key === 'Enter') {
@@ -175,6 +187,10 @@ const SITES = {
   es: { left: 103, right: 363, top: 51, foot: 423 },
   fr: { left: 107, right: 321, top: 45, foot: 430 },
   it: { left: 136, right: 272, top: 85, foot: 392 },
+  // draw-art.py prints these three as it draws them
+  de: { left: 61, right: 377, top: 65, foot: 411 },
+  nl: { left: 70, right: 338, top: 62, foot: 414 },
+  pt: { left: 72, right: 358, top: 65, foot: 411 },
 };
 
 function crane({ left, right, top, foot }) {

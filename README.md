@@ -1,12 +1,14 @@
 # ProfeGPT
 
-A language learning site for Spanish, French and Italian: for each, a two-way
-translator, complete conjugation tables, a dictionary, and a grounded tutor.
+A language learning site for Spanish, French, Italian, German, Dutch and
+Portuguese: for each, a two-way translator, complete conjugation tables, a
+dictionary, and a grounded tutor.
 
 Spanish came first and is still the default — its dictionary is the RAE, an
-actual authority. French and Italian are the same site pointed at a different
-language; see *[The French side](#the-french-side)* and *[The Italian
-side](#the-italian-side)*.
+actual authority. The other five are the same site pointed at a different
+language; see *[The French side](#the-french-side)*, *[The Italian
+side](#the-italian-side)*, *[The German side](#the-german-side)*, *[The Dutch
+side](#the-dutch-side)* and *[The Portuguese side](#the-portuguese-side)*.
 
 ```bash
 npm install
@@ -21,14 +23,14 @@ A home page, and four pages per language.
 
 | Route          | What it does |
 | -------------- | ------------ |
-| `/`            | The **home page**: the title and the globe, and a card per language — Español, Français, Italiano, and a dashed *More languages — coming soon*. See below. |
+| `/`            | The **home page**: the title and the globe, and a card per language — Español, Français, Italiano, Deutsch, Nederlands, Português, and a dashed *More languages — coming soon*. See below. |
 | `/es`          | The language's front page. A hero with the language's landmark; the **translator**, whose centre button flips the languages and carries the text across; and a **dictionary search** that opens the dictionary page with your query already applied. |
 | `/es/conjugacion` | Every tense of the indicative, subjunctive and imperative. Three tabs for the regular **-ar / -er / -ir** models, plus a verb search that conjugates anything you type. Irregular forms are highlighted. |
 | `/es/diccionario` | Definitions from the *Diccionario de la lengua española*, with senses, synonyms and locutions, plus real example sentences and — in English mode — an English gloss. |
 | `/es/chat`     | A **grounded tutor** that answers from the site's own data — the conjugator, the dictionary, the translator, and hand-written grammar explanations. Needs no API key and invents nothing. |
 
-`/fr` and `/it` carry the same four, with French and Italian behind them:
-`/fr/conjugacion`, `/it/diccionario`, `/it/chat`. The paths keep their Spanish
+`/fr`, `/it`, `/de`, `/nl` and `/pt` carry the same four, with their own
+language behind them: `/fr/conjugacion`, `/it/diccionario`, `/de/chat`. The paths keep their Spanish
 names on every side — they belong to the site, not to the language, and links
 that already exist should keep working. For the same reason an old link with no
 language on it, `/conjugacion?v=ir`, is moved onto the Spanish side rather than
@@ -41,7 +43,8 @@ deliberately small: a title, the choice, and a way in.
 
 Spanish is selected every time the page opens, whatever was read last, because
 it is the site's default. Choosing a box — with a click, or the arrow keys,
-since the boxes are a radio group — does not go anywhere by itself. It
+since the boxes are a radio group and stand in rows, so left and right move one
+box and up and down move a row — does not go anywhere by itself. It
 previews: the page's own words turn to that language, so the reader sees what
 they are about to walk into.
 **Enter**, the *Enter* button, or a second click on the chosen box goes in. The
@@ -53,7 +56,7 @@ Every time the page is drawn, on opening the site or coming back to it, the
 globe turns once (about a second). Rest the mouse on a language for a moment
 and a crane builds its landmark band by band, then the food fades in; leaving
 the card resets it. The cards stack `es-landmark.svg` and `es-food.svg` (and
-the French and Italian pairs), which `scripts/draw-art.py` writes beside each
+every other language's pair), which `scripts/draw-art.py` writes beside each
 country picture. Both animations are skipped under reduced motion.
 
 ## The chat page
@@ -313,7 +316,8 @@ after one gives "il est en train de en train de pleuvoir". The Italian pattern
 lists only the forms of *stare*, and leaves out *state*, which is just as often
 the participle of *essere*.
 
-There is one table per language — 27 Spanish, 29 French, 36 Italian — rather
+There is one table per language — 27 Spanish, 29 French, 36 Italian, 35
+Portuguese — rather
 than one table with extra columns, because the sets barely overlap: the idioms a
 translator fumbles going into Spanish are not the ones it fumbles going into
 French, and half of each list has no counterpart in the others. French gets
@@ -680,6 +684,64 @@ DeepL, and nothing beneath it — when DeepL cannot answer, the page says the
 translator is unavailable. Pronunciation goes to ElevenLabs with the language
 code `it`.
 
+## The Portuguese side
+
+`/pt` is ProfeGPT as a Portuguese site, built the way the French and Italian
+sides are. Its Portuguese is **Portugal's**, in the spelling of the 1990
+Orthographic Agreement, as the site's Spanish is Spain's: *falámos* against
+*falamos*, *estar a fazer*, *tu* beside *você*. Where Brazilian usage differs
+in something a learner will meet, the grammar notes say so rather than pretend
+the other norm does not exist. DeepL is asked for `PT-PT`; `TARGETS` in
+`server/deepl.js` is the one line to change for Brazil.
+
+What changes:
+
+| | |
+| --- | --- |
+| the interface choice | *Português* or *English* |
+| the translator | Portuguese ↔ English through DeepL, with 35 Portuguese idioms |
+| the conjugator | Portuguese tables, the three tabs **-ar / -er / -ir**, and the personal infinitive |
+| the dictionary | the Wikcionário, credited where its licence requires it |
+| the tutor | 23 Portuguese grammar notes, Portuguese verb forms, answers in Portuguese |
+| the picture | the Tower of Belém, with a pastel de nata |
+
+### The Portuguese conjugator
+
+`public/js/lib/conjugator-pt.js`, with its data in `public/js/data/verbs-pt.js`.
+Rules first, data only where rules run out: the regular endings for the three
+conjugations; the spelling alternations that only keep a sound (*ficar →
+fiquei*, *começar → comecei*, *conhecer → conheço*, *dirigir → dirijo*); the
+vowel alternations of the *-ir* verbs (*preferir → prefiro*, *dormir → durmo*,
+*subir → sobes*), the *-ear* and *odiar* groups, *-uir*, *-air* and *-oer*; and
+the irregulars, inherited by their derivatives with the accents a prefix moves
+(*manter → mantém, mantêm*; *propor ← pôr*; *intervir → interveio*).
+
+Three things the other engines did not need. **The personal infinitive** is an
+infinitive that takes endings (*para falarmos*), so it is a mood of its own on
+the page, after the subjunctive. **Every compound tense takes *ter***, so there
+is no auxiliary chip. **Double participles** are shown as both (*aceitado /
+aceite*) and the compound tenses use the one that goes with *ter* (*ganho,
+gasto, pago* among them). The conditional is filed under the indicative, as
+French and Italian file theirs. `npm test` checks 467 reference forms, and the
+engine was compared cell by cell against Wiktionary's tables for 256 verbs
+(18,463 cells), taking Portugal's form wherever the two norms differ.
+
+### Where Portuguese definitions come from
+
+The **Wikcionário** (pt.wiktionary.org, CC BY-SA), read as wikitext by
+`server/dictionary-pt.js` into the shape the other dictionaries return. A word
+typed without its accents is looked up again through the wiki's search (*acao
+→ ação*, *voce → você*, *coracao → coração*), under the same narrow rule as the
+other sides: only when the word as typed was not found at all, and only the
+same word with its accents put back.
+
+### The Portuguese translator
+
+DeepL, and nothing beneath it. Portuguese builds its progressive with *estar*
+and, in Portugal, *a* and the infinitive (*está a chover a potes*), so an idiom
+with a progressive form carries it with its *a*, and where DeepL has already
+written the *a* the infinitive alone goes into the slot.
+
 ## Design
 
 Modelled on [investors.duolingo.com](https://investors.duolingo.com/), measured
@@ -710,7 +772,7 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 | --- | --- |
 | `logo.svg` | the globe's sphere alone, drawn like Duolingo's own earth — pale blue sea, lime land, pale clouds. Also the favicon (the script copies it). |
 | `mascot.svg` `mascot-dark.svg` | the home page: an object rather than a mascot — a desk globe, its sphere drawn like Duolingo's own earth on investors.duolingo.com (a pale sky-blue sea, chunky lime land running off the edge, pale cloud pills, no shading), on a gold half-ring and foot — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
-| `es.svg` `fr.svg` `it.svg` | each language's landmark, floating free with no ground or trees, and a small Duolingo-style picture of the country overlapping it at the lower right: the Sagrada Família with a bottle and glass of wine, the Eiffel Tower with a croissant, the Tower of Pisa (drawn upright) with a bowl of pasta. On its card on the home page and in its front page's hero. |
+| `es.svg` `fr.svg` `it.svg` `de.svg` `nl.svg` `pt.svg` | each language's landmark, floating free with no ground or trees, and a small Duolingo-style picture of the country overlapping it at the lower right: the Sagrada Família with a bottle and glass of wine, the Eiffel Tower with a croissant, the Tower of Pisa (drawn upright) with a bowl of pasta, the Brandenburg Gate with a pretzel, a brick tower mill with a wheel of cheese, the Tower of Belém with a pastel de nata. On its card on the home page and in its front page's hero. The script prints where each landmark stands on its canvas, which is what the home page's crane is placed from. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
 | `soon.svg` | the *More languages* card |
 
@@ -782,10 +844,10 @@ Everything the site talks to, and nothing else:
 
 | Service | What for | Key |
 | --- | --- | --- |
-| [DeepL](https://www.deepl.com/pro-api) | translation, all three languages both ways | `DEEPL_API_KEY` |
+| [DeepL](https://www.deepl.com/pro-api) | translation, every language both ways | `DEEPL_API_KEY` |
 | [Wikipedia](https://www.wikipedia.org) | the established names inside translations | none |
 | [rae-api.com](https://rae-api.com) | Spanish definitions, and the RAE's Spanish conjugation tables | `RAE_API_KEY`, optional |
-| [fr.wiktionary.org](https://fr.wiktionary.org), [it.wiktionary.org](https://it.wiktionary.org) | French and Italian definitions | none |
+| [fr.wiktionary.org](https://fr.wiktionary.org), [it.wiktionary.org](https://it.wiktionary.org), [de.wiktionary.org](https://de.wiktionary.org), [nl.wiktionary.org](https://nl.wiktionary.org), [pt.wiktionary.org](https://pt.wiktionary.org) | definitions on every side but the Spanish one | none |
 | [en.wiktionary.org](https://en.wiktionary.org) | the English gloss beside a headword | none |
 | [Tatoeba](https://tatoeba.org) | example sentences | none |
 | [ElevenLabs](https://elevenlabs.io) | pronunciation | `ELEVENLABS_API_KEY` |
@@ -813,6 +875,9 @@ server/
   accents.js            puts back the accents a student did not type
   dictionary-fr.js   ·fr a free dictionary, parsed from wikitext
   dictionary-it.js   ·it the Wikizionario, parsed the same way into the same shape
+  dictionary-de.js   ·de the German Wiktionary, likewise
+  dictionary-nl.js   ·nl WikiWoordenboek, likewise
+  dictionary-pt.js   ·pt the Wikcionário, likewise
   env.js                reads .env without a dependency
   routes/
     translate.js        DeepL or a plain 503 — failures never cached
@@ -834,6 +899,8 @@ public/
     lib/conjugator-fr.js ·fr the French one: two stems, two auxiliaries
     lib/conjugator-it.js ·it the Italian one: -isc-, the 1-3-3 passato remoto,
                              reflexive pronouns in the forms
+    lib/conjugator-pt.js ·pt the Portuguese one: the personal infinitive,
+                             double participles, Portugal's forms
     lib/art.js          the drawings, by name — one place for the paths
     lib/markdown.js     DOM-building markdown renderer (no innerHTML)
     lib/tutor.js        intent routing for the chat — shared by every language —
@@ -841,6 +908,7 @@ public/
     lib/tutor-es.js     what the router needs to know about Spanish
     lib/tutor-fr.js  ·fr the same, for French
     lib/tutor-it.js  ·it the same, for Italian
+    lib/tutor-pt.js  ·pt the same, for Portuguese
     lib/chat-session.js the conversation, held outside the view so navigating
                         away cannot interrupt an answer
     lib/theme.js        dark/light switching
@@ -848,9 +916,11 @@ public/
     data/grammar.js     22 grammar explanations, Spanish and English
     data/grammar-fr.js ·fr 23 more, French and English
     data/grammar-it.js ·it 20 more, Italian and English
+    data/grammar-pt.js ·pt 23 more, Portuguese and English
     data/verbs.js       stem changes, irregulars, the search index
     data/verbs-fr.js ·fr irregulars, the -er spelling exceptions, 232 verbs
     data/verbs-it.js ·it -isc- verbs, irregulars, essere verbs, 292 verbs
+    data/verbs-pt.js ·pt stem changes, irregulars, short participles, 371 verbs
     views/home.js       the home page: the language boxes
     views/translator.js a language's front page: hero, translator, search
     views/              one module per page, driven by the study language
@@ -859,6 +929,7 @@ test/
   conjugator-fr.test.js ·fr 163 checked against the Bescherelle paradigms
   conjugator-it.test.js ·it 272 checked against the Treccani and Zanichelli
                                paradigms
+  conjugator-pt.test.js ·pt 965, of which 467 reference forms, Portugal's
   conjugator-view.test.js 1123 that the page's tense lists match every engine,
                                and that every verb in every index conjugates
   markdown.test.js          20 on the renderer, mostly that tables are tables
@@ -866,6 +937,7 @@ test/
                                the rephrasings offered when it declines
   tutor-fr.test.js      ·fr  70 that the French pack drives the same router
   tutor-it.test.js      ·it  89 that the Italian pack does too
+  tutor-pt.test.js      ·pt 213 that the Portuguese pack does too
   corpus.test.js            24 checks on sentence ranking and gloss extraction
   speech.test.js            17 on what may be spoken and what is refused
                                before a character of the month is spent
@@ -875,6 +947,9 @@ test/
                                in for DeepL, and that the idioms still correct it
   idioms.test.js            53 checks on idiom pairing in every direction
   dictionary-it.test.js ·it  26 on reading Wikizionario wikitext
+  dictionary-de.test.js ·de  52 on the German Wiktionary's
+  dictionary-nl.test.js ·nl  44 on WikiWoordenboek's
+  dictionary-pt.test.js ·pt  78 on the Wikcionário's
   appscript.test.js         21 on the Apps Script build, run in a bare V8
                                context with stand-in Google services, including
                                the two-step HTTP API the Pages site uses
@@ -909,14 +984,16 @@ scripts/
 archive/wallpapers/     the old city photographs, kept but never served
 ```
 
-`npm test` runs all 2,244 across 15 suites, offline, in a couple of seconds.
+`npm test` runs all 4,120 across 20 suites, offline, in a couple of seconds.
 
 ## The conjugation engine
 
-There are three, one per language: `public/js/lib/conjugator.js` for Spanish,
-`conjugator-fr.js` for French and `conjugator-it.js` for Italian — see *[The
-French conjugator](#the-french-conjugator)* and *[The Italian
-conjugator](#the-italian-conjugator)* for the other two. All build paradigms
+There is one per language: `public/js/lib/conjugator.js` for Spanish,
+`conjugator-fr.js` for French, `conjugator-it.js` for Italian and
+`conjugator-pt.js` for Portuguese — see *[The French
+conjugator](#the-french-conjugator)*, *[The Italian
+conjugator](#the-italian-conjugator)* and *[The Portuguese
+conjugator](#the-portuguese-conjugator)* for the others. All build paradigms
 from rules rather than a form table.
 
 `public/js/lib/conjugator.js` applies its rules in this order:
