@@ -429,11 +429,17 @@ def globe(art, stand=True):
     d, sphere = disc((0, 0), R, n=48)
     art.clip_begin(d, sphere, 'globe')
     art.rect(-R - 2, -R - 2, 2 * R + 4, 2 * R + 4, SEA, what='sea')
+    # On a stand the sphere hangs from the leaning axle, so its land leans with
+    # it: the poles are where the pivots are. The bare globe (the logo) is upright.
+    if stand:
+        art.push(rotate(TILT))
     for x0, y0, x1, y1, r in LAND_BLOCKS:
         art.rect((x0 - REF_C) * k, (y0 - REF_C) * k, (x1 - x0) * k, (y1 - y0) * k, LAND, rx=r * k, what='land')
     for x0, y0, x1, y1 in CLOUDS:
         h = (y1 - y0) * k
         art.rect((x0 - REF_C) * k, (y0 - REF_C) * k, (x1 - x0) * k, h, CLOUD, rx=h / 2, what='cloud')
+    if stand:
+        art.pop()
     art.clip_end()
     out = list(sphere)
     if not stand:

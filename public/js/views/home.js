@@ -258,7 +258,9 @@ function picture(code) {
  * moment: the same sea, land and clouds as mascot.svg, twice side by side,
  * slid one width east and then taken away, so the globe turns once and
  * stops exactly as drawn. Every time the home page is drawn: on opening the
- * site, and on coming back to it.
+ * site, and on coming back to it. The land leans 22 degrees with the axle
+ * (TILT in scripts/draw-art.py), and the slide runs along that lean, the way a
+ * globe turns about its axis.
  */
 const LAND = [
   [-93.4, -134.9, 81.3, 79.6, 39.8], [-134.9, -86.5, 79.6, 86.5, 41.5], [32.9, -86.5, 60.5, 50.2, 25.1],
@@ -279,7 +281,7 @@ function spinningGlobe() {
     <clipPath id="hero-spin-clip"><circle r="128"/></clipPath>
     <g transform="translate(272 206) scale(0.92)" clip-path="url(#hero-spin-clip)">
       <rect x="-130" y="-130" width="260" height="260" fill="#92E4FF"/>
-      <g class="hero__spin-face">${face}<g transform="translate(-260 0)">${face}</g></g>
+      <g transform="rotate(22)"><g class="hero__spin-face">${face}<g transform="translate(-260 0)">${face}</g></g></g>
     </g>
   </svg>`);
   const overlay = wrap.lastElementChild;

@@ -199,9 +199,11 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .nav__links a:hover,
 .nav__links a.is-active { color: var(--text-dim); }
 
-/* The home page belongs to no language, so it has none of a language's links —
-   only the wordmark and the gear. */
-.is-home .nav__links { display: none !important; }
+/* The home page belongs to no language, so it has none of a language's links:
+   only the wordmark, the Languages link (which goes to the choice below the
+   hero) and the gear. The Languages link shows nowhere else. */
+.is-home .nav__links a:not([data-nav="idiomas"]) { display: none !important; }
+html:not(.is-home) .nav__links a[data-nav="idiomas"] { display: none !important; }
 
 /* --- settings: the gear at the end of the header --------------------------- */
 
@@ -1047,7 +1049,7 @@ table.md-table tbody td:first-child { color: var(--text-dim); white-space: nowra
   }
   .nav__links::-webkit-scrollbar { display: none; }
   .nav__links a { font-size: 12.5px; letter-spacing: 0.3px; }
-  .is-home .nav__inner { padding-top: 0; }
+  .is-home .nav__links { justify-content: flex-end; }
 }
 
 @media (max-width: 560px) {
