@@ -23,11 +23,14 @@ import { PACK as ES } from './tutor-es.js';
 import { PACK as FR } from './tutor-fr.js';
 import { PACK as IT } from './tutor-it.js';
 import { PACK as DE } from './tutor-de.js';
+import { PACK as NL } from './tutor-nl.js';
 import { PACK as PT } from './tutor-pt.js';
 import { page, studyLang } from './study.js';
 import { fold, getJson, postJson } from './dom.js';
 
-const PACKS = { es: ES, fr: FR, it: IT, de: DE, pt: PT };
+const PACKS = {
+  es: ES, fr: FR, it: IT, de: DE, nl: NL, pt: PT,
+};
 
 /** The pack for the language the site is currently about. */
 function activePack(override = null) {

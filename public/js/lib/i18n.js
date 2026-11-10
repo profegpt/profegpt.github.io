@@ -1105,6 +1105,212 @@ const GERMAN = {
   },
 };
 
+const twee = (nl, en) => ({ nl, en });
+
+const DUTCH = {
+  nav: {
+    translator: twee('Vertaler', 'Translator'),
+    conjugation: twee('Vervoeging', 'Conjugation'),
+    dictionary: twee('Woordenboek', 'Dictionary'),
+    chat: twee('Chat', 'Chat'),
+    langLabel: twee('Taal van de site', 'Site language'),
+  },
+
+  meta: {
+    home: twee('ProfeGPT', 'ProfeGPT'),
+    skip: twee('Ga naar de inhoud', 'Skip to content'),
+    footer: twee('definities uit het', 'definitions from the'),
+    copyright: twee('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    footerDict: twee('WikiWoordenboek', 'WikiWoordenboek'),
+    footerHref: twee('https://nl.wiktionary.org', 'https://nl.wiktionary.org'),
+    footerCredit: twee(' (CC BY-SA)', ' (CC BY-SA)'),
+  },
+
+  hero: {
+    sub: twee(
+      'Vertaal van het Nederlands naar het Engels en van het Engels naar het Nederlands. Vervoeg elk werkwoord. Zoek een woord op en vraag het de tutor.',
+      'Translate from Dutch to English and English to Dutch. Conjugate any verb. Look words up and ask the tutor.',
+    ),
+    ctaTranslate: twee('Probeer de vertaler', 'Try the translator'),
+    ctaChat: twee('Praat met ProfeGPT', 'Talk to ProfeGPT'),
+  },
+
+  translator: {
+    unavailableTitle: twee('De vertaler is niet beschikbaar.', 'The translator is unavailable.'),
+    unavailable: twee(
+      'Deze zin kon op dit moment niet vertaald worden. Probeer het over een poosje opnieuw; het woordenboek en de vervoeger werken intussen gewoon.',
+      'This sentence could not be translated just now. Try again in a little while. The dictionary and the conjugator still work in the meantime.'),
+    eyebrow: twee('Vertaler', 'Translator'),
+    title: twee('Vertaler', 'Translator'),
+    lead: twee(
+      'Typ en vertaal meteen. De middelste knop wisselt de talen om.',
+      'Type and translate instantly. The middle button swaps the languages.',
+    ),
+    button: twee('Vertaal', 'Translate'),
+    clear: twee('Wis', 'Clear'),
+    listen: twee('Luister naar de vertaling', 'Hear the translation'),
+    copy: twee('Kopieer', 'Copy'),
+    copied: twee('Gekopieerd!', 'Copied'),
+    copyFailed: twee('Niet gelukt', 'Could not copy'),
+    ready: twee('Klaar', 'Ready'),
+    working: twee('bezig met vertalen…', 'translating…'),
+    done: twee('Vertaald', 'Translated'),
+    sourceLabel: twee('Brontekst', 'Source text'),
+    swap: twee('Wissel Nederlands en Engels om', 'Swap Dutch and English'),
+    swapTitle: twee('Wissel de talen om', 'Swap languages'),
+    studyName: twee('Nederlands', 'Nederlands'),
+    englishName: twee('English', 'English'),
+    placeholderStudy: twee('Typ iets in het Nederlands…', 'Typ iets in het Nederlands…'),
+    placeholderEn: twee('Type something in English…', 'Type something in English…'),
+    outStudy: twee('De vertaling verschijnt hier.', 'De vertaling verschijnt hier.'),
+    outEn: twee('The translation will appear here.', 'The translation will appear here.'),
+    engine: twee('vertaald met {engine}', 'translated with {engine}'),
+  },
+
+  finder: {
+    eyebrow: twee('Woordenboek', 'Dictionary'),
+    title: twee('Zoek een woord op', 'Look up a word'),
+    lead: twee(
+      'Definities uit het WikiWoordenboek, met synoniemen en voorbeelden.',
+      'Definitions from the WikiWoordenboek, with synonyms and examples.',
+    ),
+    button: twee('Zoek', 'Search'),
+    tryWith: twee('Probeer', 'Try'),
+    label: twee('Zoek een woord in het woordenboek', 'Search for a word in the dictionary'),
+    samples: twee('gezellig,uitwaaien,voorpret,uitbuiken,natafelen,borrel,gedoe,lekker', 'gezellig,uitwaaien,voorpret,uitbuiken,natafelen,borrel,gedoe,lekker'),
+  },
+
+  features: {
+    conjugation: twee('Vervoeging', 'Conjugation'),
+    conjugationBody: twee(
+      'De vervoeger heeft alle tijden en alle werkwoorden.',
+      'The conjugator has every tense and every verb.',
+    ),
+    dictionary: twee('Woordenboek', 'Dictionary'),
+    dictionaryBody: twee(
+      'Het WikiWoordenboek, met synoniemen en voorbeelden.',
+      'The WikiWoordenboek, with synonyms and examples.',
+    ),
+    chat: twee('Chat', 'Chat'),
+    chatBody: twee(
+      'Een tutor die antwoordt met de gegevens van de site.',
+      'A tutor that answers from the site’s own data.'),
+  },
+
+  conjugator: {
+    eyebrow: twee('Vervoeging', 'Conjugation'),
+    title: twee('Alle tijden, alle werkwoorden', 'Every tense, every verb'),
+    lead: twee(
+      'Begin bij een regelmatig voorbeeldwerkwoord of zoek een werkwoord. Onregelmatige vormen zijn gemarkeerd.',
+      'Start from a regular model or search for a verb. Irregular forms are highlighted.',
+    ),
+    tab: twee('{ending}', '{ending}'),
+    search: twee('Zoek een werkwoord', 'Search a verb'),
+    searchLabel: twee('Zoek een werkwoord', 'Search for a verb'),
+    highlight: twee('Markeer onregelmatige vormen', 'Highlight irregulars'),
+    notAVerb: twee('Dit werkwoord ken ik niet', "I don't recognise that verb"),
+    indicative: twee('Aantonende wijs', 'Indicative'),
+    subjunctive: twee('Aanvoegende wijs', 'Subjunctive'),
+    imperative: twee('Gebiedende wijs', 'Imperative'),
+    simple: twee('Enkelvoudige tijden', 'Simple tenses'),
+    compound: twee('Samengestelde tijden', 'Compound tenses'),
+    affirmative: twee('Bevestigend', 'Affirmative'),
+    negative: twee('Ontkennend', 'Negative'),
+    gerund: twee('tegenwoordig deelwoord', 'present participle'),
+    participle: twee('voltooid deelwoord', 'past participle'),
+    compoundInf: twee('voltooide infinitief', 'perfect infinitive'),
+    compoundGer: twee('infinitief met te', 'infinitive with te'),
+    fullTable: twee('Volledige vervoeging', 'Full conjugation'),
+    verbClass: twee('{ending}', '{ending}'),
+    irregular: twee('onregelmatig', 'irregular'),
+    stemChange: twee('klinkerwisseling {change}', 'vowel change {change}'),
+    spelling: twee('spelling {change}', 'spelling {change}'),
+    likeVerb: twee('wordt vervoegd als {verb}', 'conjugated like {verb}'),
+    pronominal: twee('wederkerend: me, je, zich', 'reflexive: me, je, zich'),
+    voseo: twee('{form}', '{form}'),
+    fromRae: twee('vormen uit het woordenboek', 'forms from the dictionary'),
+    generated: twee('gegenereerde vormen', 'generated forms'),
+    auxiliary: twee('hulpwerkwoord {aux}', 'auxiliary {aux}'),
+    separable: twee('scheidbaar: {prefix}', 'separable: {prefix}'),
+  },
+
+  dictionary: {
+    eyebrow: twee('Woordenboek', 'Dictionary'),
+    title: twee('Wat het woordenboek zegt', 'What the dictionary says'),
+    lead: twee(
+      'Elke betekenis uit het WikiWoordenboek, met synoniemen en een voorbeeld.',
+      'Every sense from the WikiWoordenboek, with synonyms and an example.',
+    ),
+    search: twee('Zoek een woord', 'Search a word'),
+    button: twee('Zoek', 'Search'),
+    emptyTitle: twee('Typ een woord', 'Type a word'),
+    emptyBody: twee(
+      'Probeer gezellig, uitwaaien, voorpret, of elk woord dat je is opgevallen.',
+      'Try gezellig, uitwaaien, voorpret, or any word that has caught your eye.',
+    ),
+    looking: twee('Even opzoeken…', 'Looking it up…'),
+    noResults: twee('Geen resultaten', 'No results'),
+    didYouMean: twee('Bedoelde je?', 'Did you mean?'),
+    corrected: twee('Resultaten voor «{to}». Bij «{from}» ontbreekt het accent.', 'Showing “{to}”. “{from}” is missing its accent.'),
+    seeOnRae: twee('bekijk op nl.wiktionary.org ↗', 'view on nl.wiktionary.org ↗'),
+    synonyms: twee('Synoniemen', 'Synonyms'),
+    antonyms: twee('Antoniemen', 'Antonyms'),
+    locutions: twee('Uitdrukkingen en zegswijzen', 'Phrases and expressions'),
+    inUse: twee('In gebruik', 'In use'),
+    seeEntry: twee('bekijk het lemma ↗', 'view the entry ↗'),
+    notRae: twee(
+      'Het woordenboek is op dit moment niet bereikbaar.',
+      'The dictionary is unavailable right now.',
+    ),
+    speak: twee('Luister naar het woord', 'Hear the word'),
+    speakFailed: twee('Uitspreken is niet gelukt.', 'Could not pronounce that.'),
+    speakSpent: twee('De uitspraken van deze maand zijn op.', 'This month’s pronunciations are used up.'),
+    templateNote: twee(
+      'Voorbeeldzin volgens een sjabloon. Er is nog geen echte zin met dit woord.',
+      'Template example. There is no real sentence with this word yet.'),
+  },
+
+  chat: {
+    title: twee('Vraag het ProfeGPT', 'Ask ProfeGPT'),
+    lead: twee(
+      'Vervoegingen, definities, vertalingen en uitleg over grammatica.',
+      'Conjugations, definitions, translations and grammar explanations.',
+    ),
+    placeholder: twee('Vraag wat je wilt…', 'Ask whatever you like…'),
+    messageLabel: twee('Bericht', 'Message'),
+    send: twee('Verstuur', 'Send'),
+    you: twee('JIJ', 'YOU'),
+    groundedOnly: twee(
+      'Antwoorden uit de vervoeger, het woordenboek, de vertaler en de grammaticanotities, zonder enige AI',
+      'Answers from the conjugator, the dictionary, the translator and the grammar notes, with no AI'),
+    failed: twee('Ik kon geen antwoord geven: {error}', "I couldn't answer: {error}"),
+    starters: twee(
+      'de of het|vervoeg gaan in de verleden tijd|wat betekent gezellig|welke vorm is «ging»|hoe zeg je "I\'m tired" in het Nederlands',
+      'de of het|vervoeg gaan in de verleden tijd|wat betekent gezellig|welke vorm is «ging»|hoe zeg je "I\'m tired" in het Nederlands',
+    ),
+  },
+
+  home: {
+    title: twee('ProfeGPT', 'ProfeGPT'),
+    lead: twee(
+      'Een vertaler, vervoegingen, een woordenboek en een tutor voor elke taal. Kies er een om te beginnen.',
+      'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
+    choose: twee('Kies een taal', 'Choose a language'),
+    enter: twee('Ga verder', 'Enter'),
+    soon: twee('Meer talen', 'More languages'),
+    soonBody: twee('Binnenkort.', 'Coming soon.'),
+    back: twee('Home', 'Home'),
+  },
+
+  settings: {
+    label: twee('Instellingen', 'Settings'),
+    appearance: twee('Weergave', 'Appearance'),
+    light: twee('Lichte modus', 'Light mode'),
+    dark: twee('Donkere modus', 'Dark mode'),
+    classroom: twee('Klas', 'Classroom'),
+  },
+};
+
 export const STRINGS = {
-  es: SPANISH, fr: FRENCH, it: ITALIAN, de: GERMAN, pt: PORTUGUESE,
+  es: SPANISH, fr: FRENCH, it: ITALIAN, de: GERMAN, nl: DUTCH, pt: PORTUGUESE,
 };

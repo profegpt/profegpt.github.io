@@ -3,11 +3,13 @@ import * as spanish from '../lib/conjugator.js';
 import * as french from '../lib/conjugator-fr.js';
 import * as italian from '../lib/conjugator-it.js';
 import * as german from '../lib/conjugator-de.js';
+import * as dutch from '../lib/conjugator-nl.js';
 import * as portuguese from '../lib/conjugator-pt.js';
 import * as spanishVerbs from '../data/verbs.js';
 import * as frenchVerbs from '../data/verbs-fr.js';
 import * as italianVerbs from '../data/verbs-it.js';
 import * as germanVerbs from '../data/verbs-de.js';
+import * as dutchVerbs from '../data/verbs-nl.js';
 import * as portugueseVerbs from '../data/verbs-pt.js';
 import { lang, t } from '../lib/i18n.js';
 import { studyLang } from '../lib/study.js';
@@ -209,6 +211,42 @@ export const ENGINES = {
     // German nouns keep their capital, so a tense name does too when it is the
     // smaller of the two names in a row.
     capitalised: true,
+    authoritative: false,
+  },
+
+  nl: {
+    ...dutch,
+    ...dutchVerbs,
+    moods: { indicative: 'indicatief', subjunctive: 'conjunctief', imperative: 'imperatief', forms: 'vormen' },
+    imperativeKinds: [['bevestigend', 'Bevestigend', 'do it'], ['ontkennend', 'Ontkennend', "don't do it"]],
+    imperativePersons: [['jij', 'jij / jullie'], ['u', 'u']],
+    // The engine's keys are the abbreviations Dutch schools use: o.t.t., o.v.t.,
+    // v.t.t. and so on.
+    indicativeSimple: [
+      ['ott', 'Tegenwoordige tijd', 'present'],
+      ['ovt', 'Verleden tijd', 'simple past'],
+      ['ottt', 'Toekomende tijd', 'future'],
+      ['ovtt', 'Verleden toekomende tijd', 'conditional'],
+    ],
+    indicativeCompound: [
+      ['vtt', 'Voltooid tegenwoordige tijd', 'present perfect'],
+      ['vvt', 'Voltooid verleden tijd', 'past perfect'],
+      ['vttt', 'Voltooid toekomende tijd', 'future perfect'],
+      ['vvtt', 'Voltooid verleden toekomende tijd', 'conditional perfect'],
+    ],
+    // Dutch keeps its subjunctive only in set phrases (leve de koning, het zij
+    // zo), so there is one row and no compound table at all.
+    subjunctiveSimple: [
+      ['ott', 'Tegenwoordige tijd', 'present, only in set phrases'],
+    ],
+    subjunctiveCompound: [],
+    nonFinite: [
+      ['conjugator.gerund', 'tegenwoordigDeelwoord'],
+      ['conjugator.participle', 'voltooidDeelwoord'],
+      ['conjugator.compoundInf', 'voltooideInfinitief'],
+      ['conjugator.compoundGer', 'teInfinitief'],
+    ],
+    stemChangeLabels: dutch.STEM_CHANGE_LABELS,
     authoritative: false,
   },
 

@@ -1116,7 +1116,273 @@ const DE_IDIOMS = [
   },
 ];
 
-const TABLES = { es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS, de: DE_IDIOMS, pt: PT_IDIOMS };
+/**
+ * Dutch. Like the other three, each pairing is an idiom a Dutch speaker would
+ * actually reach for, not a gloss; where a well-known English idiom has no
+ * true counterpart (once in a blue moon is *hoogst zelden*, which is no idiom
+ * at all) it is left out rather than matched with a near miss.
+ *
+ * Dutch puts the verb second in a main clause and last in a subordinate
+ * clause or an infinitive, so the citation form's word order is not the word
+ * order of a sentence (*een rib uit je lijf kosten*, but *dat kost een rib
+ * uit je lijf*). Each entry therefore carries `core`: the run of words that
+ * stays put and never inflects, which is what alreadyIdiomatic should look
+ * for instead of the Romance "everything after the first word" and "last two
+ * words" signatures. Possessives and particles that move (*je lijf* / *mijn
+ * lijf*, *op zijn kop* / *op de kop*) are kept out of it.
+ */
+const NL_IDIOMS = [
+  {
+    en: ['it cost me an arm and a leg', 'it cost an arm and a leg', 'cost me an arm and a leg', 'cost an arm and a leg', 'costs an arm and a leg'],
+    nl: 'een rib uit je lijf kosten',
+    say: { en: 'it cost an arm and a leg', nl: 'het kostte een rib uit mijn lijf' },
+    core: 'een rib uit',
+    meaning: { en: 'to be extremely expensive', nl: 'heel erg duur zijn' },
+  },
+  {
+    // What Dutch performers wish each other; "succes" is for everyone else.
+    en: ['break a leg'],
+    nl: 'toi, toi, toi!',
+    say: { en: 'break a leg', nl: 'toi, toi, toi!' },
+    core: 'toi toi toi',
+    meaning: { en: 'good luck (said to a performer)', nl: 'succes (tegen iemand die gaat optreden)' },
+  },
+  {
+    en: ["it's raining cats and dogs", 'it is raining cats and dogs', 'raining cats and dogs', 'rain cats and dogs', 'rains cats and dogs'],
+    nl: 'pijpenstelen regenen',
+    say: { en: "it's raining cats and dogs", nl: 'het regent pijpenstelen' },
+    core: 'pijpenstelen',
+    meaning: { en: 'to rain very heavily', nl: 'heel hard regenen' },
+  },
+  {
+    en: ['kick the bucket', 'kicked the bucket', 'kicks the bucket'],
+    nl: 'het loodje leggen',
+    say: { en: 'to kick the bucket', nl: 'het loodje leggen' },
+    core: 'het loodje',
+    meaning: { en: 'to die', nl: 'doodgaan' },
+  },
+  {
+    en: ['a piece of cake', 'piece of cake', 'as easy as pie', 'easy as pie'],
+    nl: 'een fluitje van een cent',
+    say: { en: 'a piece of cake', nl: 'een fluitje van een cent' },
+    core: 'fluitje van een cent',
+    meaning: { en: 'very easy', nl: 'heel makkelijk' },
+  },
+  {
+    en: ['pull your leg', 'pull my leg', 'pulling my leg', 'pulling your leg', "pull someone's leg", 'pulled my leg'],
+    nl: 'iemand in de maling nemen',
+    say: { en: 'to pull someone’s leg', nl: 'iemand in de maling nemen' },
+    core: 'in de maling',
+    meaning: { en: 'to tease someone', nl: 'iemand voor de gek houden' },
+  },
+  {
+    en: ['kill two birds with one stone', 'killed two birds with one stone', 'kills two birds with one stone'],
+    nl: 'twee vliegen in één klap slaan',
+    say: { en: 'kill two birds with one stone', nl: 'twee vliegen in één klap slaan' },
+    core: 'twee vliegen in één klap',
+    meaning: { en: 'to solve two problems at once', nl: 'twee dingen tegelijk voor elkaar krijgen' },
+  },
+  {
+    en: ['when pigs fly'],
+    nl: 'als Pasen en Pinksteren op één dag vallen',
+    say: { en: 'when pigs fly', nl: 'als Pasen en Pinksteren op één dag vallen' },
+    core: 'pasen en pinksteren op één dag',
+    meaning: { en: 'never', nl: 'nooit' },
+  },
+  {
+    en: ['speak of the devil', 'talk of the devil'],
+    nl: 'als je over de duivel spreekt, trap je op zijn staart',
+    say: { en: 'speak of the devil', nl: 'als je over de duivel spreekt' },
+    core: 'de duivel',
+    meaning: { en: 'said when someone appears just as you mention them', nl: 'gezegd als iemand binnenkomt over wie je het net had' },
+  },
+  {
+    en: ['hit the nail on the head', 'hits the nail on the head', 'hit the nail right on the head'],
+    nl: 'de spijker op zijn kop slaan',
+    say: { en: 'hit the nail on the head', nl: 'de spijker op zijn kop slaan' },
+    core: 'de spijker op',
+    meaning: { en: 'to be exactly right', nl: 'precies het juiste zeggen' },
+  },
+  {
+    en: ['the last straw', 'the final straw', "the straw that broke the camel's back"],
+    nl: 'de druppel die de emmer doet overlopen',
+    say: { en: 'the last straw', nl: 'de druppel die de emmer doet overlopen' },
+    core: 'druppel',
+    meaning: { en: 'the small thing that finally makes it unbearable', nl: 'het laatste kleine ding dat de maat vol maakt' },
+  },
+  {
+    en: ['spill the beans', 'spilled the beans', 'spilt the beans', 'let the cat out of the bag'],
+    nl: 'uit de school klappen',
+    say: { en: 'to spill the beans', nl: 'uit de school klappen' },
+    core: 'uit de school',
+    meaning: { en: 'to give away a secret', nl: 'iets vertellen wat geheim had moeten blijven' },
+  },
+  {
+    en: ['a lump in my throat', 'lump in my throat', 'lump in his throat', 'lump in her throat', 'a lump in the throat'],
+    nl: 'een brok in je keel hebben',
+    say: { en: 'to have a lump in one’s throat', nl: 'een brok in je keel hebben' },
+    core: 'een brok in',
+    meaning: { en: 'to be choked with emotion', nl: 'zo ontroerd zijn dat je bijna niet kunt praten' },
+  },
+  {
+    en: ['throw in the towel', 'threw in the towel', 'throws in the towel'],
+    nl: 'de handdoek in de ring gooien',
+    say: { en: 'to throw in the towel', nl: 'de handdoek in de ring gooien' },
+    core: 'handdoek in de ring',
+    meaning: { en: 'to give up', nl: 'opgeven' },
+  },
+  {
+    en: ['in the same boat'],
+    nl: 'in hetzelfde schuitje zitten',
+    say: { en: 'to be in the same boat', nl: 'in hetzelfde schuitje zitten' },
+    core: 'in hetzelfde schuitje',
+    meaning: { en: 'to be in the same difficult position', nl: 'in dezelfde lastige situatie zitten' },
+  },
+  {
+    en: ["it's all greek to me", 'all greek to me', "it's greek to me"],
+    nl: 'dat is abracadabra voor mij',
+    say: { en: "it's all Greek to me", nl: 'dat is abracadabra voor mij' },
+    core: 'abracadabra',
+    meaning: { en: 'I cannot understand a word of it', nl: 'ik begrijp er niets van' },
+  },
+  {
+    en: ['sleep like a log', 'slept like a log', 'sleeping like a log', 'sleeps like a log'],
+    nl: 'slapen als een blok',
+    say: { en: 'to sleep like a log', nl: 'slapen als een blok' },
+    core: 'als een blok',
+    meaning: { en: 'to sleep very deeply', nl: 'heel vast slapen' },
+  },
+  {
+    en: ['walking on eggshells', 'walk on eggshells', 'walks on eggshells', 'walked on eggshells'],
+    nl: 'op eieren lopen',
+    say: { en: 'to walk on eggshells', nl: 'op eieren lopen' },
+    core: 'op eieren',
+    meaning: { en: 'to proceed very cautiously', nl: 'heel voorzichtig te werk gaan' },
+  },
+  {
+    en: ['head in the clouds'],
+    nl: 'met je hoofd in de wolken lopen',
+    say: { en: 'to have your head in the clouds', nl: 'met je hoofd in de wolken lopen' },
+    core: 'hoofd in de wolken',
+    meaning: { en: 'to be daydreaming', nl: 'er met je gedachten niet bij zijn' },
+  },
+  {
+    en: ['out of the frying pan into the fire', 'out of the frying pan and into the fire'],
+    nl: 'van de regen in de drup komen',
+    say: { en: 'out of the frying pan into the fire', nl: 'van de regen in de drup' },
+    core: 'van de regen in de drup',
+    meaning: { en: 'to escape one trouble into a worse one', nl: 'van het ene probleem in een erger probleem terechtkomen' },
+  },
+  {
+    en: ['turn a blind eye', 'turned a blind eye', 'turns a blind eye'],
+    nl: 'een oogje dichtknijpen',
+    say: { en: 'to turn a blind eye', nl: 'een oogje dichtknijpen' },
+    core: 'een oogje',
+    meaning: { en: 'to pretend not to notice', nl: 'doen alsof je iets niet ziet' },
+  },
+  {
+    en: ['be all ears', 'i am all ears', "i'm all ears", 'all ears'],
+    nl: 'een en al oor zijn',
+    say: { en: 'to be all ears', nl: 'een en al oor zijn' },
+    core: 'een en al oor',
+    meaning: { en: 'to be listening eagerly', nl: 'heel aandachtig luisteren' },
+  },
+  {
+    en: ['not mince words', "doesn't mince words", "don't mince words", 'mince words', 'not mince my words'],
+    nl: 'geen blad voor de mond nemen',
+    say: { en: 'to not mince words', nl: 'geen blad voor de mond nemen' },
+    core: 'blad voor de mond',
+    meaning: { en: 'to speak bluntly', nl: 'zeggen wat je denkt, zonder omwegen' },
+  },
+  {
+    en: ['bite off more than you can chew', 'bite off more than i can chew', 'bit off more than', 'bitten off more than'],
+    nl: 'te veel hooi op je vork nemen',
+    say: { en: 'to bite off more than you can chew', nl: 'te veel hooi op je vork nemen' },
+    core: 'te veel hooi op',
+    meaning: { en: 'to take on more than you can manage', nl: 'meer op je nemen dan je aankunt' },
+  },
+  {
+    en: ['green thumb', 'green fingers', 'a green thumb'],
+    nl: 'groene vingers hebben',
+    say: { en: 'to have green fingers', nl: 'groene vingers hebben' },
+    core: 'groene vingers',
+    meaning: { en: 'to be good with plants', nl: 'goed met planten kunnen omgaan' },
+  },
+  {
+    en: ['make a mountain out of a molehill', 'making a mountain out of a molehill', 'made a mountain out of a molehill'],
+    nl: 'van een mug een olifant maken',
+    say: { en: 'to make a mountain out of a molehill', nl: 'van een mug een olifant maken' },
+    core: 'van een mug een olifant',
+    meaning: { en: 'to make far too much of something small', nl: 'iets kleins veel te groot maken' },
+  },
+  {
+    en: ['beat around the bush', 'beat about the bush', 'beating around the bush', 'beating about the bush'],
+    nl: 'om de hete brij heen draaien',
+    say: { en: 'to beat around the bush', nl: 'om de hete brij heen draaien' },
+    core: 'de hete brij',
+    meaning: { en: 'to avoid saying what you mean', nl: 'niet zeggen waar het echt om gaat' },
+  },
+  {
+    en: ['the cat is out of the bag', "the cat's out of the bag", 'now the truth comes out', 'the truth comes out', 'the truth is out'],
+    nl: 'nu komt de aap uit de mouw',
+    say: { en: 'the cat is out of the bag', nl: 'nu komt de aap uit de mouw' },
+    core: 'uit de mouw',
+    meaning: { en: 'the real intention or the truth has come to light', nl: 'nu blijkt hoe het echt zit' },
+  },
+  {
+    en: ['see which way the wind blows', 'see which way the wind is blowing', 'see which way the cat jumps', 'wait and see which way the wind blows'],
+    nl: 'de kat uit de boom kijken',
+    say: { en: 'to see which way the wind blows', nl: 'de kat uit de boom kijken' },
+    core: 'de kat uit de boom',
+    meaning: { en: 'to wait and see before committing yourself', nl: 'eerst afwachten hoe iets loopt voordat je iets doet' },
+  },
+  {
+    en: ['cut to the chase', 'get straight to the point', 'come straight to the point', 'got straight to the point'],
+    nl: 'met de deur in huis vallen',
+    say: { en: 'to get straight to the point', nl: 'met de deur in huis vallen' },
+    core: 'met de deur in huis',
+    meaning: { en: 'to say what you came to say without any preamble', nl: 'zonder inleiding meteen zeggen waar het om gaat' },
+  },
+  {
+    en: ['a storm in a teacup', 'storm in a teacup', 'a tempest in a teapot', 'tempest in a teapot'],
+    nl: 'een storm in een glas water',
+    say: { en: 'a storm in a teacup', nl: 'een storm in een glas water' },
+    core: 'storm in een glas water',
+    meaning: { en: 'a great fuss about something trivial', nl: 'veel drukte om iets onbelangrijks' },
+  },
+  {
+    en: ['a bone to pick with', 'bone to pick with', 'a bone to pick'],
+    nl: 'een appeltje met iemand te schillen hebben',
+    say: { en: 'to have a bone to pick with someone', nl: 'een appeltje met iemand te schillen hebben' },
+    core: 'een appeltje',
+    meaning: { en: 'to have a grievance to settle with someone', nl: 'iemand ergens over moeten aanspreken' },
+  },
+  {
+    en: ['add fuel to the fire', 'adding fuel to the fire', 'added fuel to the fire', 'fuel to the fire'],
+    nl: 'olie op het vuur gooien',
+    say: { en: 'to add fuel to the fire', nl: 'olie op het vuur gooien' },
+    core: 'olie op het vuur',
+    meaning: { en: 'to make a bad situation worse', nl: 'een conflict nog erger maken' },
+  },
+  {
+    en: ['a skeleton in the closet', 'skeletons in the closet', 'skeleton in the cupboard', 'skeletons in the cupboard'],
+    nl: 'een lijk in de kast hebben',
+    say: { en: 'to have a skeleton in the closet', nl: 'een lijk in de kast hebben' },
+    core: 'lijk in de kast',
+    meaning: { en: 'to have an embarrassing secret from the past', nl: 'een pijnlijk geheim uit het verleden hebben' },
+  },
+  {
+    en: ['make ends meet', 'making ends meet', 'made ends meet'],
+    nl: 'de eindjes aan elkaar knopen',
+    say: { en: 'to make ends meet', nl: 'de eindjes aan elkaar knopen' },
+    core: 'de eindjes',
+    meaning: { en: 'to get by on the money you have', nl: 'rondkomen met weinig geld' },
+  },
+];
+
+const TABLES = {
+  es: ES_IDIOMS, fr: FR_IDIOMS, it: IT_IDIOMS, de: DE_IDIOMS, nl: NL_IDIOMS, pt: PT_IDIOMS,
+};
 
 // ß is not a letter NFD can take apart, and a student types ss for it anyway.
 const fold = (text) => String(text).toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[̀-ͯ]/g, '')

@@ -25,6 +25,7 @@ const LANGUAGES = [
   { code: 'fr', name: 'Français', english: 'French' },
   { code: 'it', name: 'Italiano', english: 'Italian' },
   { code: 'de', name: 'Deutsch', english: 'German' },
+  { code: 'nl', name: 'Nederlands', english: 'Dutch' },
   { code: 'pt', name: 'Português', english: 'Portuguese' },
 ];
 

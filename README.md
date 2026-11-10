@@ -749,6 +749,28 @@ Beinbruch*). Wikipedia's names are checked on the English title rather than the
 German one, since a German title capitalises every noun and so says nothing
 about whether it names something.
 
+## The Dutch side
+
+`/nl` is ProfeGPT as a Dutch site, built the way the German side is. The
+interface is *Nederlands* or *English*; the translator is Dutch ↔ English
+through DeepL with 35 Dutch idioms, each with a `core` for the same reason the
+German ones have one; the dictionary is **WikiWoordenboek** (nl.wiktionary.org,
+CC BY-SA, `server/dictionary-nl.js`); the tutor has 23 Dutch grammar notes; the
+picture is a brick tower mill with a wheel of cheese.
+
+`public/js/lib/conjugator-nl.js` sorts verbs into the three tabs a Dutch learner
+meets first, **weak with -te, weak with -de, strong** (werken, spelen, kijken),
+with *gemengd* and *onregelmatig* as further classes. Its rules are the spelling
+of the stem (lopen → loop, loopt; zitten → zit; leven → leef; reizen → reis) and
+the unstressed-syllable exception to it (wandelen → wandel, not *wandeel*),
+'t kofschip for -te and -de decided on the infinitive's own consonant (leven →
+leefde), the past participle with and without *ge-*, the seven strong classes
+with their singular and plural past (kreeg, kregen), separable prefixes (bel
+op, opgebeld, op te bellen), and *zijn* against *hebben*. Dutch keeps its
+subjunctive only in set phrases, so that mood has one row and no compound
+table. `npm test` checks about 330 reference forms, and the engine was compared
+against Wiktionary's tables for 141 verbs.
+
 ## The Portuguese side
 
 `/pt` is ProfeGPT as a Portuguese site, built the way the French and Italian
@@ -1056,7 +1078,7 @@ scripts/
 archive/wallpapers/     the old city photographs, kept but never served
 ```
 
-`npm test` runs all 6,964 across 22 suites, offline, in a couple of seconds.
+`npm test` runs all 9,559 across 24 suites, offline, in a couple of seconds.
 
 ## The conjugation engine
 
