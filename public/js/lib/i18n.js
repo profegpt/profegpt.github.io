@@ -86,6 +86,7 @@ const SPANISH = {
     conjugation: two('Conjugación', 'Conjugation'),
     dictionary: two('Diccionario', 'Dictionary'),
     chat: two('Chat', 'Chat'),
+    languages: two('Idiomas', 'Languages'),
     langLabel: two('Idioma de la web', 'Site language'),
   },
 
@@ -296,6 +297,7 @@ const FRENCH = {
     conjugation: deux('Conjugaison', 'Conjugation'),
     dictionary: deux('Dictionnaire', 'Dictionary'),
     chat: deux('Chat', 'Chat'),
+    languages: deux('Langues', 'Languages'),
     langLabel: deux('Langue du site', 'Site language'),
   },
 
@@ -508,6 +510,7 @@ const ITALIAN = {
     conjugation: due('Coniugazione', 'Conjugation'),
     dictionary: due('Dizionario', 'Dictionary'),
     chat: due('Chat', 'Chat'),
+    languages: due('Lingue', 'Languages'),
     langLabel: due('Lingua del sito', 'Site language'),
   },
 
@@ -722,6 +725,7 @@ const PORTUGUESE = {
     conjugation: dois('Conjugação', 'Conjugation'),
     dictionary: dois('Dicionário', 'Dictionary'),
     chat: dois('Chat', 'Chat'),
+    languages: dois('Línguas', 'Languages'),
     langLabel: dois('Língua do site', 'Site language'),
   },
 
@@ -935,6 +939,7 @@ const GERMAN = {
     conjugation: zwei('Konjugation', 'Conjugation'),
     dictionary: zwei('Wörterbuch', 'Dictionary'),
     chat: zwei('Chat', 'Chat'),
+    languages: zwei('Sprachen', 'Languages'),
     langLabel: zwei('Sprache der Seite', 'Site language'),
   },
 
@@ -1148,6 +1153,7 @@ const DUTCH = {
     conjugation: twee('Vervoeging', 'Conjugation'),
     dictionary: twee('Woordenboek', 'Dictionary'),
     chat: twee('Chat', 'Chat'),
+    languages: twee('Talen', 'Languages'),
     langLabel: twee('Taal van de site', 'Site language'),
   },
 

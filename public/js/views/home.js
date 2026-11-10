@@ -94,7 +94,7 @@ export function renderHome(main) {
       galleryHolder),
     el('div', { class: 'hero__art' }, spinningGlobe()));
 
-  const section = el('section', { class: 'home shell' },
+  const section = el('section', { class: 'home shell', id: 'idiomas' },
     el('h2', { class: 'section__title', id: 'home-choose' }, choose),
     grid,
     el('div', { class: 'home__go' }, enter));

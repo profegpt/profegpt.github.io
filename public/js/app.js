@@ -44,6 +44,7 @@ const NAV_KEYS = {
   conjugacion: 'conjugation',
   diccionario: 'dictionary',
   chat: 'chat',
+  idiomas: 'languages',
 };
 
 const NAV_PATHS = {
@@ -51,6 +52,8 @@ const NAV_PATHS = {
   conjugacion: '/conjugacion',
   diccionario: '/diccionario',
   chat: '/chat',
+  // The home page's language choice, from any side of the site.
+  idiomas: 'home#idiomas',
 };
 
 /** Whether the page on screen is the home page, which has no language's links. */
@@ -60,7 +63,8 @@ function paintChrome() {
   document.documentElement.classList.toggle('is-home', onHome);
   for (const link of document.querySelectorAll('[data-nav]')) {
     const path = NAV_PATHS[link.dataset.nav];
-    link.href = path.startsWith('/#') ? `${page()}${path.slice(1)}` : page(path);
+    if (path.startsWith('home')) link.href = withBase(`/${path.slice(4)}`);
+    else link.href = path.startsWith('/#') ? `${page()}${path.slice(1)}` : page(path);
     link.textContent = t(`nav.${NAV_KEYS[link.dataset.nav]}`);
   }
   const brand = document.querySelector('.nav__brand');

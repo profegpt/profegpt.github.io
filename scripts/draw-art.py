@@ -1231,8 +1231,7 @@ def portugal():
 
     # a pastel de nata, in front at the lower right
     art.out.append(FOOD)
-    # a little above the tower's foot, so the tart's foot is never clipped
-    art.push(place(410, 412, 1.12))
+    art.push(place(410, 420, 1.12))
     art.begin_track()
     nata(art)
     obox = art.end_track()
