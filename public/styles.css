@@ -1049,7 +1049,9 @@ table.md-table tbody td:first-child { color: var(--text-dim); white-space: nowra
   }
   .nav__links::-webkit-scrollbar { display: none; }
   .nav__links a { font-size: 12.5px; letter-spacing: 0.3px; }
-  .is-home .nav__links { justify-content: flex-end; }
+  /* The home page has one link, so it stays on the top line, next to the gear. */
+  .is-home .nav__links { order: 2; flex: none; margin-left: auto; padding: 0 12px 0 0; }
+  .is-home .nav__end { order: 3; margin-left: 0; }
 }
 
 @media (max-width: 560px) {
