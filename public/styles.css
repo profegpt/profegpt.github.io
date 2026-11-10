@@ -302,6 +302,49 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .btn--sm { min-height: 36px; padding: 0 14px; font-size: 13px; border-radius: 10px; border-bottom-width: 3px; }
 .btn--sm:active { margin-bottom: 1px; border-bottom-width: 2px; transform: translateY(1px); }
 
+/* --- the word of the day ---------------------------------------------------- */
+
+.wotd-row { padding-top: 56px; }
+.wotd {
+  position: relative;
+  padding: 22px 24px 24px;
+  border: 2px solid var(--line);
+  border-bottom-width: 4px;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.wotd__label { margin: 0 0 6px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-faint); }
+.wotd__language { color: var(--brand); }
+.wotd__language::before { content: ' '; }
+.wotd__word { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(30px, 4vw, 42px); line-height: 1.05; letter-spacing: -0.02em; color: var(--heading); overflow-wrap: anywhere; }
+.wotd__gloss { margin: 8px 0 0; font-size: 17px; font-weight: 600; color: var(--text-dim); }
+.wotd__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.wotd__story { margin: 16px 0 0; padding-top: 14px; border-top: 2px solid var(--line); font-size: 16px; line-height: 1.5; color: var(--text); }
+.wotd__story[hidden] { display: none; }
+
+/* On the home page the card is smaller and turns between the priority languages. */
+.home__word { margin-top: 28px; max-width: 470px; }
+.wotd-gallery__stage .wotd { padding: 18px 20px 20px; }
+.wotd-gallery__stage .wotd__word { font-size: clamp(26px, 3vw, 34px); }
+.wotd-gallery__stage .wotd__gloss { font-size: 16px; }
+.wotd--enter { animation: wotd-enter 0.35s ease-out both; }
+@keyframes wotd-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.wotd-gallery__chips { display: flex; gap: 8px; margin-top: 12px; }
+.wotd-gallery__chip {
+  padding: 6px 12px;
+  border: 2px solid var(--line);
+  border-bottom-width: 3px;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text-dim);
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+.wotd-gallery__chip.is-active { border-color: var(--brand-light); background: var(--brand-wash); color: var(--brand-dark); }
+@media (prefers-reduced-motion: reduce) { .wotd--enter { animation: none; } }
+
 /* --- hero: the home page and each language's front page --------------------- */
 
 .hero {

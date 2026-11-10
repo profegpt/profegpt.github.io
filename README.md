@@ -59,6 +59,25 @@ the card resets it. The cards stack `es-landmark.svg` and `es-food.svg` (and
 every other language's pair), which `scripts/draw-art.py` writes beside each
 country picture. Both animations are skipped under reduced motion.
 
+## The word of the day
+
+Every language's front page shows a word of the day between the hero and the
+translator, and the home page shows the words of the three priority
+languages, Spanish, French and German, in turn under the site's name, with a
+chip per language to pick one by hand. The words are hand-picked in
+`public/js/data/words.js`, two dozen a language, each chosen for having
+something behind it: a borrowing, a picture inside the word, a bit of history.
+The Spanish card alone carries a button that tells the story (*ojalá* is an
+Arabic prayer, *siesta* is the Roman sixth hour, *murciélago* a little blind
+mouse); the other languages' words were chosen for having one, but the card
+leaves it to the reader.
+
+The day turns at midnight in New York (`public/js/lib/word-of-day.js`), so a
+whole class sees the same word, and the pick is a function of the date alone:
+no storage, no server, the same word on every copy of the site. The list is
+walked in a scrambled order, so no word comes twice before every word has had
+its day; a tab left open past midnight gets the new word without a reload.
+
 ## The chat page
 
 The tutor is deliberately not a language model. It routes a question to one of
@@ -1013,7 +1032,10 @@ public/
     data/verbs-it.js ·it -isc- verbs, irregulars, essere verbs, 292 verbs
     data/verbs-de.js ·de irregulars, prefixes, sein verbs, 408 verbs
     data/verbs-pt.js ·pt stem changes, irregulars, short participles, 371 verbs
-    views/home.js       the home page: the language boxes
+    views/home.js       the home page: the language boxes and the words of the day
+    views/word-of-day.js the word card and the home page's gallery of them
+    lib/word-of-day.js  which word today: the New York date, walked through the list
+    data/words.js       two dozen words a language, with the Spanish stories
     views/translator.js a language's front page: hero, translator, search
     views/              one module per page, driven by the study language
 test/
@@ -1025,6 +1047,7 @@ test/
   conjugator-pt.test.js ·pt 965, of which 467 reference forms, Portugal's
   conjugator-view.test.js 1123 that the page's tense lists match every engine,
                                and that every verb in every index conjugates
+  word-of-day.test.js      460 that every list is sound and the pick walks it
   markdown.test.js          20 on the renderer, mostly that tables are tables
   tutor.test.js             86 checks on intent routing, the form index and
                                the rephrasings offered when it declines
@@ -1078,7 +1101,7 @@ scripts/
 archive/wallpapers/     the old city photographs, kept but never served
 ```
 
-`npm test` runs all 9,559 across 24 suites, offline, in a couple of seconds.
+`npm test` runs all 10,019 across 25 suites, offline, in a couple of seconds.
 
 ## The conjugation engine
 

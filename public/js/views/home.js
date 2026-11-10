@@ -2,6 +2,10 @@ import { el, icon } from '../lib/dom.js';
 import { art } from '../lib/art.js';
 import { t } from '../lib/i18n.js';
 import { DEFAULT_STUDY, page, setStudyLang, studyLang } from '../lib/study.js';
+import { wordGallery } from './word-of-day.js';
+
+/** The languages whose word of the day turns on the home page. */
+const PRIORITY = ['es', 'fr', 'de'];
 
 /**
  * The home page: the site's name, and the languages it can be about.
@@ -78,10 +82,16 @@ export function renderHome(main) {
 
   // Duolingo's front page: the name huge on the left with a line under it, the
   // globe on the right, and the choice below a rule.
+  // Under the name, the words of the day of the priority languages, in turn.
+  const names = Object.fromEntries(LANGUAGES.map((language) => [language.code, language.name]));
+  let gallery = wordGallery(PRIORITY, { names });
+  const galleryHolder = el('div', { class: 'home__word' }, gallery.element);
+
   const hero = el('section', { class: 'hero shell' },
     el('div', { class: 'hero__copy' },
       el('h1', { class: 'hero__title' }, 'profegpt'),
-      lead),
+      lead,
+      galleryHolder),
     el('div', { class: 'hero__art' }, spinningGlobe()));
 
   const section = el('section', { class: 'home shell' },
@@ -99,6 +109,10 @@ export function renderHome(main) {
     soonTitle.textContent = t('home.soon');
     soonBody.textContent = t('home.soonBody');
     document.title = t('home.title');
+    // The gallery's strings are baked in, so a language change redraws it.
+    gallery.stop();
+    gallery = wordGallery(PRIORITY, { names });
+    galleryHolder.replaceChildren(gallery.element);
 
     for (const box of boxes) {
       const on = box.dataset.code === studyLang();
@@ -169,6 +183,7 @@ export function renderHome(main) {
   document.addEventListener('keydown', onKey);
   window.addEventListener('langchange', paint);
   return () => {
+    gallery.stop();
     for (const timer of timers.values()) clearTimeout(timer);
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('langchange', paint);

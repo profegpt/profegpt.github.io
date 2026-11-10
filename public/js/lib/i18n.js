@@ -274,6 +274,13 @@ const SPANISH = {
     back: two('Inicio', 'Home'),
   },
 
+  word: {
+    title: two('Palabra del día', 'Word of the day'),
+    look: two('Ver en el diccionario', 'See it in the dictionary'),
+    story: two('La historia', 'The story'),
+    hide: two('Ocultar la historia', 'Hide the story'),
+  },
+
   settings: {
     label: two('Ajustes', 'Settings'),
     appearance: two('Apariencia', 'Appearance'),
@@ -479,6 +486,13 @@ const FRENCH = {
     back: deux('Accueil', 'Home'),
   },
 
+  word: {
+    title: deux('Mot du jour', 'Word of the day'),
+    look: deux('Voir dans le dictionnaire', 'See it in the dictionary'),
+    story: deux('L’histoire', 'The story'),
+    hide: deux('Masquer l’histoire', 'Hide the story'),
+  },
+
   settings: {
     label: deux('Réglages', 'Settings'),
     appearance: deux('Apparence', 'Appearance'),
@@ -682,6 +696,13 @@ const ITALIAN = {
     soon: due('Altre lingue', 'More languages'),
     soonBody: due('In arrivo.', 'Coming soon.'),
     back: due('Home', 'Home'),
+  },
+
+  word: {
+    title: due('Parola del giorno', 'Word of the day'),
+    look: due('Vedi nel dizionario', 'See it in the dictionary'),
+    story: due('La storia', 'The story'),
+    hide: due('Nascondi la storia', 'Hide the story'),
   },
 
   settings: {
@@ -890,6 +911,13 @@ const PORTUGUESE = {
     back: dois('Início', 'Home'),
   },
 
+  word: {
+    title: dois('Palavra do dia', 'Word of the day'),
+    look: dois('Ver no dicionário', 'See it in the dictionary'),
+    story: dois('A história', 'The story'),
+    hide: dois('Esconder a história', 'Hide the story'),
+  },
+
   settings: {
     label: dois('Definições', 'Settings'),
     appearance: dois('Aspeto', 'Appearance'),
@@ -1096,6 +1124,13 @@ const GERMAN = {
     back: zwei('Start', 'Home'),
   },
 
+  word: {
+    title: zwei('Wort des Tages', 'Word of the day'),
+    look: zwei('Im Wörterbuch nachschlagen', 'See it in the dictionary'),
+    story: zwei('Die Geschichte', 'The story'),
+    hide: zwei('Geschichte ausblenden', 'Hide the story'),
+  },
+
   settings: {
     label: zwei('Einstellungen', 'Settings'),
     appearance: zwei('Darstellung', 'Appearance'),
@@ -1300,6 +1335,13 @@ const DUTCH = {
     soon: twee('Meer talen', 'More languages'),
     soonBody: twee('Binnenkort.', 'Coming soon.'),
     back: twee('Home', 'Home'),
+  },
+
+  word: {
+    title: twee('Woord van de dag', 'Word of the day'),
+    look: twee('Bekijk in het woordenboek', 'See it in the dictionary'),
+    story: twee('Het verhaal', 'The story'),
+    hide: twee('Verhaal verbergen', 'Hide the story'),
   },
 
   settings: {

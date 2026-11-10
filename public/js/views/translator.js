@@ -2,6 +2,7 @@ import { el, icon, ICONS, clear, debounce, postJson } from '../lib/dom.js';
 import { art } from '../lib/art.js';
 import { pick, t } from '../lib/i18n.js';
 import { page, studyLang } from '../lib/study.js';
+import { wordCard } from './word-of-day.js';
 
 /**
  * The two sides of the translator: the language the site is about, and English.
@@ -51,7 +52,10 @@ export function renderTranslatorPage(main) {
       feature('dictionary', page('/diccionario'), t('features.dictionary'), t('features.dictionaryBody')),
       feature('chat', page('/chat'), t('features.chat'), t('features.chatBody'))));
 
-  main.append(hero, el('hr', { class: 'rule' }), translator, finder, features);
+  // The word of the day sits between the hero and the translator.
+  const word = el('section', { class: 'wotd-row shell' }, wordCard(studyLang()));
+
+  main.append(hero, el('hr', { class: 'rule' }), word, translator, finder, features);
 }
 
 /** One of Duolingo's investor-site cards: a tilted picture, then the words. */
