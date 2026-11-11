@@ -454,7 +454,8 @@ function footnote() {
 function credit(hint) {
   return el('a', {
     class: 'tilde__credit',
-    href: `https://tatoeba.org/en/sentences/show/${hint.id}`,
+    // No // inside a template string: Apps Script strips it as a comment.
+    href: 'https://tatoeba.org/en/sentences/show/' + hint.id,
     target: '_blank',
     rel: 'noopener',
   }, t('tilde.from'));
