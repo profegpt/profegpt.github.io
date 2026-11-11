@@ -1033,7 +1033,7 @@ table.md-table tbody td:first-child { color: var(--text-dim); white-space: nowra
 .tilde__meta { display: flex; gap: 14px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-faint); }
 .tilde__meta span + span::before { content: '·'; margin-right: 14px; }
 .tilde__tools { display: flex; gap: 8px; }
-.tilde__help { width: 36px; padding: 0; font-size: 16px; }
+.tilde__help { gap: 6px; }
 
 /* The board is as wide as the word: a tile is at most 62px, and shrinks to fit a phone. */
 .tilde__board { display: grid; gap: 6px; width: 100%; max-width: calc(var(--size) * 68px); }

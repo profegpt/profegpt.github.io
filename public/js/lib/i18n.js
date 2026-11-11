@@ -338,6 +338,7 @@ const SPANISH = {
     howEnye: two('La ñ no es una n con adorno: es otra letra, y cuenta como tal.', 'ñ is not an n with a decoration: it is a letter of its own, and scores as one.'),
     enyeTyping: two('En un teclado sin ñ, escribe n y luego ~.', 'On a keyboard without ñ, type n and then ~.'),
     colours: two('Los colores', 'The colours'),
+    info: two('Info', 'Info'),
     close: two('Cerrar', 'Close'),
     howKeys: two(
       'Las vocales con tilde tienen su propia fila en el teclado de la pantalla. En un teclado sin tildes, escribe la vocal y luego un apóstrofo: a y \' dan á, u y " dan ü, n y ~ dan ñ.',

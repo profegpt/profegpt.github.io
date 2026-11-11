@@ -17,8 +17,9 @@ import {
  * not with the rest of the site. The Apps Script build, which has no files to
  * fetch, carries them inline and hands them over the same way.
  *
- * What is kept is the day's guesses, whether the hint was used, and the stats,
- * all in this browser's storage. Nothing leaves it: there is no server behind
+ * What is kept is the day's guesses and whether the hint was used: for this
+ * browser session while the game is going, and on the device once it is over,
+ * with the stats. Nothing leaves it: there is no server behind
  * the game, so it plays the same on the Node server, on GitHub Pages and on
  * Apps Script. Storage that is blocked costs only the memory of it.
  */
@@ -47,12 +48,15 @@ const IMPERATIVE_PERSONS = { tu: 'tú', usted: 'usted', ustedes: 'ustedes' };
 const FLIP_STEP = 70;
 const FLIP_TIME = 220;
 
-function readStore() {
-  try { return JSON.parse(sessionStorage.getItem(STORE)) ?? {}; } catch { return {}; }
+// A game in progress lives only as long as the browser session, so on a shared
+// computer the next person starts with a clean board. A finished game, and the
+// stats, are kept on the device, so the day's word can't be played twice.
+function readStore(storage) {
+  try { return JSON.parse(storage.getItem(STORE)) ?? {}; } catch { return {}; }
 }
 
-function writeStore(value) {
-  try { sessionStorage.setItem(STORE, JSON.stringify(value)); } catch { /* blocked: this visit only */ }
+function writeStore(storage, value) {
+  try { storage.setItem(STORE, JSON.stringify(value)); } catch { /* blocked: this visit only */ }
 }
 
 const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -114,15 +118,21 @@ function play(root, { answers, lex }) {
   const answer = entry.word;
   const size = letters(answer).length;
 
-  const stored = readStore();
-  let stats = { ...emptyStats(), ...stored.stats };
-  const saved = stored.game?.number === number ? stored.game : null;
+  const device = readStore(localStorage);
+  const session = readStore(sessionStorage);
+  let stats = { ...emptyStats(), ...device.stats };
+  const saved = device.done?.number === number ? device.done
+    : session.game?.number === number ? session.game : null;
   const state = {
     guesses: (saved?.guesses ?? []).filter((guess) => typeof guess === 'string' && letters(guess).length === size).slice(0, MAX_GUESSES),
     hint: Boolean(saved?.hint),
     typing: [],
   };
-  const persist = () => writeStore({ stats, game: { number, guesses: state.guesses, hint: state.hint } });
+  const persist = () => {
+    const game = { number, guesses: state.guesses, hint: state.hint };
+    writeStore(sessionStorage, { game });
+    if (over()) writeStore(localStorage, { stats, done: game });
+  };
   const won = () => state.guesses.at(-1) === answer;
   let timer = null;
   const over = () => won() || state.guesses.length >= MAX_GUESSES;
@@ -376,9 +386,9 @@ function play(root, { answers, lex }) {
   // --- put together ----------------------------------------------------------
 
   const help = el('button', {
-    class: 'btn btn--sm tilde__help', type: 'button', 'aria-label': t('tilde.colours'), title: t('tilde.colours'),
+    class: 'btn btn--sm tilde__help', type: 'button', title: t('tilde.colours'),
     onclick: () => info.showModal(),
-  }, 'i');
+  }, icon(ICONS.info, { size: 16 }), t('tilde.info'));
   const bar = el('div', { class: 'tilde__bar-top' },
     el('p', { class: 'tilde__meta' },
       el('span', {}, t('tilde.number', { n: number })),
