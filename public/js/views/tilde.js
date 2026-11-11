@@ -4,7 +4,7 @@ import { page } from '../lib/study.js';
 import { PERSON_LABELS } from '../lib/conjugator.js';
 import {
   MAX_GUESSES, answerFor, check, currentStreak, emptyStats, keyStates, letters, lexicon,
-  nextMidnight, puzzleNumber, record, score, shareText,
+  maskEnglish, nextMidnight, puzzleNumber, record, score, shareText,
 } from '../lib/tilde.js';
 
 /**
@@ -48,11 +48,11 @@ const FLIP_STEP = 70;
 const FLIP_TIME = 220;
 
 function readStore() {
-  try { return JSON.parse(localStorage.getItem(STORE)) ?? {}; } catch { return {}; }
+  try { return JSON.parse(sessionStorage.getItem(STORE)) ?? {}; } catch { return {}; }
 }
 
 function writeStore(value) {
-  try { localStorage.setItem(STORE, JSON.stringify(value)); } catch { /* blocked: this visit only */ }
+  try { sessionStorage.setItem(STORE, JSON.stringify(value)); } catch { /* blocked: this visit only */ }
 }
 
 const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -293,7 +293,7 @@ function play(root, { answers, lex }) {
     hintBox.replaceChildren(
       el('p', { class: 'tilde__label' }, t('tilde.hintTitle')),
       el('p', { class: 'tilde__sentence', lang: 'es' }, ...blanked(entry.hint.text, size)),
-      el('p', { class: 'tilde__english', lang: 'en' }, entry.hint.en),
+      el('p', { class: 'tilde__english', lang: 'en' }, maskEnglish(entry.hint.en, entry.word)),
       credit(entry.hint));
   }
 
@@ -359,26 +359,26 @@ function play(root, { answers, lex }) {
   }
 
   const sample = (letter, kind) => el('span', { class: `tile tile--sample tile--${kind}`, 'aria-hidden': 'true' }, letter);
-  const how = el('section', { class: 'tilde__card tilde__how', id: 'como-se-juega' },
-    el('h2', { class: 'tilde__card-title' }, t('tilde.how')),
-    el('p', {}, t('tilde.howLead')),
-    el('p', {}, t('tilde.howColours')),
+  const closeInfo = el('button', { class: 'tilde__info-close', type: 'button', 'aria-label': t('tilde.close') }, '×');
+  const info = el('dialog', { class: 'tilde__info', 'aria-labelledby': 'tilde-info-title' },
+    closeInfo,
+    el('h2', { class: 'tilde__card-title', id: 'tilde-info-title' }, t('tilde.colours')),
     el('ul', { class: 'tilde__legend' },
       el('li', {}, sample('ó', 'correct'), el('span', {}, t('tilde.correct'))),
       el('li', {}, sample('a', 'accent'), el('span', {}, t('tilde.accent'))),
       el('li', {}, sample('e', 'present'), el('span', {}, t('tilde.present'))),
       el('li', {}, sample('r', 'absent'), el('span', {}, t('tilde.absent')))),
-    el('p', {}, t('tilde.howEnye')),
-    el('p', {}, t('tilde.howKeys')),
-    el('p', {}, t('tilde.howHint')),
-    el('p', {}, t('tilde.howShare')));
+    el('p', { class: 'tilde__info-note' }, t('tilde.howEnye'), ' ', t('tilde.enyeTyping')));
+  closeInfo.addEventListener('click', () => info.close());
+  // A tap on the dim backdrop closes it too.
+  info.addEventListener('click', (event) => { if (event.target === info) info.close(); });
 
   // --- put together ----------------------------------------------------------
 
-  // On a phone the how-to is below the keyboard; the ? goes down to it.
-  const help = el('a', {
-    class: 'btn btn--sm tilde__help', href: '#como-se-juega', 'data-link': '', 'aria-label': t('tilde.how'), title: t('tilde.how'),
-  }, '?');
+  const help = el('button', {
+    class: 'btn btn--sm tilde__help', type: 'button', 'aria-label': t('tilde.colours'), title: t('tilde.colours'),
+    onclick: () => info.showModal(),
+  }, 'i');
   const bar = el('div', { class: 'tilde__bar-top' },
     el('p', { class: 'tilde__meta' },
       el('span', {}, t('tilde.number', { n: number })),
@@ -387,7 +387,7 @@ function play(root, { answers, lex }) {
 
   root.append(
     el('div', { class: 'tilde__play' }, bar, hintBox, board, message, keyboard),
-    el('div', { class: 'tilde__side' }, how, statsBox));
+    info);
 
   state.guesses.forEach((guess, r) => paintRow(r, guess));
   paintTyping();

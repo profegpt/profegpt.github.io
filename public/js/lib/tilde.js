@@ -191,6 +191,22 @@ function enyeVariants(word) {
 const SQUARES = { correct: '🟩', accent: '🟪', present: '🟨', absent: '⬜' };
 
 /** The result to paste: "Tilde #3 4/6 💡", then a row of squares a guess. */
+/**
+ * The hint's English translation with the answer taken out wherever English
+ * spells it the same way, so a cognate can't give it away: "I respect your
+ * ____." for opinión. Plurals and a dropped final vowel count too (regiones,
+ * simples, popular → populares).
+ */
+export function maskEnglish(english, answer) {
+  const word = plain(answer);
+  const stems = new Set([word, word.replace(/(es|s)$/, ''), word.replace(/[aeo]$/, '')]);
+  return String(english).replace(/[A-Za-zÀ-ÿ]+/g, (token) => {
+    const t = plain(token);
+    const hit = t.length >= 3 && (stems.has(t) || stems.has(t.replace(/(es|s)$/, '')));
+    return hit ? '____' : token;
+  });
+}
+
 export function shareText(number, guesses, answer, { hint = false } = {}) {
   const won = guesses.at(-1) === answer;
   const head = `Tilde #${number} ${won ? guesses.length : 'X'}/${MAX_GUESSES}${hint ? ' 💡' : ''}`;

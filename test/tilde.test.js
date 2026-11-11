@@ -6,7 +6,7 @@
  */
 const {
   answerFor, base, check, currentStreak, emptyStats, keyStates, letters, lexicon, nextMidnight, plain,
-  puzzleNumber, record, score, shareText, LENGTHS, MAX_GUESSES,
+  maskEnglish, puzzleNumber, record, score, shareText, LENGTHS, MAX_GUESSES,
 } = await import('../public/js/lib/tilde.js');
 const { ANSWERS } = await import('../public/js/data/tilde-answers.js');
 const { GUESSES } = await import('../public/js/data/tilde-words.js');
@@ -30,6 +30,18 @@ ok('ñ keeps its tilde', plain('año') === 'año' && base('ñ') === 'ñ');
 ok('the diaeresis comes off', plain('pingüino') === 'pinguino');
 ok('acute accents come off', plain('CANCIÓN') === 'cancion');
 ok('a decomposed á is one letter', letters('canción').length === 7);
+
+// --------------------------------------------------------------- hints ----
+
+ok('a cognate is masked in the English', maskEnglish('I respect your opinion.', 'opinión') === 'I respect your ____.');
+ok('a dropped final vowel is masked', maskEnglish('Tom was our hero.', 'héroe') === 'Tom was our ____.');
+ok('other words are left alone', maskEnglish('Calm down and act natural.', 'actúa') === 'Calm down and act natural.');
+for (const a of ANSWERS) {
+  const words = (t) => plain(t).split(/[^a-zñ]+/);
+  ok(`${a.word}: one blank in the hint`, a.hint.text.split('____').length === 2, a.hint.text);
+  ok(`${a.word}: the word is gone from the Spanish`, !words(a.hint.text).includes(plain(a.word)), a.hint.text);
+  ok(`${a.word}: the word is gone from the English`, !words(maskEnglish(a.hint.en, a.word)).includes(plain(a.word)), a.hint.en);
+}
 
 // ------------------------------------------------------------- scoring ----
 
