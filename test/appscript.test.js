@@ -261,7 +261,8 @@ await test('a browser that gets real answers stops the stashing', async () => {
 await test('the drawings are inlined into the page, and the old photographs are not', () => {
   const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
   assert.ok(html.includes('data:image/svg+xml;base64,'));
-  assert.ok(!/madrid|paris-|rome-|\.webp/.test(html), 'a wallpaper made it into the page');
+  // The photographs' file names, not the cities: Tilde's word list has madrid in it.
+  assert.ok(!/(?:madrid|paris|rome)-(?:day|night)|\.webp/.test(html), 'a wallpaper made it into the page');
   assert.ok(!fs.existsSync(path.join(dist, 'assets')));
 });
 

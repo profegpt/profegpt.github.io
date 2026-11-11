@@ -46,11 +46,15 @@ export function renderTranslatorPage(main) {
 
   const finder = buildFinder();
 
+  // Tilde, the word game, is Spanish only, so only the Spanish side has its
+  // card, and the four stand two by two.
+  const tilde = studyLang() === 'es';
   const features = el('section', { class: 'features shell' },
-    el('div', { class: 'features__grid' },
+    el('div', { class: `features__grid${tilde ? ' features__grid--four' : ''}` },
       feature('conjugator', page('/conjugacion'), t('features.conjugation'), t('features.conjugationBody')),
       feature('dictionary', page('/diccionario'), t('features.dictionary'), t('features.dictionaryBody')),
-      feature('chat', page('/chat'), t('features.chat'), t('features.chatBody'))));
+      feature('chat', page('/chat'), t('features.chat'), t('features.chatBody')),
+      tilde ? feature('tilde', page('/tilde'), t('features.tilde'), t('features.tildeBody')) : null));
 
   // The word of the day sits between the hero and the translator.
   const word = el('section', { class: 'wotd-row shell' }, wordCard(studyLang()));

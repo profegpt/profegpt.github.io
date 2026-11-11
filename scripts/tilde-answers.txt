@@ -1,0 +1,1175 @@
+# Tilde's answers, chosen and read by hand. scripts/build-tilde.mjs turns this
+# into public/js/data/tilde-answers.js and deals it into the order the days
+# walk; the order here does not matter.
+#
+#   word | kind | English gloss       a noun, adjective, adverb …
+#   word | verb [| infinitive]        a verb form: its infinitive, tense and
+#                                     person come from the conjugator. Name the
+#                                     infinitive only to rule out a reading.
+#
+# kinds: n.m n.f n.mf (nouns by gender) adj adv pron prep conj interj num verb
+#
+# Every answer is an ordinary word a learner meets: no names, nothing vulgar or
+# insulting, no English spelled the English way, nothing obscure, and no word
+# whose only claim is being in a film's subtitles. About a third are verb
+# forms, and the build keeps that share as it deals them out.
+
+# ---------------------------------------------------------------- nouns ----
+
+noche | n.f | night
+gente | n.f | people
+padre | n.m | father
+madre | n.f | mother
+mundo | n.m | world
+lugar | n.m | place
+amigo | n.m | friend
+mujer | n.f | woman
+parte | n.f | part
+razón | n.f | reason
+chica | n.f | girl
+chico | n.m | boy
+puerta | n.f | door
+semana | n.f | week
+suerte | n.f | luck
+ciudad | n.f | city
+muerte | n.f | death
+miedo | n.m | fear
+punto | n.m | point
+clase | n.f | class
+tierra | n.f | earth, land
+guerra | n.f | war
+sangre | n.f | blood
+cuerpo | n.m | body
+vuelta | n.f | turn, return
+fiesta | n.f | party
+número | n.m | number
+culpa | n.f | fault, blame
+escuela | n.f | school
+comida | n.f | food, meal
+palabra | n.f | word
+oficina | n.f | office
+sitio | n.m | place, site
+marido | n.m | husband
+pueblo | n.m | town, village; people
+música | n.f | music
+minuto | n.m | minute
+perdón | n.m | forgiveness; sorry
+fuego | n.m | fire
+libro | n.m | book
+perro | n.m | dog
+cielo | n.m | sky; heaven
+cuarto | n.m | room; quarter
+derecho | n.m | right; law
+frente | n.f | forehead
+mensaje | n.m | message
+médico | n.m | doctor
+error | n.m | mistake
+futuro | n.m | future
+secreto | n.m | secret
+novia | n.f | girlfriend; bride
+fuerza | n.f | strength, force
+dolor | n.m | pain
+negocio | n.m | business
+mente | n.f | mind
+campo | n.m | countryside; field
+abogado | n.m | lawyer
+mitad | n.f | half
+montón | n.m | pile, heap
+línea | n.f | line
+tienda | n.f | shop
+centro | n.m | centre
+hambre | n.f | hunger
+carta | n.f | letter
+novio | n.m | boyfriend; groom
+placer | n.m | pleasure
+barco | n.m | boat, ship
+reunión | n.f | meeting
+carrera | n.f | race; degree course; career
+canción | n.f | song
+prisa | n.f | hurry
+abuela | n.f | grandmother
+abuelo | n.m | grandfather
+cárcel | n.f | prison
+broma | n.f | joke
+cámara | n.f | camera
+avión | n.m | aeroplane
+papel | n.m | paper; role
+basura | n.f | rubbish
+esposo | n.m | husband
+locura | n.f | madness
+permiso | n.m | permission
+peligro | n.m | danger
+derecha | n.f | right (side)
+espacio | n.m | space
+salud | n.f | health
+maestro | n.m | teacher
+crimen | n.m | crime
+consejo | n.m | piece of advice; council
+iglesia | n.f | church
+mayoría | n.f | majority
+escena | n.f | scene
+señal | n.f | sign, signal
+honor | n.m | honour
+cerebro | n.m | brain
+caballo | n.m | horse
+carne | n.f | meat
+víctima | n.f | victim
+energía | n.f | energy
+misión | n.f | mission
+opinión | n.f | opinion
+cerveza | n.f | beer
+reina | n.f | queen
+prisión | n.f | prison
+partido | n.m | match; political party
+causa | n.f | cause
+banco | n.m | bank; bench
+destino | n.m | destiny; destination
+cliente | n.mf | customer, client
+pelea | n.f | fight
+norte | n.m | north
+juicio | n.m | trial; judgement
+llave | n.f | key
+espalda | n.f | back
+éxito | n.m | success
+ventana | n.f | window
+especie | n.f | species
+ejemplo | n.m | example
+calma | n.f | calm
+hogar | n.m | home
+fondo | n.m | bottom; back
+planeta | n.m | planet
+respeto | n.m | respect
+sueño | n.m | dream; sleep
+nivel | n.m | level
+salida | n.f | exit, way out
+zapato | n.m | shoe
+vistazo | n.m | glance
+color | n.m | colour
+bolsa | n.f | bag
+diablo | n.m | devil
+precio | n.m | price
+acción | n.f | action
+golpe | n.m | blow, knock
+estilo | n.m | style
+marcha | n.f | march; gear
+valor | n.m | value; courage
+máquina | n.f | machine
+cuello | n.m | neck
+pareja | n.f | couple; partner
+verano | n.m | summer
+mentira | n.f | lie
+tarjeta | n.f | card
+opción | n.f | option
+enemigo | n.m | enemy
+calor | n.m | heat
+batalla | n.f | battle
+brazo | n.m | arm
+bosque | n.m | forest, wood
+pierna | n.f | leg
+motivo | n.m | reason, motive
+noticia | n.f | piece of news
+empresa | n.f | company, firm
+trampa | n.f | trap
+memoria | n.f | memory
+soldado | n.m | soldier
+turno | n.m | turn; shift
+leche | n.f | milk
+anillo | n.m | ring
+héroe | n.m | hero
+árbol | n.m | tree
+camión | n.m | lorry, truck
+ruido | n.m | noise
+reloj | n.m | clock, watch
+colegio | n.m | school
+sonido | n.m | sound
+código | n.m | code
+imagen | n.f | image, picture
+riesgo | n.m | risk
+millón | n.m | million
+hielo | n.m | ice
+prensa | n.f | the press
+asiento | n.m | seat
+pared | n.f | wall
+silla | n.f | chair
+playa | n.f | beach
+cabello | n.m | hair
+huella | n.f | footprint; fingerprint
+unidad | n.f | unit; unity
+parque | n.m | park
+serie | n.f | series
+botella | n.f | bottle
+viento | n.m | wind
+época | n.f | era, time
+puente | n.m | bridge
+magia | n.f | magic
+nariz | n.f | nose
+autobús | n.m | bus
+huevo | n.m | egg
+paseo | n.m | walk, stroll
+belleza | n.f | beauty
+viernes | n.m | Friday
+animal | n.m | animal
+oferta | n.f | offer
+oeste | n.m | west
+mercado | n.m | market
+cerdo | n.m | pig
+líder | n.mf | leader
+piedra | n.f | stone
+humor | n.m | humour; mood
+mirada | n.f | look, gaze
+jardín | n.m | garden
+amenaza | n.f | threat
+dueño | n.m | owner
+pollo | n.m | chicken
+efecto | n.m | effect
+espada | n.f | sword
+correo | n.m | post, mail
+teatro | n.m | theatre
+lástima | n.f | pity, shame
+pastel | n.m | cake
+costa | n.f | coast
+interés | n.m | interest
+polvo | n.m | dust
+teoría | n.f | theory
+diario | n.m | newspaper; diary
+agujero | n.m | hole
+ángel | n.m | angel
+fuente | n.f | fountain; source
+alcalde | n.m | mayor
+miembro | n.m | member
+pecho | n.m | chest
+primo | n.m | cousin
+premio | n.m | prize
+domingo | n.m | Sunday
+lengua | n.f | tongue; language
+ladrón | n.m | thief
+examen | n.m | exam
+montaña | n.f | mountain
+queso | n.m | cheese
+modelo | n.m | model
+fútbol | n.m | football
+sábado | n.m | Saturday
+talento | n.m | talent
+tamaño | n.m | size
+pérdida | n.f | loss
+gloria | n.f | glory
+disparo | n.m | shot
+gracia | n.f | grace; humour
+francés | n.m | French (language)
+techo | n.m | ceiling; roof
+camisa | n.f | shirt
+truco | n.m | trick
+rostro | n.m | face
+crédito | n.m | credit
+esquina | n.f | corner
+pedazo | n.m | piece, bit
+ciencia | n.f | science
+salón | n.m | living room; hall
+bebida | n.f | drink
+lluvia | n.f | rain
+visión | n.f | vision; sight
+curso | n.m | course; school year
+lunes | n.m | Monday
+artista | n.mf | artist
+pintura | n.f | paint; painting
+tumba | n.f | grave, tomb
+helado | n.m | ice cream
+tarea | n.f | task; homework
+plato | n.m | plate; dish
+fecha | n.f | date
+siglo | n.m | century
+fortuna | n.f | fortune
+pieza | n.f | piece; part
+reino | n.m | kingdom
+alegría | n.f | joy
+barrio | n.m | neighbourhood
+granja | n.f | farm
+tesoro | n.m | treasure
+clave | n.f | key, code
+piloto | n.mf | pilot
+bolso | n.m | handbag
+campaña | n.f | campaign
+amistad | n.f | friendship
+planta | n.f | plant; floor
+ritmo | n.m | rhythm
+página | n.f | page
+paquete | n.m | parcel, packet
+promesa | n.f | promise
+lección | n.f | lesson
+pelota | n.f | ball
+pescado | n.m | fish (as food)
+sonrisa | n.f | smile
+abrigo | n.m | coat
+bruja | n.f | witch
+palacio | n.m | palace
+milagro | n.m | miracle
+vecino | n.m | neighbour
+regla | n.f | rule; ruler
+copia | n.f | copy
+cadena | n.f | chain; channel
+fábrica | n.f | factory
+madera | n.f | wood
+plata | n.f | silver
+parada | n.f | stop
+armario | n.m | wardrobe, cupboard
+tráfico | n.m | traffic
+arena | n.f | sand
+espejo | n.m | mirror
+azúcar | n.m | sugar
+sótano | n.m | basement, cellar
+ocasión | n.f | occasion; chance
+ventaja | n.f | advantage
+piscina | n.f | swimming pool
+revista | n.f | magazine
+cuerda | n.f | rope; string
+torre | n.f | tower
+pasillo | n.m | corridor, hallway
+apuesta | n.f | bet
+orgullo | n.m | pride
+altura | n.f | height
+archivo | n.m | file; archive
+excusa | n.f | excuse
+sombra | n.f | shadow; shade
+muñeca | n.f | doll; wrist
+pájaro | n.m | bird
+ducha | n.f | shower
+actitud | n.f | attitude
+salsa | n.f | sauce
+jueves | n.m | Thursday
+veneno | n.m | poison
+martes | n.m | Tuesday
+castigo | n.m | punishment
+límite | n.m | limit
+jugador | n.m | player
+nación | n.f | nation
+puerto | n.m | port, harbour
+patio | n.m | courtyard; playground
+título | n.m | title; degree
+pánico | n.m | panic
+pasión | n.f | passion
+océano | n.m | ocean
+hierba | n.f | grass; herb
+cristal | n.m | glass; crystal
+desafío | n.m | challenge
+clínica | n.f | clinic
+medida | n.f | measure; measurement
+fiebre | n.f | fever
+deuda | n.f | debt
+museo | n.m | museum
+maleta | n.f | suitcase
+metro | n.m | metre; underground railway
+español | n.m | Spanish (language)
+refugio | n.m | shelter, refuge
+collar | n.m | necklace; collar
+botón | n.m | button
+detalle | n.m | detail
+cultura | n.f | culture
+hombro | n.m | shoulder
+cuadro | n.m | painting; square
+almacén | n.m | warehouse; shop
+sabor | n.m | taste, flavour
+calidad | n.f | quality
+aceite | n.m | oil
+chiste | n.m | joke
+frase | n.f | sentence, phrase
+manzana | n.f | apple; block (of houses)
+letra | n.f | letter (of the alphabet); handwriting; lyrics
+arroz | n.m | rice
+bandera | n.f | flag
+plaza | n.f | square
+cartera | n.f | wallet; satchel
+círculo | n.m | circle
+caída | n.f | fall
+leyenda | n.f | legend
+paraíso | n.m | paradise
+abrazo | n.m | hug
+sobrino | n.m | nephew
+rueda | n.f | wheel
+moneda | n.f | coin; currency
+emoción | n.f | emotion
+valle | n.m | valley
+ánimo | n.m | spirit, heart
+hierro | n.m | iron
+corona | n.f | crown
+clima | n.m | climate
+máscara | n.f | mask
+túnel | n.m | tunnel
+llegada | n.f | arrival
+tarta | n.f | cake, tart
+acero | n.m | steel
+payaso | n.m | clown
+diseño | n.m | design
+oxígeno | n.m | oxygen
+conejo | n.m | rabbit
+billete | n.m | ticket; banknote
+aldea | n.f | village
+circo | n.m | circus
+texto | n.m | text
+colina | n.f | hill
+naranja | n.f | orange
+batería | n.f | battery; drum kit
+técnica | n.f | technique
+sueldo | n.m | salary, wages
+barba | n.f | beard
+docena | n.f | dozen
+rutina | n.f | routine
+novela | n.f | novel
+fracaso | n.m | failure
+cañón | n.m | cannon; canyon
+cueva | n.f | cave
+abril | n.m | April
+lectura | n.f | reading
+deporte | n.m | sport
+tigre | n.m | tiger
+corbata | n.f | tie
+mezcla | n.f | mixture
+plazo | n.m | period; deadline
+símbolo | n.m | symbol
+horario | n.m | timetable
+jaula | n.f | cage
+origen | n.m | origin
+tatuaje | n.m | tattoo
+taller | n.m | workshop; garage
+gallina | n.f | hen
+octubre | n.m | October
+juguete | n.m | toy
+receta | n.f | recipe; prescription
+columna | n.f | column; spine
+hígado | n.m | liver
+idioma | n.m | language
+fruta | n.f | fruit
+remedio | n.m | remedy, cure
+disfraz | n.m | costume, disguise
+química | n.f | chemistry
+acento | n.m | accent
+horno | n.m | oven
+agosto | n.m | August
+brindis | n.m | toast (with a drink)
+alivio | n.m | relief
+región | n.f | region
+retraso | n.m | delay
+oreja | n.f | ear
+ratón | n.m | mouse
+método | n.m | method
+soledad | n.f | loneliness, solitude
+feria | n.f | fair
+mancha | n.f | stain, spot
+poesía | n.f | poetry
+selva | n.f | jungle
+campana | n.f | bell
+otoño | n.m | autumn
+huelga | n.f | strike
+medalla | n.f | medal
+dieta | n.f | diet
+cajón | n.m | drawer
+salario | n.m | salary
+aguja | n.f | needle
+sello | n.m | stamp; seal
+tiburón | n.m | shark
+toalla | n.f | towel
+poema | n.m | poem
+tenis | n.m | tennis
+pluma | n.f | feather; pen
+rodilla | n.f | knee
+estatua | n.f | statue
+siesta | n.f | nap, siesta
+susto | n.m | fright, scare
+vidrio | n.m | glass
+mochila | n.f | rucksack, school bag
+enero | n.m | January
+araña | n.f | spider
+retrato | n.m | portrait
+lápiz | n.m | pencil
+pañuelo | n.m | handkerchief; scarf
+niebla | n.f | fog
+oración | n.f | prayer; sentence
+globo | n.m | balloon; globe
+tabla | n.f | board; table (of figures)
+escudo | n.m | shield; coat of arms
+bañera | n.f | bath, bathtub
+lotería | n.f | lottery
+bigote | n.m | moustache
+bondad | n.f | kindness, goodness
+vaquero | n.m | cowboy
+galería | n.f | gallery
+volumen | n.m | volume
+poeta | n.mf | poet
+manta | n.f | blanket
+apetito | n.m | appetite
+ángulo | n.m | angle
+volante | n.m | steering wheel
+diente | n.m | tooth
+lámpara | n.f | lamp
+ajedrez | n.m | chess
+cordero | n.m | lamb
+mascota | n.f | pet
+águila | n.f | eagle
+jabón | n.m | soap
+factura | n.f | bill, invoice
+tejado | n.m | roof
+hacha | n.f | axe
+burro | n.m | donkey
+estadio | n.m | stadium
+febrero | n.m | February
+orilla | n.f | shore; riverbank
+sábana | n.f | sheet (on a bed)
+cosecha | n.f | harvest
+cuñado | n.m | brother-in-law
+tortuga | n.f | tortoise, turtle
+falda | n.f | skirt
+gripe | n.f | flu
+zorro | n.m | fox
+tomate | n.m | tomato
+césped | n.m | lawn, grass
+mosca | n.f | fly
+algodón | n.m | cotton
+cohete | n.m | rocket
+limón | n.m | lemon
+jamón | n.m | ham
+galleta | n.f | biscuit, cookie
+nevera | n.f | fridge
+envidia | n.f | envy
+década | n.f | decade
+cigüeña | n.f | stork
+ombligo | n.m | navel
+tijeras | n.f | scissors
+pulmón | n.m | lung
+corazón | n.m | heart
+cariño | n.m | affection; darling
+hermano | n.m | brother
+hermana | n.f | sister
+familia | n.f | family
+esposa | n.f | wife
+cabeza | n.f | head
+dinero | n.m | money
+tiempo | n.m | time; weather
+nombre | n.m | name
+hombre | n.m | man
+momento | n.m | moment
+verdad | n.f | truth
+policía | n.f | police
+persona | n.f | person
+manera | n.f | way, manner
+equipo | n.m | team; equipment
+doctor | n.m | doctor
+coche | n.m | car
+mañana | n.f | morning
+cocina | n.f | kitchen; cooking
+
+# ------------------------------------------------------------ adjectives ----
+
+mejor | adj | better; best
+mismo | adj | same
+claro | adj | clear; light (colour)
+nuevo | adj | new
+serio | adj | serious
+cierto | adj | true; certain
+feliz | adj | happy
+justo | adj | fair; just; tight
+viejo | adj | old
+único | adj | only; unique
+grande | adj | big; great
+pequeño | adj | small, little
+igual | adj | equal; the same
+posible | adj | possible
+fuerte | adj | strong
+fácil | adj | easy
+joven | adj | young
+último | adj | last
+extraño | adj | strange
+largo | adj | long
+propio | adj | own
+negro | adj | black
+pobre | adj | poor
+bonito | adj | pretty, nice
+tonto | adj | silly, stupid
+normal | adj | normal
+blanco | adj | white
+hermoso | adj | beautiful
+capaz | adj | capable, able
+amable | adj | kind
+dulce | adj | sweet
+triste | adj | sad
+lindo | adj | lovely, pretty
+simple | adj | simple
+público | adj | public
+enfermo | adj | ill, sick
+humano | adj | human
+común | adj | common
+doble | adj | double
+exacto | adj | exact
+enorme | adj | huge, enormous
+oscuro | adj | dark
+grave | adj | serious, grave
+privado | adj | private
+natural | adj | natural
+débil | adj | weak
+guapo | adj | good-looking
+inútil | adj | useless
+antiguo | adj | old; ancient; former
+entero | adj | whole, entire
+gordo | adj | fat
+sucio | adj | dirty
+quieto | adj | still, motionless
+falso | adj | false; fake
+famoso | adj | famous
+honesto | adj | honest
+obvio | adj | obvious
+cobarde | adj | cowardly
+salvaje | adj | wild
+suave | adj | soft; smooth; gentle
+alemán | adj | German
+rápido | adj | fast, quick
+máximo | adj | maximum, highest
+fresco | adj | fresh; cool
+ciego | adj | blind
+popular | adj | popular
+urgente | adj | urgent
+curioso | adj | curious
+lento | adj | slow
+sabio | adj | wise
+harto | adj | fed up
+cercano | adj | close, nearby
+decente | adj | decent
+mínimo | adj | minimum, smallest
+barato | adj | cheap
+alegre | adj | cheerful
+breve | adj | brief, short
+absurdo | adj | absurd
+ideal | adj | ideal
+cómodo | adj | comfortable
+bello | adj | beautiful
+sagrado | adj | sacred, holy
+típico | adj | typical
+preciso | adj | precise
+mágico | adj | magic, magical
+clásico | adj | classic; classical
+infeliz | adj | unhappy
+estable | adj | stable
+similar | adj | similar
+digno | adj | worthy; dignified
+grosero | adj | rude
+japonés | adj | Japanese
+pesado | adj | heavy; tiresome
+valioso | adj | valuable
+moderno | adj | modern
+injusto | adj | unfair, unjust
+incapaz | adj | incapable, unable
+humilde | adj | humble
+confuso | adj | confused; confusing
+ligero | adj | light
+sordo | adj | deaf
+ansioso | adj | anxious; eager
+astuto | adj | cunning, clever
+dorado | adj | golden
+marrón | adj | brown
+torpe | adj | clumsy
+delgado | adj | thin, slim
+intenso | adj | intense
+tierno | adj | tender
+agotado | adj | exhausted; sold out
+eterno | adj | eternal
+rebelde | adj | rebellious
+cansado | adj | tired
+inglés | adj | English
+difícil | adj | difficult
+verde | adj | green
+lleno | adj | full
+vacío | adj | empty
+limpio | adj | clean
+seguro | adj | sure; safe
+listo | adj | ready; clever
+cortés | adj | polite, courteous
+fértil | adj | fertile
+inmóvil | adj | motionless
+
+# ------------------------------------------------- adverbs and the rest ----
+
+ahora | adv | now
+mucho | adv | a lot, much
+antes | adv | before
+luego | adv | later; then
+menos | adv | less
+tanto | adv | so much
+quizá | adv | perhaps, maybe
+quizás | adv | perhaps, maybe
+dentro | adv | inside
+pronto | adv | soon
+cerca | adv | near, close
+arriba | adv | up; upstairs
+abajo | adv | down; downstairs
+atrás | adv | behind; back
+lejos | adv | far, far away
+además | adv | besides, moreover
+anoche | adv | last night
+detrás | adv | behind
+encima | adv | on top; above
+jamás | adv | never, ever
+apenas | adv | hardly, barely
+debajo | adv | underneath
+deprisa | adv | quickly, fast
+aparte | adv | apart, aside
+recién | adv | newly, just
+gratis | adv | free, for nothing
+nunca | adv | never
+siempre | adv | always
+todavía | adv | still; yet
+también | adv | too, also
+después | adv | after, afterwards
+adónde | adv | where (to)?
+dónde | adv | where?
+cuánto | adv | how much?
+cuándo | adv | when?
+afuera | adv | outside
+adentro | adv | inside
+sobre | prep | on; about
+hasta | prep | until; as far as; even
+desde | prep | from; since
+hacia | prep | towards
+contra | prep | against
+durante | prep | during
+según | prep | according to
+aunque | conj | although, even though
+porque | conj | because
+nadie | pron | nobody, no one
+alguien | pron | somebody, someone
+ambos | pron | both
+quién | pron | who?
+cinco | num | five
+cuatro | num | four
+siete | num | seven
+nueve | num | nine
+veinte | num | twenty
+treinta | num | thirty
+quince | num | fifteen
+ciento | num | a hundred
+gracias | interj | thank you
+adiós | interj | goodbye
+socorro | interj | help!
+ojalá | interj | if only; I hope so
+
+# ------------------------------------------------------------ verb forms ----
+
+# present
+estoy | verb
+estás | verb
+tengo | verb
+puedo | verb
+quiero | verb
+sabes | verb | saber
+vuelve | verb
+sigue | verb
+duele | verb
+pienso | verb
+piensas | verb
+vienen | verb
+pierdo | verb
+duermo | verb
+juega | verb
+sirve | verb
+mueve | verb
+elige | verb
+niega | verb
+crece | verb
+huelo | verb
+hueles | verb
+caigo | verb
+salgo | verb
+traigo | verb
+valen | verb
+repito | verb
+sugiero | verb
+sonríe | verb
+actúa | verb
+reúne | verb
+envía | verb
+confío | verb
+mienten | verb
+cuesta | verb
+muestra | verb
+vuelan | verb
+suena | verb
+llueve | verb
+oímos | verb
+
+# preterite
+pidió | verb
+murió | verb
+pensé | verb
+hiciste | verb
+dijeron | verb
+dijiste | verb
+fueron | verb
+fuimos | verb
+estuvo | verb
+quiso | verb
+trajo | verb
+supuse | verb
+tuvimos | verb
+pudiste | verb
+vinimos | verb
+hicimos | verb
+durmió | verb
+sintió | verb
+siguió | verb
+mintió | verb
+creyó | verb
+leíste | verb
+oyeron | verb
+cayeron | verb
+condujo | verb
+produjo | verb
+propuso | verb
+detuvo | verb
+obtuvo | verb
+anduvo | verb
+llegué | verb
+busqué | verb
+empecé | verb
+saqué | verb
+toqué | verb
+jugué | verb
+pagué | verb
+comencé | verb
+perdí | verb
+conocí | verb
+volví | verb
+rompió | verb
+nació | verb
+eligió | verb
+sirvió | verb
+sugirió | verb
+dolió | verb
+valió | verb
+vieron | verb
+diste | verb
+vimos | verb
+salió | verb
+envió | verb
+actuó | verb
+reunió | verb
+
+# imperfect
+había | verb
+tenía | verb
+sabía | verb
+podía | verb
+quería | verb
+decía | verb
+íbamos | verb
+éramos | verb
+veían | verb
+solía | verb
+creía | verb
+traía | verb
+dormía | verb
+pedía | verb
+seguía | verb
+
+# future
+habrá | verb
+estaré | verb
+tendré | verb
+podré | verb
+sabrá | verb
+saldré | verb
+vendré | verb
+pondré | verb
+haremos | verb
+querrá | verb
+valdrá | verb
+dirás | verb
+harás | verb
+veremos | verb
+iremos | verb
+volveré | verb
+morirá | verb
+
+# conditional
+sería | verb
+haría | verb
+podría | verb
+diría | verb
+tendría | verb
+querría | verb
+sabría | verb
+vendría | verb
+saldría | verb
+pondría | verb
+habría | verb
+irías | verb
+daría | verb
+
+# present subjunctive
+pueda | verb
+digas | verb
+tenga | verb
+hagas | verb
+vayas | verb
+sepas | verb
+quepa | verb
+hayas | verb
+salga | verb
+ponga | verb
+traiga | verb
+conozca | verb
+vuelva | verb
+duerma | verb
+pidas | verb
+sigan | verb
+muera | verb
+mientas | verb
+juegue | verb
+elija | verb
+crezca | verb
+hagamos | verb
+vayamos | verb
+digamos | verb
+sepamos | verb
+podamos | verb
+veamos | verb
+oigan | verb
+caiga | verb
+valga | verb
+quieras | verb
+pierdas | verb
+llegue | verb
+busque | verb
+pague | verb
+empiece | verb
+envíe | verb
+
+# imperfect subjunctive
+hubiera | verb
+pudiera | verb
+tuviera | verb
+hiciera | verb
+dijera | verb
+supiera | verb
+viniera | verb
+trajera | verb
+pusiera | verb
+diera | verb
+viera | verb
+muriera | verb
+saliera | verb
+creyera | verb
+cayera | verb
+leyera | verb
+
+# gerunds and participles
+siendo | verb
+yendo | verb
+cayendo | verb
+leyendo | verb
+oyendo | verb
+huyendo | verb
+riendo | verb
+viendo | verb
+hecho | verb
+dicho | verb
+visto | verb | ver
+puesto | verb
+vuelto | verb
+escrito | verb
+abierto | verb
+muerto | verb
+frito | verb
+impreso | verb
+leído | verb
+caído | verb
+traído | verb
+creído | verb
+
+# the imperative
+detén | verb
+mantén | verb
+
+# more of every tense, so the forms keep their third
+cierra | verb
+empieza | verb
+vuelvo | verb
+muero | verb
+sientes | verb | sentir
+duermes | verb
+pides | verb
+sigues | verb
+dices | verb
+hacemos | verb
+ponemos | verb
+salimos | verb
+traen | verb
+incluye | verb
+leemos | verb
+quepo | verb
+valgo | verb
+caben | verb
+conduce | verb
+traduce | verb
+ofrezco | verb
+parezco | verb
+merezco | verb
+actúo | verb
+reúno | verb
+sonríes | verb
+dijimos | verb
+anduve | verb
+pusiste | verb
+pusimos | verb
+supiste | verb
+tuviste | verb
+estuve | verb
+tradujo | verb
+fuiste | verb
+pediste | verb
+leyeron | verb
+oíste | verb
+almorcé | verb
+crucé | verb
+apagué | verb
+colgué | verb
+decidió | verb
+vivió | verb
+abrió | verb
+cerró | verb
+volvió | verb
+perdió | verb
+entendí | verb
+aprendí | verb
+conoció | verb
+ofreció | verb
+pareció | verb
+creció | verb
+vendió | verb
+bebió | verb
+comió | verb
+corrió | verb
+subió | verb
+sufrió | verb
+cumplió | verb
+cogió | verb
+dirigió | verb
+exigió | verb
+llovió | verb
+llegó | verb
+veías | verb
+estaba | verb
+estabas | verb
+hablaba | verb
+vivía | verb
+comía | verb
+jugaba | verb
+llovía | verb
+hacía | verb
+ponía | verb
+salía | verb
+venía | verb
+oíamos | verb
+leíamos | verb
+podían | verb
+querían | verb
+sabían | verb
+decían | verb
+tendrás | verb
+podrás | verb
+sabrás | verb
+saldrás | verb
+vendrás | verb
+pondrás | verb
+harán | verb
+dirán | verb
+habrán | verb
+querrás | verb
+cabrá | verb
+seremos | verb
+estarás | verb
+verás | verb
+daremos | verb
+podrías | verb
+sabrías | verb
+harías | verb
+dirías | verb
+serías | verb
+habrías | verb
+iríamos | verb
+cabría | verb
+valdría | verb
+estés | verb
+estén | verb
+vayan | verb
+hayan | verb
+sepan | verb
+oigas | verb
+traigas | verb
+pongas | verb
+salgas | verb
+vengas | verb
+tengas | verb
+hagan | verb
+digan | verb
+duermas | verb
+muramos | verb
+pidamos | verb
+sirvan | verb
+sigamos | verb
+juegues | verb
+cruces | verb
+toques | verb
+llegues | verb
+pagues | verb
+cierres | verb
+vuelvas | verb
+puedas | verb
+quieran | verb
+pierda | verb
+mueva | verb
+cuente | verb
+incluya | verb
+huyas | verb
+demos | verb
+estemos | verb
+envíes | verb
+actúes | verb
+fueras | verb
+dijeras | verb
+dieras | verb
+vieras | verb
+dieran | verb
+vieran | verb
+fueran | verb
+pidiera | verb
+oyera | verb
+hablara | verb
+comiera | verb
+viviera | verb
+tomara | verb
+llegara | verb
+pasara | verb
+dejara | verb
+quedara | verb
+pensara | verb
+estando | verb
+dando | verb
+jugando | verb
+andando | verb
+mirando | verb
+volando | verb
+soñando | verb
+estado | verb
+tenido | verb
+sabido | verb
+querido | verb
+podido | verb
+perdido | verb
+nacido | verb
+vivido | verb
+reído | verb
+elegido | verb
+pedido | verb
+servido | verb
+dormido | verb
+ganado | verb
+llegado | verb
+hablado | verb
+comido | verb
+bebido | verb

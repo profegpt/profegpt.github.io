@@ -19,7 +19,8 @@ No build step. The frontend is plain ES modules served straight out of `public/`
 
 ## The pages
 
-A home page, and four pages per language.
+A home page, four pages per language, and on the Spanish side a fifth: Tilde,
+the daily word game.
 
 | Route          | What it does |
 | -------------- | ------------ |
@@ -28,9 +29,11 @@ A home page, and four pages per language.
 | `/es/conjugacion` | Every tense of the indicative, subjunctive and imperative. Three tabs for the regular **-ar / -er / -ir** models, plus a verb search that conjugates anything you type. Irregular forms are highlighted. |
 | `/es/diccionario` | Definitions from the *Diccionario de la lengua española*, with senses, synonyms and locutions, plus real example sentences and — in English mode — an English gloss. |
 | `/es/chat`     | A **grounded tutor** that answers from the site's own data — the conjugator, the dictionary, the translator, and hand-written grammar explanations. Needs no API key and invents nothing. |
+| `/es/tilde`    | **Tilde**, a word a day in six guesses, where the accents count. Spanish only. See *[Tilde](#tilde-the-daily-word-game)*. |
 
 `/fr`, `/it`, `/de`, `/nl` and `/pt` carry the same four, with their own
-language behind them: `/fr/conjugacion`, `/it/diccionario`, `/de/chat`. The paths keep their Spanish
+language behind them: `/fr/conjugacion`, `/it/diccionario`, `/de/chat` (but no
+Tilde: `/fr/tilde` is simply the French front page). The paths keep their Spanish
 names on every side — they belong to the site, not to the language, and links
 that already exist should keep working. For the same reason an old link with no
 language on it, `/conjugacion?v=ir`, is moved onto the Spanish side rather than
@@ -77,6 +80,137 @@ whole class sees the same word, and the pick is a function of the date alone:
 no storage, no server, the same word on every copy of the site. The list is
 walked in a scrambled order, so no word comes twice before every word has had
 its day; a tab left open past midnight gets the new word without a reload.
+
+## Tilde, the daily word game
+
+`/es/tilde`, on the Spanish side only: in the header between *Chat* and the
+gear, and as a fourth card at the foot of the Spanish front page. Wordle, with
+the site's own twist: one Spanish word a day, **five, six or seven letters
+long** (the board shows which from the start), six guesses, and **accents that
+count**. Any kind of word can be the answer, and about a third of them are
+conjugated verb forms: *pidió*, *hagamos*, *hubiera*, *dijeron*, *detén*.
+
+**Scoring.** `á é í ó ú ü` are letters of their own, and so is `ñ`. Each tile
+is one of four, worked out in this order (`public/js/lib/tilde.js`):
+
+| | |
+| --- | --- |
+| green | the letter, accent and all, in its place |
+| purple, with a small ´ on the tile | the right letter in its place with the wrong accent: `a` typed where the answer has `á`, or the other way round, or `u` for `ü`. Counted before anything turns yellow, because it says more. |
+| yellow | the letter is elsewhere in the word |
+| grey | it is not, or every copy of it is accounted for |
+
+**Yellow ignores accents.** Someone who types `o` while the answer has an `ó`
+somewhere else has found a letter of the word; grey would send them away from
+it. The accent is settled once the letter is in its place, by the purple.
+**ñ is never n**: it is a letter of the alphabet, not an n with a mark, and the
+two score as different letters. Repeated letters go the Wordle way: each letter
+of the answer answers one tile at most, greens and purples first, then yellows
+from the left. The keyboard shows the best each key has done, and a letter that
+has been grey in every accent tried greys its other accents with it.
+
+**Typing accents.** The on-screen keyboard has the accented vowels in a row of
+their own above a Spanish layout with `ñ`. A physical keyboard works too: a
+Spanish layout or a Mac's dead keys send `á` itself, and on a keyboard with
+neither, the vowel and then `'` gives `á` (`"` after `u` gives `ü`, `~` after
+`n` gives `ñ`).
+
+**A guess has to be a word**, the length of the board, and conjugated forms are
+words. A guess that is a word only with other accents is not played and costs
+no turn: *cancion* asks *¿Querías decir canción?*, and pressing *canción* puts
+it in the row. An `n` that should be an `ñ` is offered the same way (*manana* →
+*mañana*), since that is a keyboard without one rather than a guess.
+
+**The day.** Puzzle #1 is 10 November 2026, and the number goes up at midnight
+wherever the player is, as Wordle's does. The answers are already in a shuffled
+order, so the days simply walk the list, and a page left open past midnight
+starts the new one by itself.
+
+**The hint** is a real sentence from Tatoeba with the answer blanked out to its
+length, and its English translation: *_ _ _ _ _ ayuda.* — *He requested help.*
+Using it puts a 💡 in the shared result. It is not fetched live. Tatoeba's
+ordinary search returns a word's relatives, which is no use for a conjugated
+form, and the site's only sentence route, `/api/dictionary`, spends an RAE
+lookup on every call. So `scripts/build-tilde.mjs` asks Tatoeba once per answer
+for sentences containing that exact form (`="pidió"`), one request a second
+with the site's user agent, keeps the replies in a cache beside the frequency
+list so a rebuild only asks about new words, and writes the chosen sentence
+into the answer list. Tatoeba is written by anyone and this is a site for a
+class, so a sentence that mentions drugs, sex, suicide, murder or a swear word,
+in either language, is never chosen, and the ones turned down on reading the
+hints through (a translation of something else, the word used as another part
+of speech, a name doing the work) are listed by id in the script; the next best
+sentence takes each one's place. The hint is therefore the same on the Node server, on
+GitHub Pages and on Apps Script, and costs no quota anywhere.
+
+**After the game** the board's keyboard gives way to the answer and what it is:
+for a verb form its infinitive, tense and person (*pedir · pretérito, él /
+ella / usted · to ask for*), worked out by the conjugator when the list is
+built, never typed in; for anything else its part of speech and an English
+gloss. Then the sentence with the word back in it, a link to the dictionary
+page (the infinitive, for a verb form) and to the conjugation table, and
+**Share**, which copies
+
+```
+Tilde #3 4/6 💡
+
+⬜🟨⬜⬜⬜
+🟨🟪⬜🟩⬜
+🟩🟪🟩🟩⬜
+🟩🟩🟩🟩🟩
+```
+
+— 🟪 for the wrong accent. The how-to-play and the stats (played, win
+percentage, streak, best streak, the distribution of guesses) sit beside the
+board, below it on a phone. The day's guesses, the hint and the stats are kept
+in `localStorage` under `profegpt:tilde`, every read and write in a try; with
+storage blocked the game still plays, it just forgets.
+
+### Where Tilde's words come from
+
+Two generated files under `public/js/data`, both built by
+`scripts/build-tilde.mjs` and both loaded with `import()` by the game's page
+alone, so the rest of the site never downloads them:
+
+- **`tilde-words.js`**, the guesses: one newline-separated string per length.
+  Every 5–7-letter word of [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords)
+  `es_50k` (the commonest words of Spanish subtitles, OpenSubtitles 2018,
+  CC BY-SA 4.0) that is spelled like Spanish, less the slips subtitles are full
+  of. Subtitles leave accents off far more often than they add them, so a
+  spelling missing an accent that the commonest spelling of its letters has is
+  dropped under 15% as common (*cancion*, *pidio*, *actua*, *dificil*), one
+  with an accent too many only under 5% (*fué* goes, *cuándo* stays), and one
+  missing an ñ under 5% (*manana*); the conjugator's own forms are always kept,
+  and so is a feminine or plural of a word that stands on its own (*seria*,
+  from *serio*) — plus every simple form
+  the conjugator builds for the 400-odd verbs it knows, so a form too rare for
+  the subtitles is still a word. 19,867 guesses in all.
+- **`tilde-answers.js`**, the answers, in the order the days walk them. They
+  are chosen by hand in `scripts/tilde-answers.txt`, from the commonest words of
+  the same list, and read through: no names, nothing vulgar or insulting, no
+  English spelled the English way, nothing obscure. A verb form's readings come
+  from the conjugator (a form it does not build for that verb stops the build;
+  that is how *pidiste* was caught, which is *pediste*). The build deals them
+  out so that a third of any stretch are verb forms and no two days running
+  have the same length. 1,129 answers, 404 of them verb forms:
+  three years before the list starts again.
+
+The frequency list is downloaded by hand, outside the repository:
+
+```bash
+curl -o /tmp/es_50k.txt https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/es/es_50k.txt
+node scripts/build-tilde.mjs /tmp/es_50k.txt --check        # the answer list, checked, without Tatoeba
+node scripts/build-tilde.mjs /tmp/es_50k.txt                # both files, hints included
+node scripts/build-tilde.mjs /tmp/es_50k.txt --candidates   # common words not yet answers
+```
+
+The word list derived from FrequencyWords is under the same CC BY-SA 4.0, and
+the sentences are Tatoeba's (CC BY 2.0 FR); both are credited in a footnote on
+the game's page and in the files' headers. `test/tilde.test.js` checks the
+scoring (accents and repeated letters), that the puzzle is a function of the
+date, that every answer is a guess of the right length with a hint that does
+not give it away, that every verb form is what its reading says, and that "did
+you mean" finds the accented word.
 
 ## The chat page
 
@@ -880,6 +1014,7 @@ the logo, spread edge to edge. **There is no menu button at any width.**
 | `mascot.svg` `mascot-dark.svg` | the home page: an object rather than a mascot — a desk globe, its sphere drawn like Duolingo's own earth on investors.duolingo.com (a pale sky-blue sea, chunky lime land running off the edge, pale cloud pills, no shading), on a gold half-ring and foot — floating free, no floor, between three matching greeting bubbles, *¡Hola!*, *Bonjour* and *Ciao*. The dark version has the bubbles in the dark theme's colours; an `<img>` cannot take the page's colours, so `lib/art.js` swaps between the two as the theme changes. |
 | `es.svg` `fr.svg` `it.svg` `de.svg` `nl.svg` `pt.svg` | each language's landmark, floating free with no ground or trees, and a small Duolingo-style picture of the country overlapping it at the lower right: the Sagrada Família with a bottle and glass of wine, the Eiffel Tower with a croissant, the Tower of Pisa (drawn upright) with a bowl of pasta, the Brandenburg Gate with a pretzel, a brick tower mill with a wheel of cheese, the Tower of Belém with a pastel de nata. On its card on the home page and in its front page's hero. The script prints where each landmark stands on its canvas, which is what the home page's crane is placed from. |
 | `translator.svg` `conjugator.svg` `dictionary.svg` `chat.svg` | the tilted icons on the feature cards and at the top right of each page, as on Duolingo's investor cards |
+| `tilde.svg` | Tilde's card and page: three letter tiles fanned out in the game's colours, the green one in front carrying a tilde |
 | `soon.svg` | the *More languages* card |
 
 The globe is original, in the site's blue (`#4B9AF3`), and nothing is copied from Duolingo's artwork. The Eiffel Tower
@@ -955,7 +1090,7 @@ Everything the site talks to, and nothing else:
 | [rae-api.com](https://rae-api.com) | Spanish definitions, and the RAE's Spanish conjugation tables | `RAE_API_KEY`, optional |
 | [fr.wiktionary.org](https://fr.wiktionary.org), [it.wiktionary.org](https://it.wiktionary.org), [de.wiktionary.org](https://de.wiktionary.org), [nl.wiktionary.org](https://nl.wiktionary.org), [pt.wiktionary.org](https://pt.wiktionary.org) | definitions on every side but the Spanish one | none |
 | [en.wiktionary.org](https://en.wiktionary.org) | the English gloss beside a headword | none |
-| [Tatoeba](https://tatoeba.org) | example sentences | none |
+| [Tatoeba](https://tatoeba.org) | example sentences; Tilde's hints, asked once when its list is built, never by the site | none |
 | [ElevenLabs](https://elevenlabs.io) | pronunciation | `ELEVENLABS_API_KEY` |
 | [Google Fonts](https://fonts.google.com) | Fredoka and Nunito, loaded by the visitor's browser | none |
 
@@ -1035,6 +1170,11 @@ public/
     views/home.js       the home page: the language boxes and the words of the day
     views/word-of-day.js the word card and the home page's gallery of them
     lib/word-of-day.js  which word today: the New York date, walked through the list
+    lib/tilde.js        Tilde's rules: scoring with accents, the day's puzzle,
+                        "did you mean", the shared result and the stats
+    views/tilde.js      Tilde's page: board, keyboard, hint, result, stats
+    data/tilde-words.js   every guess Tilde accepts (generated)
+    data/tilde-answers.js its answers, readings and hints, in order (generated)
     data/words.js       two dozen words a language, with the Spanish stories
     views/translator.js a language's front page: hero, translator, search
     views/              one module per page, driven by the study language
@@ -1048,6 +1188,7 @@ test/
   conjugator-view.test.js 1123 that the page's tense lists match every engine,
                                and that every verb in every index conjugates
   word-of-day.test.js      460 that every list is sound and the pick walks it
+  tilde.test.js           9355 on Tilde's scoring, days, words and hints
   markdown.test.js          20 on the renderer, mostly that tables are tables
   tutor.test.js             86 checks on intent routing, the form index and
                                the rephrasings offered when it declines
@@ -1093,6 +1234,9 @@ pages/
 
 scripts/
   build-pages.mjs       public/ → _site/, for GitHub Pages
+  build-tilde.mjs       Tilde's word lists, from FrequencyWords, the
+                        conjugator and Tatoeba
+  tilde-answers.txt     Tilde's answers, chosen and read by hand
   draw-art.py           every drawing in public/assets/art/
 
 .github/workflows/
@@ -1101,7 +1245,7 @@ scripts/
 archive/wallpapers/     the old city photographs, kept but never served
 ```
 
-`npm test` runs all 12,489 across 25 suites, offline, in a couple of seconds.
+`npm test` runs all 21,844 across 26 suites, offline, in a couple of seconds.
 
 ## The conjugation engine
 
@@ -1237,6 +1381,9 @@ How Apps Script differs from the Node server:
   or Italian lookup that needs the entry, an accent search and an English gloss
   makes three requests in a row. It is slower than on Node, and it is the
   same answer.
+- **Nothing is loaded on demand.** Apps Script serves no files, so a module
+  the page imports only when needed — Tilde's word lists — is bundled with
+  the rest, and `import()` hands over the bundled copy.
 - **The Apps Script page is in an iframe** on another host. Routes are mirrored
   into the address bar as `?page=es/conjugacion&v=ir`, so links and the back
   button work.
@@ -1276,3 +1423,7 @@ properties. None of them is ever in the repository or in the site's files.
   <https://rae-api.com/login> raises it to **60/minute and 5,000/day**; set
   `RAE_API_KEY` and it is sent automatically. Being rate-limited surfaces as a
   429 with a "come back in N minutes" message rather than a generic failure.
+- Tilde's guesses come from [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords)
+  (OpenSubtitles 2018), CC BY-SA 4.0, and its hint sentences from
+  [Tatoeba](https://tatoeba.org), CC BY 2.0 FR. Both are credited on the
+  game's page.

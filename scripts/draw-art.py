@@ -1353,6 +1353,24 @@ def chat():
     return art
 
 
+def tilde():
+    """Tilde, the word game: three letter tiles fanned out like the
+    conjugator's cards, in the game's own colours: yellow for a letter
+    elsewhere, purple for the wrong accent, green in front for a letter in
+    place, carrying the mark the game is named after."""
+    art = Art('tilde.svg', 96, 96)
+    s = 40
+    for col, dark, ang, cx, cy in ((GOLD, GOLD_D, -14, 30, 36), (PURPLE, PURPLE_D, -3, 46, 42), (GREEN, GREEN_D, 10, 61, 53)):
+        art.push(rotate(ang, cx, cy))
+        card_lip(art, cx - s / 2, cy - s / 2, s, s, 9, col, dark, lip=5)
+        art.pop()
+    # the tilde: one stroke, up over a hump and down through a dip
+    art.push(rotate(10, 61, 53))
+    art.line(bezier((48.5, 57), (53.5, 43), (66.5, 65), (73.5, 50)), WHITE, 6.5, what='tilde')
+    art.pop()
+    return art
+
+
 def soon():
     art = Art('soon.svg', 96, 96)
     cx, cy, r = 44, 44, 34
@@ -1376,7 +1394,7 @@ def soon():
 def main():
     os.makedirs(OUT, exist_ok=True)
     for fn in (logo, hero, lambda: hero(dark=True), spain, france, italy, germany, netherlands, portugal,
-               translator, conjugator, dictionary, chat, soon):
+               translator, conjugator, dictionary, chat, tilde, soon):
         art = fn()
         n = art.save()
         print(f'{art.name:18s} {n:6d} bytes')

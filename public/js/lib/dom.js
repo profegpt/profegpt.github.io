@@ -84,6 +84,15 @@ export const ICONS = {
   ],
   down: 'M12 5v14m0 0-6-6m6 6 6-6',
 
+  // Tilde's hint: a filled bulb over a stroked base, for the same reason as
+  // the speaker — outlines go to mush at button size.
+  bulb: [
+    { d: 'M12 2.6a6.5 6.5 0 0 0-4 11.6c.8.7 1.3 1.5 1.3 2.5v.4h5.4v-.4c0-1 .5-1.8 1.3-2.5A6.5 6.5 0 0 0 12 2.6z', fill: true },
+    { d: 'M9.6 20.4h4.8', width: 2.4 },
+  ],
+  // Tilde's delete key: a tag pointing left, with a cross in it.
+  backspace: 'M9 5h10.5A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5H9l-6.2-7L9 5Zm3.2 4.4 5.2 5.2m0-5.2-5.2 5.2',
+
   // Solid bodies with a stroked shackle: an all-outline padlock turns to mush
   // at 16px, which is the size these run at in the header. The keyhole is cut
   // out of the body by winding it the opposite way (evenodd on one path).

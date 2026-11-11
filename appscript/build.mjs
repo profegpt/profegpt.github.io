@@ -12,6 +12,9 @@
  * Apps Script has no modules, so each ES module becomes a function in a small
  * registry. Only the import and export forms this codebase uses are
  * understood; anything else stops the build rather than going out broken.
+ * That includes `import('./x.js')`, which a page uses to load something big
+ * only when it is needed (Tilde's word lists): here, where every module is in
+ * the page already, it resolves to the bundled one.
  *
  * Usage: node appscript/build.mjs   (or npm run appscript:build)
  */
@@ -67,6 +70,7 @@ const SERVER_ENTRIES = [
 const IMPORT = /^import\s+([\s\S]*?)\s+from\s+'([^']+)';?[ \t]*$/gm;
 const EXPORT_DECLARATION = /^export\s+(async\s+function\s*\*?|function\s*\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/gm;
 const EXPORT_LIST = /^export\s*\{([^}]*)\};?[ \t]*$/gm;
+const DYNAMIC_IMPORT = /\bimport\(\s*'([^']+)'\s*\)/g;
 
 function resolve(specifier, importer, aliases) {
   let id = specifier;
@@ -120,6 +124,14 @@ function convert(id, source, { aliases, patches }) {
     deps.push(dep);
     const holder = `__import${counter += 1}`;
     return `const ${holder} = __require(${JSON.stringify(dep)}); ${bindings(clause.trim(), holder, id)}`;
+  });
+
+  // A module loaded on demand is bundled like any other, and handed over as a
+  // promise, the way import() would.
+  code = code.replace(DYNAMIC_IMPORT, (_all, specifier) => {
+    const dep = resolve(specifier, id, aliases);
+    deps.push(dep);
+    return `Promise.resolve().then(() => __require(${JSON.stringify(dep)}))`;
   });
 
   const exported = [];

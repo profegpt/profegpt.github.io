@@ -3,6 +3,7 @@ import { renderTranslatorPage } from './views/translator.js';
 import { renderConjugator } from './views/conjugator.js';
 import { renderDictionary } from './views/dictionary.js';
 import { renderChat } from './views/chat.js';
+import { renderTilde } from './views/tilde.js';
 import { clear } from './lib/dom.js';
 import { mountSettings } from './lib/settings.js';
 import { t } from './lib/i18n.js';
@@ -18,12 +19,17 @@ import { BASE, withBase, withoutBase } from './lib/site.js';
  * should keep working.
  *
  * The bare / is the home page, which belongs to no language.
+ *
+ * Tilde, the daily word game, is Spanish and nothing else: a route with `only`
+ * exists on that side alone, and /fr/tilde is the French front page, as any
+ * address the side does not have would be.
  */
 const ROUTES = [
   { path: '/', nav: 'traductor', render: renderTranslatorPage },
   { path: '/conjugacion', nav: 'conjugacion', render: renderConjugator },
   { path: '/diccionario', nav: 'diccionario', render: renderDictionary },
   { path: '/chat', nav: 'chat', render: renderChat },
+  { path: '/tilde', nav: 'tilde', render: renderTilde, only: 'es' },
 ];
 
 const HOME = { path: '/', nav: null, render: renderHome, home: true };
@@ -44,6 +50,7 @@ const NAV_KEYS = {
   conjugacion: 'conjugation',
   diccionario: 'dictionary',
   chat: 'chat',
+  tilde: 'tilde',
   idiomas: 'languages',
 };
 
@@ -52,6 +59,7 @@ const NAV_PATHS = {
   conjugacion: '/conjugacion',
   diccionario: '/diccionario',
   chat: '/chat',
+  tilde: '/tilde',
   // The home page's language choice, from any side of the site.
   idiomas: 'home#idiomas',
 };
@@ -111,7 +119,7 @@ function match() {
 
   setStudyLang(study);
   const rest = pageOf(pathname).replace(/\/+$/, '') || '/';
-  return ROUTES.find((route) => route.path === rest) ?? ROUTES[0];
+  return ROUTES.find((route) => route.path === rest && (!route.only || route.only === study)) ?? ROUTES[0];
 }
 
 function markActive(nav) {

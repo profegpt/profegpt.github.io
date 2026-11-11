@@ -38,6 +38,7 @@ const ART = {
   conjugator: '/assets/art/conjugator.svg',
   dictionary: '/assets/art/dictionary.svg',
   chat: '/assets/art/chat.svg',
+  tilde: '/assets/art/tilde.svg',
   soon: '/assets/art/soon.svg',
 };
 
