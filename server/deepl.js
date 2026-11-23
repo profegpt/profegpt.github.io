@@ -39,9 +39,13 @@ export async function deepl(text, from, to) {
   if (!key) throw new Error('No DeepL key');
   if (!isFreeKey(key)) throw new Error('DeepL key is not a free (:fx) key; refusing a billed one');
   if (!CODES[from] || !TARGETS[to]) throw new Error(`DeepL has no ${from}|${to} pair`);
+  if (from === to) throw new Error(`DeepL was asked to translate ${from} into itself`);
 
   const body = new URLSearchParams({
     text,
+    // Always sent. Left out, DeepL detects the language itself, and a short
+    // word that exists in several ("hi", "no", "pain") can be read as the
+    // wrong one. The source is the source pane's language, full stop.
     source_lang: CODES[from],
     target_lang: TARGETS[to],
     // The box is for sentences a student is reading, not for markup.

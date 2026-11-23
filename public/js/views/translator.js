@@ -2,13 +2,20 @@ import { el, icon, ICONS, clear, debounce, postJson } from '../lib/dom.js';
 import { art } from '../lib/art.js';
 import { pick, t } from '../lib/i18n.js';
 import { page, studyLang } from '../lib/study.js';
+import {
+  acceptsAnswer, initialDirection, requestBody, swapPanes,
+} from '../lib/translator-state.js';
 import { wordCard } from './word-of-day.js';
 
 /**
  * The two sides of the translator: the language the site is about, and English.
+ *
+ * Built from the study language the translator was drawn with, not whatever
+ * studyLang() says later, so the labels, the direction and the request all
+ * name the same two languages for as long as this translator is on the page.
  */
-const LANGUAGES = () => ({
-  [studyLang()]: {
+const LANGUAGES = (study) => ({
+  [study]: {
     label: t('translator.studyName'),
     placeholder: 'translator.placeholderStudy',
     out: 'translator.outStudy',
@@ -137,7 +144,12 @@ function fitOnOneLine(row) {
 }
 
 function buildTranslator(root) {
-  const state = { from: 'en', to: studyLang(), pending: null };
+  // The side this translator belongs to, fixed for its lifetime. See LANGUAGES.
+  const study = studyLang();
+  // `shown` is what the target pane's text is the translation of: the text and
+  // the direction it was asked in. Null when the pane holds no answer to trust.
+  const state = { ...initialDirection(study), pending: null, shown: null };
+  const direction = () => ({ from: state.from, to: state.to });
 
   const input = el('textarea', { spellcheck: false, maxLength: MAX_CHARS, 'aria-label': t('translator.sourceLabel') });
 
@@ -181,7 +193,7 @@ function buildTranslator(root) {
     listen.classList.remove('speak--failed');
     try {
       const english = state.to === 'en' ? '&lang=en' : '';
-      const response = await fetch(`/api/speak?text=${encodeURIComponent(text)}&study=${studyLang()}${english}`);
+      const response = await fetch(`/api/speak?text=${encodeURIComponent(text)}&study=${study}${english}`);
       if (!response.ok) {
         if (response.status === 503) { listen.remove(); return; }
         const failure = await response.json().catch(() => ({}));
@@ -277,7 +289,7 @@ function buildTranslator(root) {
   // --- behaviour -----------------------------------------------------------
 
   function paintLanguages() {
-    const languages = LANGUAGES();
+    const languages = LANGUAGES(study);
     const source = languages[state.from];
     const target = languages[state.to];
     sourceLang.textContent = source.label;
@@ -286,12 +298,21 @@ function buildTranslator(root) {
     output.dataset.placeholder = t(target.out);
   }
 
+  /** Empty the target pane, and forget what it was the translation of. */
+  function clearAnswer() {
+    clear(output);
+    clear(notes);
+    engine.textContent = '';
+    state.shown = null;
+  }
+
   function sync() {
     counter.textContent = `${input.value.length} / ${MAX_CHARS}`;
     if (!input.value.trim()) {
-      clear(output);
-      clear(notes);
-      engine.textContent = '';
+      // Nothing to translate, so nothing still on its way may land here either.
+      scheduleTranslate.cancel();
+      state.pending?.abort();
+      clearAnswer();
       status.textContent = t('translator.ready');
       return;
     }
@@ -306,17 +327,20 @@ function buildTranslator(root) {
     const controller = new AbortController();
     state.pending = controller;
 
+    // Both ends are sent, from the same state the labels are painted from:
+    // the source is the source pane's language, never left to be detected.
+    const request = requestBody(text, direction(), study);
+
     clear(status);
     status.append(el('span', { class: 'spinner' }), ` ${t('translator.working')}`);
 
     try {
-      const data = await postJson(
-        '/api/translate',
-        { text, from: state.from, study: studyLang() },
-        { signal: controller.signal },
-      );
+      const data = await postJson('/api/translate', request, { signal: controller.signal });
       if (controller.signal.aborted) return;
+      // An answer for other text or the other direction is not this one's.
+      if (!acceptsAnswer(request, { text: input.value, direction: direction() }, data)) return;
       output.textContent = data.translation || '';
+      state.shown = data.translation ? { text, from: request.from, to: request.to } : null;
       paintNotes(data.notes);
       engine.textContent = data.engine ? t('translator.engine', { engine: data.engine }) : '';
       status.textContent = force ? t('translator.done') : t('translator.ready');
@@ -324,15 +348,17 @@ function buildTranslator(root) {
       if (controller.signal.aborted || error.name === 'AbortError') return;
       clear(status);
       /**
-       * DeepL could not answer, and nothing else is asked. The old
-       * translation is cleared rather than left standing under the new
-       * sentence — it would read as the answer to it — and the reason is said
-       * once, plainly, where the translation would have been.
+       * Whatever went wrong, the old translation is cleared rather than left
+       * standing under the new sentence with "translated with DeepL" beneath
+       * it: it would read as the answer to it. That used to happen whenever
+       * the request failed for any reason but DeepL's own (the Apps Script
+       * reply lost, a busy server), and a swap after that carried the stale
+       * text across into the other pane.
        */
+      clearAnswer();
       if (error.data?.unavailable) {
-        clear(output);
-        clear(notes);
-        engine.textContent = '';
+        // DeepL could not answer, and nothing else is asked. The reason is
+        // said once, plainly, where the translation would have been.
         notes.appendChild(el('p', { class: 'translator__down' },
           el('b', {}, t('translator.unavailableTitle')),
           ` ${t('translator.unavailable')}`));
@@ -359,12 +385,21 @@ function buildTranslator(root) {
     scheduleTranslate.cancel();
     state.pending?.abort();
 
-    // Keep what is on screen: the translation becomes the new source text.
-    const previousOutput = output.textContent;
-    const previousInput = input.value;
-    [state.from, state.to] = [state.to, state.from];
-    input.value = previousOutput;
-    output.textContent = previousOutput ? previousInput : '';
+    // The translation becomes the new source text, but only when it is the
+    // translation of what the source pane holds; otherwise the languages turn
+    // round and the source text is translated afresh. See swapPanes.
+    const next = swapPanes({
+      direction: direction(),
+      input: input.value,
+      output: output.textContent,
+      shown: state.shown,
+    });
+    state.from = next.direction.from;
+    state.to = next.direction.to;
+    state.shown = next.shown;
+    input.value = next.input;
+    output.textContent = next.output;
+    if (!next.shown) { clear(notes); engine.textContent = ''; }
 
     paintLanguages();
     counter.textContent = `${input.value.length} / ${MAX_CHARS}`;
@@ -373,7 +408,7 @@ function buildTranslator(root) {
     input.focus();
 
     if (input.value.trim()) translate();
-    else { clear(output); clear(notes); engine.textContent = ''; status.textContent = t('translator.ready'); }
+    else { clearAnswer(); status.textContent = t('translator.ready'); }
   });
 
   input.addEventListener('input', sync);

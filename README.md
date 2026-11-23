@@ -423,6 +423,17 @@ The translator waits **900ms** after you stop typing rather than 650. Every
 pause is a DeepL request against a shared monthly allowance, so a beat more
 patience is a lesson's worth of headroom.
 
+**The direction is the panes', never guessed.** The page sends `from` (the
+source pane's language) and `to` (the target pane's) with every request, and
+DeepL is always given `source_lang`, so a short word that is also a word
+elsewhere (*hi*, *no*, *pain*) is read in the language it was typed in. The
+route refuses (400) a request that does not name English and the side's
+language, rather than reading anything but `from: 'en'` as the side's language
+going into English. The page shows an answer only if it is for the text and
+direction on screen, clears the target pane on any failure, and its swap button
+carries the translation across only when it is the translation of what the
+source pane holds (`public/js/lib/translator-state.js`).
+
 ### Idioms
 
 Most idioms already survive translation — "it's raining cats and dogs" comes
@@ -1202,7 +1213,10 @@ test/
   translators.test.js       62 checks that DeepL is the only engine asked, that
                                every way it can fail ends in "unavailable", that
                                Wikipedia puts names right without ever standing
-                               in for DeepL, and that the idioms still correct it
+                               in for DeepL, that the idioms still correct it,
+                               and that DeepL is always told both languages
+  translator-state.test.js 140 that the labels, the request, the answer accepted
+                               and the swap button always name the same direction
   idioms.test.js            53 checks on idiom pairing in every direction
   dictionary-it.test.js ·it  26 on reading Wikizionario wikitext
   dictionary-de.test.js ·de  52 on the German Wiktionary's

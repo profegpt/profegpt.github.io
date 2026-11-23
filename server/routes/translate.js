@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { translate } from '../translators.js';
-import { studyOf } from '../study.js';
+import { STUDY_LANGUAGES } from '../study.js';
 
 export const router = Router();
 
@@ -11,6 +11,38 @@ const MAX_INPUT = 500;
 const cache = new Map();
 const CACHE_TTL = 1000 * 60 * 60 * 12;
 const CACHE_MAX = 500;
+
+/**
+ * Part of every cache key. On Apps Script the cache is CacheService, which
+ * outlives a deploy by up to six hours, so bumping this is how a deploy drops
+ * answers cached by the code it replaces.
+ */
+const CACHE_VERSION = 'v2';
+
+/**
+ * Which way to translate, from what the page says, or null if it does not
+ * say clearly.
+ *
+ * Both ends are named by the page: the source pane's language and the target
+ * pane's. Nothing is guessed. This used to read only `from`, and anything
+ * that was not exactly 'en' (missing, 'EN', 'en-US') was quietly taken as the
+ * study language going into English, so a request meant for French could
+ * come back in English. An unclear request is now refused instead, and DeepL
+ * is told the source language every time, so a short word that is also a
+ * word elsewhere ("hi", "no", "pain") is read in the language it was typed in.
+ *
+ * `to` may be left out by older pages, and is then the other end of the pair.
+ */
+export function directionOf(body) {
+  const study = body?.study;
+  if (!STUDY_LANGUAGES.includes(study)) return null;
+  const from = body?.from;
+  if (from !== 'en' && from !== study) return null;
+  const to = body?.to === undefined ? (from === 'en' ? study : 'en') : body.to;
+  if (to !== 'en' && to !== study) return null;
+  if (to === from) return null;
+  return { study, from, to };
+}
 
 function remember(key, value) {
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
@@ -23,18 +55,22 @@ function remember(key, value) {
  * cannot answer the page says so rather than offering a lesser engine's guess.
  *
  * The site always translates between English and the language it is currently
- * about, so `study` picks the other end of the pair and `from` says which way
- * round it is going.
+ * about: `study` is that language, `from` the source pane's and `to` the
+ * target pane's. See directionOf.
  */
 router.post('/', async (req, res) => {
   const text = String(req.body?.text ?? '').slice(0, MAX_INPUT);
-  const study = studyOf(req.body?.study);
-  const from = req.body?.from === 'en' ? 'en' : study;
-  const to = from === 'en' ? study : 'en';
+  const direction = directionOf(req.body);
+  if (!direction) {
+    return res.status(400).json({
+      error: 'Say which way to translate: from and to are English and the language of the side.',
+    });
+  }
+  const { study, from, to } = direction;
 
-  if (!text.trim()) return res.json({ translation: '', engine: null });
+  if (!text.trim()) return res.json({ translation: '', engine: null, from, to });
 
-  const key = `${from}>${to}:${text}`;
+  const key = `${CACHE_VERSION}:${from}>${to}:${text}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_TTL) return res.json(hit.value);
 
@@ -44,6 +80,9 @@ router.post('/', async (req, res) => {
       translation: result.text,
       engine: result.engine,
       notes: result.notes || [],
+      // Which way it went, so the page can check it is the way it asked.
+      from,
+      to,
     };
 
     remember(key, payload);

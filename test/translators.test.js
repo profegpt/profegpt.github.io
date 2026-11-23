@@ -246,6 +246,76 @@ ok('a failure is not cached: DeepL coming back is noticed at once', response.bod
   JSON.stringify(response.body));
 ok('and the answer names DeepL', response.body.engine === 'DeepL', JSON.stringify(response.body));
 
+// --- the direction is the panes', never guessed --------------------------------
+// The bug report: ENGLISH → FRENCH, "hi" typed, and "Health" came back in the
+// French pane. A short word that is also a word in another language ("hi",
+// "no", "pain") must be read in the source pane's language and put into the
+// target pane's, and DeepL must be told both, every time.
+const STUDIES = ['es', 'fr', 'it', 'de', 'nl', 'pt'];
+const DEEPL_SOURCE = { en: 'EN', es: 'ES', fr: 'FR', it: 'IT', de: 'DE', nl: 'NL', pt: 'PT' };
+const DEEPL_TARGET = { en: 'EN-GB', es: 'ES', fr: 'FR', it: 'IT', de: 'DE', nl: 'NL', pt: 'PT-PT' };
+let sentToDeepl = [];
+plan = (text, sent) => {
+  sentToDeepl.push(Object.fromEntries(sent));
+  return `[${sent.get('source_lang')}>${sent.get('target_lang')}] ${text}`;
+};
+
+for (const study of STUDIES) {
+  for (const word of ['hi', 'no', 'pain']) {
+    for (const [from, to] of [['en', study], [study, 'en']]) {
+      // As the page sends it now, with both ends; and as an older page did, with `from` alone.
+      for (const body of [{ text: word, from, to, study }, { text: word, from, study }]) {
+        sentToDeepl = [];
+        response = await post(body);
+        const label = `${JSON.stringify(body)}`;
+        ok(`${label}: answered`, response.status === 200, JSON.stringify(response.body));
+        ok(`${label}: DeepL is asked once, for this word`, sentToDeepl.length <= 1
+          && (sentToDeepl.length === 0 || sentToDeepl[0].text === word), JSON.stringify(sentToDeepl));
+        ok(`${label}: DeepL is told the source language, not left to detect it`,
+          sentToDeepl.every((sent) => sent.source_lang === DEEPL_SOURCE[from]), JSON.stringify(sentToDeepl));
+        ok(`${label}: and the target is the target pane's`,
+          sentToDeepl.every((sent) => sent.target_lang === DEEPL_TARGET[to]), JSON.stringify(sentToDeepl));
+        ok(`${label}: the answer went that way`,
+          response.body.translation === `[${DEEPL_SOURCE[from]}>${DEEPL_TARGET[to]}] ${word}`,
+          JSON.stringify(response.body));
+        ok(`${label}: and says so`, response.body.from === from && response.body.to === to,
+          JSON.stringify(response.body));
+      }
+    }
+  }
+}
+
+// A request that does not say clearly which way is refused, not guessed. Before,
+// anything but from === 'en' was read as the study language going into English.
+for (const body of [
+  { text: 'hi', study: 'fr' },                          // no source at all
+  { text: 'hi', from: 'EN', study: 'fr' },              // not a code the site uses
+  { text: 'hi', from: 'en-US', study: 'fr' },
+  { text: 'hi', from: 'hi', study: 'fr' },              // Hindi is not a side of the site
+  { text: 'hi', from: 'en', to: 'en', study: 'fr' },    // into itself
+  { text: 'hi', from: 'en', to: 'es', study: 'fr' },    // the other side's language
+  { text: 'hi', from: 'it', to: 'en', study: 'fr' },
+  { text: 'hi', from: 'en', to: 'fr' },                 // no side
+  { text: 'hi', from: 'en', to: 'fr', study: 'xx' },
+]) {
+  sentToDeepl = [];
+  response = await post(body);
+  ok(`${JSON.stringify(body)} is refused`, response.status === 400, `${response.status} ${JSON.stringify(response.body)}`);
+  ok(`${JSON.stringify(body)} never reaches DeepL`, sentToDeepl.length === 0, JSON.stringify(sentToDeepl));
+}
+
+// Cached answers are per direction: "pain" into French is not "pain" into English.
+sentToDeepl = [];
+const intoFrench = await post({ text: 'pain', from: 'en', to: 'fr', study: 'fr' });
+const intoEnglish = await post({ text: 'pain', from: 'fr', to: 'en', study: 'fr' });
+ok('a cached answer is never served for the other direction', intoFrench.body.translation !== intoEnglish.body.translation,
+  `${intoFrench.body.translation} / ${intoEnglish.body.translation}`);
+
+// And the engine itself refuses a pair that goes nowhere.
+plan = 'x';
+({ error } = await run('hi', 'fr', 'fr'));
+ok('DeepL is never asked to translate a language into itself', error?.unavailable === true, String(error?.message));
+
 server.close();
 
 if (failures.length) {
