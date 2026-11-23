@@ -1366,6 +1366,16 @@ on jsDelivr. That loader writes the live web app's own page into a frame
 as plain, cookie-free requests). No server change is involved. After any deploy
 done another way, run `npm run jsdelivr:publish`.
 
+Last it runs **`scripts/publish-firebase.sh`**, which republishes
+**<https://profe-gpt.web.app>** (Firebase project `agoral-a1`, site `profe-gpt`):
+the same standalone page, alone on the site, with every path rewritten to it.
+`profegpt.web.app` (project `saxonplanner`) only redirects there. Before this
+script existed the site held a hand-copied snapshot (`hosting/pg/index.html` in
+the planner repo, now out of date), so it could fall behind the web app.
+`npm run firebase:publish` runs it on its own. The arcade checkout path can be
+set with `ARCADE=` (on the current Mac it is
+`~/Cursor/saxon-planner/planner/arcade`, not `~/planner/arcade`).
+
 The keys go in *Project Settings → Script properties*, one row per variable you
 would put in `.env`: `DEEPL_API_KEY`, `ELEVENLABS_API_KEY`, `RAE_API_KEY`,
 While none of the three keys is set, the Apps Script page
