@@ -1,4 +1,4 @@
-# ProfeGPT
+# Profe
 
 A language learning site for Spanish, French, Italian, German, Dutch and
 Portuguese: for each, a two-way translator, complete conjugation tables, a
@@ -53,7 +53,7 @@ they are about to walk into.
 **Enter**, the *Enter* button, or a second click on the chosen box goes in. The
 keyboard path is the same three steps as the mouse one.
 
-The ProfeGPT wordmark in the header always comes back here.
+The Profe wordmark in the header always comes back here.
 
 Every time the page is drawn, on opening the site or coming back to it, the
 globe turns once (about a second). Rest the mouse on a language for a moment
@@ -571,7 +571,7 @@ only the Spanish ones are things she actually said.
 
 ## The French side
 
-`/fr`, reached from its box on the home page, is ProfeGPT as a French site.
+`/fr`, reached from its box on the home page, is Profe as a French site.
 
 What changes:
 
@@ -710,7 +710,7 @@ rule that the translator would rather say it is unavailable than say that.
 
 ## The Italian side
 
-`/it` is ProfeGPT as an Italian site, built exactly the way the French side is:
+`/it` is Profe as an Italian site, built exactly the way the French side is:
 the same pages, the same router, and a pack of its own for
 everything that is about the language.
 
@@ -850,7 +850,7 @@ code `it`.
 
 ## The German side
 
-`/de` is ProfeGPT as a German site. What changes:
+`/de` is Profe as a German site. What changes:
 
 | | |
 | --- | --- |
@@ -915,7 +915,7 @@ about whether it names something.
 
 ## The Dutch side
 
-`/nl` is ProfeGPT as a Dutch site, built the way the German side is. The
+`/nl` is Profe as a Dutch site, built the way the German side is. The
 interface is *Nederlands* or *English*; the translator is Dutch ↔ English
 through DeepL with 35 Dutch idioms, each with a `core` for the same reason the
 German ones have one; the dictionary is **WikiWoordenboek** (nl.wiktionary.org,
@@ -937,7 +937,7 @@ against Wiktionary's tables for 141 verbs.
 
 ## The Portuguese side
 
-`/pt` is ProfeGPT as a Portuguese site, built the way the French and Italian
+`/pt` is Profe as a Portuguese site, built the way the French and Italian
 sides are. Its Portuguese is **Portugal's**, in the spelling of the 1990
 Orthographic Agreement, as the site's Spanish is Spain's: *falámos* against
 *falamos*, *estar a fazer*, *tu* beside *você*. Where Brazilian usage differs
@@ -1301,7 +1301,7 @@ anything:
 | | | |
 | --- | --- | --- |
 | **GitHub Pages** | <https://profegpt.github.io/> | the main address. The browser half of the site, as static files. |
-| **Google Apps Script** | the *ProfeGPT web app* deployment | the server half for the Pages site — translation, dictionaries, pronunciation — and the whole site again, on its own, for anyone with that link. |
+| **Google Apps Script** | the *Profe web app* deployment | the server half for the Pages site — translation, dictionaries, pronunciation — and the whole site again, on its own, for anyone with that link. |
 
 GitHub Pages serves files and nothing else, and the server half needs the API
 keys, which must never reach a browser. Apps Script runs the same server code
@@ -1349,7 +1349,7 @@ server code ends up in the site.
 project in `appscript/dist`, and `appscript/src` supplies the parts Apps Script
 lacks. A change to the site is a change to both; rebuild and redeploy.
 
-**`npm run appscript:deploy`** builds, pushes, and moves the *ProfeGPT web app*
+**`npm run appscript:deploy`** builds, pushes, and moves the *Profe web app*
 deployment to the new version, so its address — the one `pages/config.json`
 points at — never changes. (`npm run appscript:push` only uploads, and leaves
 visitors on the old version.)

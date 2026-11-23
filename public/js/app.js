@@ -92,6 +92,10 @@ function paintChrome() {
     className: 'footer__legal',
     textContent: t('meta.copyright'),
   }));
+  footer.appendChild(Object.assign(document.createElement('span'), {
+    className: 'footer__legal',
+    textContent: t('meta.noAi'),
+  }));
 }
 
 let teardown = null;
@@ -154,7 +158,7 @@ async function navigate() {
     main.dataset.page = route.home ? 'home' : route.nav;
     document.title = route.home || route.path === '/'
       ? t('meta.home')
-      : `ProfeGPT · ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
+      : `Profe · ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
     teardown = (await route.render(main)) || null;
     currentKey = key;
     if (!hash) window.scrollTo({ top: 0 });

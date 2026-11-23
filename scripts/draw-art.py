@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Draws ProfeGPT's illustrations into public/assets/art/.
+Draws Profe's illustrations into public/assets/art/.
 
     python3 scripts/draw-art.py [out_dir]
 

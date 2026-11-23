@@ -1,7 +1,7 @@
 /**
  * The language the site is *about*.
  *
- * ProfeGPT is one site with a side per language — Spanish, French, Italian,
+ * Profe is one site with a side per language — Spanish, French, Italian,
  * German, Dutch, Portuguese — each with the same pages and the same engines,
  * pointed at a different language. Everything that reads as content (verb forms,
  * dictionary headwords, grammar notes, the tutor's answers) comes from

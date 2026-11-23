@@ -54,7 +54,7 @@ app.use((error, _req, res, _next) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`ProfeGPT → http://localhost:${PORT}`);
+  console.log(`Profe → http://localhost:${PORT}`);
   console.log(hasDeepl()
     ? '  Translator: DeepL'
     : '  Translator: unavailable — set a free DEEPL_API_KEY (ending :fx) to turn it on.');

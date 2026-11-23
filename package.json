@@ -2,7 +2,7 @@
   "name": "profegpt",
   "version": "0.1.0",
   "private": true,
-  "description": "ProfeGPT — Spanish, French, Italian, German, Dutch and Portuguese: a translator, conjugation tables, dictionaries and a grounded tutor for each.",
+  "description": "Profe — Spanish, French, Italian, German, Dutch and Portuguese: a translator, conjugation tables, dictionaries and a grounded tutor for each.",
   "type": "module",
   "scripts": {
     "start": "node server/index.js",
@@ -14,7 +14,7 @@
     "pages:build": "node scripts/build-pages.mjs",
     "jsdelivr:publish": "sh scripts/publish-jsdelivr.sh",
     "firebase:publish": "sh scripts/publish-firebase.sh",
-    "appscript:deploy": "node appscript/build.mjs && cd appscript && npx @google/clasp push --force && npx @google/clasp deploy -i AKfycbzQJSe8rHdR9ZDTmpEfFtOtUaHbirB9jQd0rP8GuOYqA-5MNLCDGZYBfOPirBDVybsObQ -d \"ProfeGPT web app\" && cd .. && sh scripts/publish-jsdelivr.sh && sh scripts/publish-firebase.sh"
+    "appscript:deploy": "node appscript/build.mjs && cd appscript && npx @google/clasp push --force && npx @google/clasp deploy -i AKfycbzQJSe8rHdR9ZDTmpEfFtOtUaHbirB9jQd0rP8GuOYqA-5MNLCDGZYBfOPirBDVybsObQ -d \"Profe web app\" && cd .. && sh scripts/publish-jsdelivr.sh && sh scripts/publish-firebase.sh"
   },
   "engines": {
     "node": ">=20"

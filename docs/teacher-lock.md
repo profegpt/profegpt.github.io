@@ -1,6 +1,6 @@
 # The teacher's lock (removed)
 
-ProfeGPT used to have a padlock in the settings menu. A teacher typed a
+Profe used to have a padlock in the settings menu. A teacher typed a
 passcode and **the whole site was sealed for everyone at once** — every open
 page, on every student's screen — until someone with the passcode unlocked it.
 It was removed in October 2026. This page records what it was and how it was

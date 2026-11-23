@@ -8,7 +8,7 @@ set -e
 cd "$(dirname "$0")/.."
 OUT=$(mktemp -d); mkdir -p "$OUT/public"
 node scripts/standalone.mjs "$OUT/public/index.html"
-grep -q '<title>ProfeGPT' "$OUT/public/index.html" || { echo "built page doesn't look like ProfeGPT, refusing"; exit 1; }
+grep -q '<title>Profe' "$OUT/public/index.html" || { echo "built page doesn't look like Profe, refusing"; exit 1; }
 cat > "$OUT/firebase.json" <<'JSON'
 { "hosting": { "site": "profe-gpt", "public": "public", "rewrites": [ { "source": "**", "destination": "/index.html" } ] } }
 JSON

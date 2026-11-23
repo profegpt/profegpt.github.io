@@ -92,10 +92,11 @@ const SPANISH = {
   },
 
   meta: {
-    home: two('ProfeGPT', 'ProfeGPT'),
+    home: two('Profe', 'Profe'),
     skip: two('Saltar al contenido', 'Skip to content'),
     footer: two('definiciones del', 'definitions from the'),
     copyright: two('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    noAi: two('Este sitio no usa ningún chatbot ni modelo de lenguaje de IA. Traducciones de DeepL.', 'No AI chatbot or language model runs on this site. Translations by DeepL.'),
     footerDict: two('Diccionario de la lengua española', 'Diccionario de la lengua española'),
     footerHref: two('https://dle.rae.es', 'https://dle.rae.es'),
     footerCredit: two(' (RAE)', ' (RAE)'),
@@ -107,7 +108,7 @@ const SPANISH = {
       'Translate from Spanish to English and English to Spanish. Conjugate any verb. Look words up in the RAE and ask the tutor.',
     ),
     ctaTranslate: two('Prueba el traductor', 'Try the translator'),
-    ctaChat: two('Habla con ProfeGPT', 'Talk to ProfeGPT'),
+    ctaChat: two('Habla con Profe', 'Talk to Profe'),
   },
 
   translator: {
@@ -249,7 +250,7 @@ const SPANISH = {
   },
 
   chat: {
-    title: two('Pregúntale a ProfeGPT', 'Ask ProfeGPT'),
+    title: two('Pregúntale a Profe', 'Ask Profe'),
     lead: two(
       'Conjugaciones, definiciones de la RAE, traducciones y explicaciones de gramática.',
       'Conjugations, RAE definitions, translations and grammar explanations.',
@@ -269,7 +270,7 @@ const SPANISH = {
   },
 
   home: {
-    title: two('ProfeGPT', 'ProfeGPT'),
+    title: two('Profe', 'Profe'),
     lead: two(
       'Traductor, conjugaciones, diccionario y un tutor para cada idioma. Elige uno para empezar.',
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
@@ -409,10 +410,11 @@ const FRENCH = {
   },
 
   meta: {
-    home: deux('ProfeGPT', 'ProfeGPT'),
+    home: deux('Profe', 'Profe'),
     skip: deux('Aller au contenu', 'Skip to content'),
     footer: deux('définitions du', 'definitions from the'),
     copyright: deux('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    noAi: deux('Ce site n’utilise aucun chatbot ni modèle de langage d’IA. Traductions par DeepL.', 'No AI chatbot or language model runs on this site. Translations by DeepL.'),
     footerDict: deux('Wiktionnaire', 'Wiktionnaire'),
     footerHref: deux('https://fr.wiktionary.org', 'https://fr.wiktionary.org'),
     footerCredit: deux(' (CC BY-SA)', ' (CC BY-SA)'),
@@ -424,7 +426,7 @@ const FRENCH = {
       'Translate from French to English and English to French. Conjugate any verb. Look words up and ask the tutor.',
     ),
     ctaTranslate: deux('Essayez le traducteur', 'Try the translator'),
-    ctaChat: deux('Parlez à ProfeGPT', 'Talk to ProfeGPT'),
+    ctaChat: deux('Parlez à Profe', 'Talk to Profe'),
   },
 
   translator: {
@@ -564,7 +566,7 @@ const FRENCH = {
   },
 
   chat: {
-    title: deux('Demandez à ProfeGPT', 'Ask ProfeGPT'),
+    title: deux('Demandez à Profe', 'Ask Profe'),
     lead: deux(
       'Conjugaisons, définitions, traductions et explications de grammaire.',
       'Conjugations, definitions, translations and grammar explanations.',
@@ -584,7 +586,7 @@ const FRENCH = {
   },
 
   home: {
-    title: deux('ProfeGPT', 'ProfeGPT'),
+    title: deux('Profe', 'Profe'),
     lead: deux(
       'Un traducteur, la conjugaison, un dictionnaire et un tuteur pour chaque langue. Choisissez-en une pour commencer.',
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
@@ -622,10 +624,11 @@ const ITALIAN = {
   },
 
   meta: {
-    home: due('ProfeGPT', 'ProfeGPT'),
+    home: due('Profe', 'Profe'),
     skip: due('Vai al contenuto', 'Skip to content'),
     footer: due('definizioni dal', 'definitions from the'),
     copyright: due('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    noAi: due('Questo sito non usa chatbot né modelli linguistici di IA. Traduzioni di DeepL.', 'No AI chatbot or language model runs on this site. Translations by DeepL.'),
     footerDict: due('Wikizionario', 'Wikizionario'),
     footerHref: due('https://it.wiktionary.org', 'https://it.wiktionary.org'),
     footerCredit: due(' (CC BY-SA)', ' (CC BY-SA)'),
@@ -637,7 +640,7 @@ const ITALIAN = {
       'Translate from Italian to English and English to Italian. Conjugate any verb. Look words up and ask the tutor.',
     ),
     ctaTranslate: due('Prova il traduttore', 'Try the translator'),
-    ctaChat: due('Parla con ProfeGPT', 'Talk to ProfeGPT'),
+    ctaChat: due('Parla con Profe', 'Talk to Profe'),
   },
 
   translator: {
@@ -777,7 +780,7 @@ const ITALIAN = {
   },
 
   chat: {
-    title: due('Chiedi a ProfeGPT', 'Ask ProfeGPT'),
+    title: due('Chiedi a Profe', 'Ask Profe'),
     lead: due(
       'Coniugazioni, definizioni, traduzioni e spiegazioni di grammatica.',
       'Conjugations, definitions, translations and grammar explanations.',
@@ -797,7 +800,7 @@ const ITALIAN = {
   },
 
   home: {
-    title: due('ProfeGPT', 'ProfeGPT'),
+    title: due('Profe', 'Profe'),
     lead: due(
       'Un traduttore, le coniugazioni, un dizionario e un tutor per ogni lingua. Scegline una per cominciare.',
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
@@ -837,10 +840,11 @@ const PORTUGUESE = {
   },
 
   meta: {
-    home: dois('ProfeGPT', 'ProfeGPT'),
+    home: dois('Profe', 'Profe'),
     skip: dois('Saltar para o conteúdo', 'Skip to content'),
     footer: dois('definições do', 'definitions from the'),
     copyright: dois('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    noAi: dois('Este site não usa chatbots nem modelos de linguagem de IA. Traduções do DeepL.', 'No AI chatbot or language model runs on this site. Translations by DeepL.'),
     footerDict: dois('Wikcionário', 'Wikcionário'),
     footerHref: dois('https://pt.wiktionary.org', 'https://pt.wiktionary.org'),
     footerCredit: dois(' (CC BY-SA)', ' (CC BY-SA)'),
@@ -852,7 +856,7 @@ const PORTUGUESE = {
       'Translate from Portuguese to English and English to Portuguese. Conjugate any verb. Look words up and ask the tutor.',
     ),
     ctaTranslate: dois('Experimenta o tradutor', 'Try the translator'),
-    ctaChat: dois('Fala com o ProfeGPT', 'Talk to ProfeGPT'),
+    ctaChat: dois('Fala com o Profe', 'Talk to Profe'),
   },
 
   translator: {
@@ -991,7 +995,7 @@ const PORTUGUESE = {
   },
 
   chat: {
-    title: dois('Pergunta ao ProfeGPT', 'Ask ProfeGPT'),
+    title: dois('Pergunta ao Profe', 'Ask Profe'),
     lead: dois(
       'Conjugações, definições, traduções e explicações de gramática.',
       'Conjugations, definitions, translations and grammar explanations.',
@@ -1011,7 +1015,7 @@ const PORTUGUESE = {
   },
 
   home: {
-    title: dois('ProfeGPT', 'ProfeGPT'),
+    title: dois('Profe', 'Profe'),
     lead: dois(
       'Um tradutor, as conjugações, um dicionário e um tutor para cada língua. Escolhe uma para começar.',
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
@@ -1051,10 +1055,11 @@ const GERMAN = {
   },
 
   meta: {
-    home: zwei('ProfeGPT', 'ProfeGPT'),
+    home: zwei('Profe', 'Profe'),
     skip: zwei('Zum Inhalt springen', 'Skip to content'),
     footer: zwei('Definitionen aus dem', 'definitions from the'),
     copyright: zwei('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    noAi: zwei('Diese Seite nutzt keinen KI-Chatbot und kein Sprachmodell. Übersetzungen von DeepL.', 'No AI chatbot or language model runs on this site. Translations by DeepL.'),
     footerDict: zwei('Wiktionary', 'German Wiktionary'),
     footerHref: zwei('https://de.wiktionary.org', 'https://de.wiktionary.org'),
     footerCredit: zwei(' (CC BY-SA)', ' (CC BY-SA)'),
@@ -1066,7 +1071,7 @@ const GERMAN = {
       'Translate from German to English and English to German. Conjugate any verb. Look words up and ask the tutor.',
     ),
     ctaTranslate: zwei('Probier den Übersetzer', 'Try the translator'),
-    ctaChat: zwei('Sprich mit ProfeGPT', 'Talk to ProfeGPT'),
+    ctaChat: zwei('Sprich mit Profe', 'Talk to Profe'),
   },
 
   translator: {
@@ -1205,7 +1210,7 @@ const GERMAN = {
   },
 
   chat: {
-    title: zwei('Frag ProfeGPT', 'Ask ProfeGPT'),
+    title: zwei('Frag Profe', 'Ask Profe'),
     lead: zwei(
       'Konjugationen, Definitionen, Übersetzungen und Erklärungen zur Grammatik.',
       'Conjugations, definitions, translations and grammar explanations.',
@@ -1225,7 +1230,7 @@ const GERMAN = {
   },
 
   home: {
-    title: zwei('ProfeGPT', 'ProfeGPT'),
+    title: zwei('Profe', 'Profe'),
     lead: zwei(
       'Ein Übersetzer, Konjugationstabellen, ein Wörterbuch und ein Tutor für jede Sprache. Such dir eine aus.',
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),
@@ -1265,10 +1270,11 @@ const DUTCH = {
   },
 
   meta: {
-    home: twee('ProfeGPT', 'ProfeGPT'),
+    home: twee('Profe', 'Profe'),
     skip: twee('Ga naar de inhoud', 'Skip to content'),
     footer: twee('definities uit het', 'definitions from the'),
     copyright: twee('© Yuzhe (Julian) Chen 2026', '© Yuzhe (Julian) Chen 2026'),
+    noAi: twee('Deze site gebruikt geen AI-chatbot of taalmodel. Vertalingen door DeepL.', 'No AI chatbot or language model runs on this site. Translations by DeepL.'),
     footerDict: twee('WikiWoordenboek', 'WikiWoordenboek'),
     footerHref: twee('https://nl.wiktionary.org', 'https://nl.wiktionary.org'),
     footerCredit: twee(' (CC BY-SA)', ' (CC BY-SA)'),
@@ -1280,7 +1286,7 @@ const DUTCH = {
       'Translate from Dutch to English and English to Dutch. Conjugate any verb. Look words up and ask the tutor.',
     ),
     ctaTranslate: twee('Probeer de vertaler', 'Try the translator'),
-    ctaChat: twee('Praat met ProfeGPT', 'Talk to ProfeGPT'),
+    ctaChat: twee('Praat met Profe', 'Talk to Profe'),
   },
 
   translator: {
@@ -1419,7 +1425,7 @@ const DUTCH = {
   },
 
   chat: {
-    title: twee('Vraag het ProfeGPT', 'Ask ProfeGPT'),
+    title: twee('Vraag het Profe', 'Ask Profe'),
     lead: twee(
       'Vervoegingen, definities, vertalingen en uitleg over grammatica.',
       'Conjugations, definitions, translations and grammar explanations.',
@@ -1439,7 +1445,7 @@ const DUTCH = {
   },
 
   home: {
-    title: twee('ProfeGPT', 'ProfeGPT'),
+    title: twee('Profe', 'Profe'),
     lead: twee(
       'Een vertaler, vervoegingen, een woordenboek en een tutor voor elke taal. Kies er een om te beginnen.',
       'A translator, conjugation tables, a dictionary and a tutor for each language. Pick one to begin.'),

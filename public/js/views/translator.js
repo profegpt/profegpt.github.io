@@ -40,7 +40,7 @@ export function renderTranslatorPage(main) {
   const hero = el('section', { class: 'hero shell' },
     el('div', { class: 'hero__copy' },
       el('h1', { class: 'hero__title' },
-        el('span', {}, 'profegpt'),
+        el('span', {}, 'profe'),
         el('span', {}, t('translator.studyName'))),
       el('p', { class: 'hero__sub' }, t('hero.sub')),
       el('div', { class: 'hero__cta' },

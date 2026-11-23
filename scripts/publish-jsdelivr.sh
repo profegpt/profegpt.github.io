@@ -15,12 +15,12 @@ G="git -C $ARCADE -c user.name=yuzhe-chen -c user.email=215733212+yuzhe-chen@use
 $G pull -q --rebase
 node scripts/standalone.mjs "$ARCADE/profegpt/index.html"
 $G add profegpt/index.html profegpt/open.svg
-$G commit -q -m "ProfeGPT page update" || echo "page unchanged"
+$G commit -q -m "Profe page update" || echo "page unchanged"
 $G push -q
 C=$($G rev-parse HEAD)
 echo "$C" > "$ARCADE/profegpt/latest.txt"
 $G add profegpt/latest.txt
-$G commit -q -m "Point the ProfeGPT loader at $C" || true
+$G commit -q -m "Point the Profe loader at $C" || true
 $G push -q
 for f in latest.txt open.svg; do curl -s "https://purge.jsdelivr.net/gh/yuzhe-chen/saxon-arcade@main/profegpt/$f" >/dev/null; done
 curl -s "https://cdn.jsdelivr.net/gh/yuzhe-chen/saxon-arcade@$C/profegpt/index.html" -o /dev/null -w "warm %{http_code} %{size_download}\n"

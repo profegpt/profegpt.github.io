@@ -1,5 +1,5 @@
 /**
- * ProfeGPT on Google Apps Script — the entry points.
+ * Profe on Google Apps Script — the entry points.
  *
  * Every top-level function in this project without a trailing underscore can
  * be called by any visitor's browser, so there are exactly four: the page
@@ -43,7 +43,7 @@ function doGet(e) {
     .replace('"__PROFEGPT_BOOT__"', JSON.stringify(boot).replace(/</g, '\\u003c'));
 
   return HtmlService.createHtmlOutput(html)
-    .setTitle('ProfeGPT')
+    .setTitle('Profe')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 

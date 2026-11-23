@@ -89,7 +89,7 @@ export function renderHome(main) {
 
   const hero = el('section', { class: 'hero shell' },
     el('div', { class: 'hero__copy' },
-      el('h1', { class: 'hero__title' }, 'profegpt'),
+      el('h1', { class: 'hero__title' }, 'profe'),
       lead,
       galleryHolder),
     el('div', { class: 'hero__art' }, spinningGlobe()));
