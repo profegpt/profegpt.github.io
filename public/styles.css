@@ -317,7 +317,7 @@ html:not([data-study="es"]) .nav__links a[data-nav="tilde"] { display: none !imp
   border-radius: var(--radius);
   background: var(--panel);
 }
-.wotd__label { margin: 0 0 6px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-faint); }
+.wotd__label { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: var(--text-faint); }
 .wotd__language { color: var(--brand); }
 .wotd__language::before { content: ' '; }
 .wotd__word { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(30px, 4vw, 42px); line-height: 1.05; letter-spacing: -0.02em; color: var(--heading); overflow-wrap: anywhere; }
@@ -584,7 +584,7 @@ html:not([data-study="es"]) .nav__links a[data-nav="tilde"] { display: none !imp
 /* --- the way into the other pages: Duolingo's investor-site cards --------------- */
 
 .features { padding-top: 8px; padding-bottom: 104px; }
-.features__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.features__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 /* The Spanish side has a fourth card, Tilde, so its four stand two by two. */
 .features__grid--four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
@@ -1031,7 +1031,7 @@ table.md-table tbody td:first-child { color: var(--text-dim); white-space: nowra
 .tilde__play { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
 .tilde__bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; max-width: calc(var(--size) * 68px); min-height: 36px; }
 .tilde__meta { display: flex; gap: 14px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-faint); }
-.tilde__meta span + span::before { content: '·'; margin-right: 14px; }
+.tilde__meta span + span { margin-left: 14px; }
 .tilde__tools { display: flex; gap: 8px; }
 .tilde__help { gap: 6px; }
 
@@ -1131,7 +1131,7 @@ table.md-table tbody td:first-child { color: var(--text-dim); white-space: nowra
   background: var(--gold-wash);
 }
 .tilde__hint { max-width: calc(var(--size) * 68px); }
-.tilde__label { margin: 0 0 4px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-faint); }
+.tilde__label { margin: 0 0 4px; font-size: 13px; font-weight: 800; color: var(--text-faint); }
 .tilde__hint .tilde__label { color: #a07200; }
 :root[data-theme="dark"] .tilde__hint .tilde__label { color: var(--gold); }
 .tilde__sentence { font-size: 18px; font-weight: 700; color: var(--text); }

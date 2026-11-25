@@ -158,7 +158,7 @@ async function navigate() {
     main.dataset.page = route.home ? 'home' : route.nav;
     document.title = route.home || route.path === '/'
       ? t('meta.home')
-      : `Profe · ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
+      : `Profe: ${t(`nav.${NAV_KEYS[route.nav]}`)}`;
     teardown = (await route.render(main)) || null;
     currentKey = key;
     if (!hash) window.scrollTo({ top: 0 });
